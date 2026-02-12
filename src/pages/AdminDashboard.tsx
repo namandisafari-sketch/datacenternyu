@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +15,11 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import {
   Users, CheckCircle, XCircle, Clock, DollarSign, PlusCircle, Search,
-  Eye, AlertTriangle, School, User, Phone, Mail, Calendar, MapPin, BookOpen, FileText, ShieldAlert,
+  Eye, AlertTriangle, School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, GraduationCap,
 } from "lucide-react";
+import AdminStats from "@/components/admin/AdminStats";
+import SchoolAccountsSection from "@/components/admin/SchoolAccountsSection";
+import StudentManagement from "@/components/admin/StudentManagement";
 
 interface Application {
   id: string;
@@ -117,9 +120,6 @@ const AdminDashboard = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [claimForm, setClaimForm] = useState({ applicationId: "", schoolId: "", claimType: "general", description: "", actionTaken: "" });
   const [claimDialogOpen, setClaimDialogOpen] = useState(false);
-  const [schoolAccountForm, setSchoolAccountForm] = useState({ email: "", password: "", fullName: "", schoolId: "" });
-  const [schoolAccountDialogOpen, setSchoolAccountDialogOpen] = useState(false);
-  const [creatingSchoolAccount, setCreatingSchoolAccount] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) navigate("/auth");
@@ -210,31 +210,6 @@ const AdminDashboard = () => {
 
   const getSchool = (schoolId: string | null) => schools.find((s) => s.id === schoolId);
 
-  const createSchoolAccount = async () => {
-    const { email, password, fullName, schoolId } = schoolAccountForm;
-    if (!email || !password || !fullName || !schoolId) {
-      toast.error("Fill in all fields"); return;
-    }
-    setCreatingSchoolAccount(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await supabase.functions.invoke("create-school-account", {
-        body: { email, password, full_name: fullName, school_id: schoolId },
-      });
-      if (res.error || res.data?.error) {
-        toast.error(res.data?.error || res.error?.message || "Failed to create account");
-      } else {
-        toast.success("School account created successfully");
-        setSchoolAccountForm({ email: "", password: "", fullName: "", schoolId: "" });
-        setSchoolAccountDialogOpen(false);
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Error creating school account");
-    } finally {
-      setCreatingSchoolAccount(false);
-    }
-  };
-
   const openDetail = (app: Application) => {
     setSelectedApp(app);
     setDetailOpen(true);
@@ -265,260 +240,234 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4">
         <h1 className="font-display text-3xl font-bold text-primary mb-8">Admin Dashboard</h1>
 
-        {/* Stats */}
-        <div className="grid sm:grid-cols-5 gap-4 mb-8">
-          {[
-            { label: "Total Applications", value: counts.total, icon: Users, color: "text-primary" },
-            { label: "Pending Review", value: counts.pending, icon: Clock, color: "text-yellow-600" },
-            { label: "Approved", value: counts.approved, icon: CheckCircle, color: "text-accent" },
-            { label: "Total Spent", value: formatUGX(counts.totalSpent), icon: DollarSign, color: "text-secondary" },
-            { label: "Open Claims", value: counts.openClaims, icon: AlertTriangle, color: "text-destructive" },
-          ].map((s) => (
-            <Card key={s.label}>
-              <CardContent className="py-5 flex items-center gap-4">
-                <s.icon size={28} className={s.color} />
-                <div>
-                  <p className="text-xl font-bold text-foreground">{s.value}</p>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <AdminStats {...counts} formatUGX={formatUGX} />
 
-        {/* Filters & Actions */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search student or parent..." className="pl-9" />
-          </div>
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="under_review">Under Review</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Main tabs */}
+        <Tabs defaultValue="applications" className="space-y-6">
+          <TabsList className="w-full max-w-xl">
+            <TabsTrigger value="applications" className="flex-1 gap-1"><FileText size={16} /> Applications</TabsTrigger>
+            <TabsTrigger value="students" className="flex-1 gap-1"><GraduationCap size={16} /> Students</TabsTrigger>
+            <TabsTrigger value="schools" className="flex-1 gap-1"><School size={16} /> Schools</TabsTrigger>
+          </TabsList>
 
-          {/* Record Expense */}
-          <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 gap-2">
-                <PlusCircle size={18} /> Record Expense
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle className="font-display">Record Expense</DialogTitle></DialogHeader>
-              <div className="space-y-4 mt-2">
-                <div className="space-y-2">
-                  <Label>Student (Approved)</Label>
-                  <Select value={expenseForm.applicationId} onValueChange={(v) => setExpenseForm((p) => ({ ...p, applicationId: v }))}>
-                    <SelectTrigger><SelectValue placeholder="Select student..." /></SelectTrigger>
-                    <SelectContent>{approvedApps.map((a) => <SelectItem key={a.id} value={a.id}>{a.student_name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Input value={expenseForm.description} onChange={(e) => setExpenseForm((p) => ({ ...p, description: e.target.value }))} placeholder="e.g. Tuition Term 1" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Amount (UGX)</Label>
-                    <Input type="number" value={expenseForm.amount} onChange={(e) => setExpenseForm((p) => ({ ...p, amount: e.target.value }))} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Term</Label>
-                    <Input value={expenseForm.term} onChange={(e) => setExpenseForm((p) => ({ ...p, term: e.target.value }))} placeholder="Term 1 2025" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Category</Label>
-                  <Select value={expenseForm.category} onValueChange={(v) => setExpenseForm((p) => ({ ...p, category: v }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="tuition">Tuition</SelectItem>
-                      <SelectItem value="materials">Scholastic Materials</SelectItem>
-                      <SelectItem value="uniform">Uniform</SelectItem>
-                      <SelectItem value="boarding">Boarding</SelectItem>
-                      <SelectItem value="examination">Examination Fees</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={addExpense} className="w-full bg-primary text-primary-foreground">Save Expense</Button>
+          {/* ===== APPLICATIONS TAB ===== */}
+          <TabsContent value="applications">
+            {/* Filters & Actions */}
+            <div className="flex flex-wrap gap-3 mb-6">
+              <div className="relative flex-1 min-w-[200px] max-w-sm">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search student or parent..." className="pl-9" />
               </div>
-            </DialogContent>
-          </Dialog>
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="under_review">Under Review</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
 
-          {/* File Claim */}
-          <Dialog open={claimDialogOpen} onOpenChange={setClaimDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="destructive" className="gap-2">
-                <ShieldAlert size={18} /> File Claim
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle className="font-display">File a Claim on Student</DialogTitle></DialogHeader>
-              <div className="space-y-4 mt-2">
-                <div className="space-y-2">
-                  <Label>Student</Label>
-                  <Select value={claimForm.applicationId} onValueChange={(v) => setClaimForm((p) => ({ ...p, applicationId: v }))}>
-                    <SelectTrigger><SelectValue placeholder="Select student..." /></SelectTrigger>
-                    <SelectContent>{approvedApps.map((a) => <SelectItem key={a.id} value={a.id}>{a.student_name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Reporting School (optional)</Label>
-                  <Select value={claimForm.schoolId} onValueChange={(v) => setClaimForm((p) => ({ ...p, schoolId: v }))}>
-                    <SelectTrigger><SelectValue placeholder="Select school..." /></SelectTrigger>
-                    <SelectContent>{schools.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Claim Type</Label>
-                  <Select value={claimForm.claimType} onValueChange={(v) => setClaimForm((p) => ({ ...p, claimType: v }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{claimTypes.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Description *</Label>
-                  <Textarea rows={3} value={claimForm.description} onChange={(e) => setClaimForm((p) => ({ ...p, description: e.target.value }))} placeholder="Describe the issue..." />
-                </div>
-                <div className="space-y-2">
-                  <Label>Action Taken (optional)</Label>
-                  <Input value={claimForm.actionTaken} onChange={(e) => setClaimForm((p) => ({ ...p, actionTaken: e.target.value }))} placeholder="e.g. Sponsorship suspended" />
-                </div>
-                <Button onClick={addClaim} className="w-full" variant="destructive">Submit Claim</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Create School Account */}
-          <Dialog open={schoolAccountDialogOpen} onOpenChange={setSchoolAccountDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <School size={18} /> Create School Account
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle className="font-display">Create School Account</DialogTitle></DialogHeader>
-              <div className="space-y-4 mt-2">
-                <div className="space-y-2">
-                  <Label>Partner School *</Label>
-                  <Select value={schoolAccountForm.schoolId} onValueChange={(v) => setSchoolAccountForm((p) => ({ ...p, schoolId: v }))}>
-                    <SelectTrigger><SelectValue placeholder="Select school..." /></SelectTrigger>
-                    <SelectContent>{schools.map((s) => <SelectItem key={s.id} value={s.id}>{s.name} — {s.district}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Contact Person Name *</Label>
-                  <Input value={schoolAccountForm.fullName} onChange={(e) => setSchoolAccountForm((p) => ({ ...p, fullName: e.target.value }))} placeholder="e.g. John Mukasa" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Email *</Label>
-                  <Input type="email" value={schoolAccountForm.email} onChange={(e) => setSchoolAccountForm((p) => ({ ...p, email: e.target.value }))} placeholder="school@example.com" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Password *</Label>
-                  <Input type="password" value={schoolAccountForm.password} onChange={(e) => setSchoolAccountForm((p) => ({ ...p, password: e.target.value }))} placeholder="Minimum 6 characters" />
-                </div>
-                <Button onClick={createSchoolAccount} disabled={creatingSchoolAccount} className="w-full bg-primary text-primary-foreground">
-                  {creatingSchoolAccount ? "Creating..." : "Create Account"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Applications list */}
-        <div className="space-y-4">
-          {filtered.map((app) => {
-            const appExpenses = expenses.filter((e) => e.application_id === app.id);
-            const appClaims = claims.filter((c) => c.application_id === app.id);
-            const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
-            const school = getSchool(app.school_id);
-            const openClaimsCount = appClaims.filter((c) => c.status === "open").length;
-
-            return (
-              <Card key={app.id}>
-                <CardContent className="py-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-lg text-foreground">{app.student_name}</h3>
-                        {openClaimsCount > 0 && (
-                          <Badge variant="destructive" className="gap-1 text-xs">
-                            <AlertTriangle size={12} /> {openClaimsCount} claim{openClaimsCount > 1 ? "s" : ""}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        <span className="inline-flex items-center gap-1"><User size={12} /> {app.parent_name}</span>
-                        <span className="mx-1">•</span>
-                        <span className="inline-flex items-center gap-1"><Phone size={12} /> {app.parent_phone}</span>
-                        <span className="mx-1">•</span>
-                         <span className="inline-flex items-center gap-1"><BookOpen size={12} /> {levelLabels[app.education_level] || app.education_level}</span>
-                        {app.class_grade && <span className="mx-1">• Class: {app.class_grade}</span>}
-                        {school && <><span className="mx-1">•</span><span className="inline-flex items-center gap-1"><School size={12} /> {school.name}</span></>}
-                        {app.district && <><span className="mx-1">•</span><span className="inline-flex items-center gap-1"><MapPin size={12} /> {app.district}</span></>}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">Applied: {new Date(app.created_at).toLocaleDateString()}</p>
+              {/* Record Expense */}
+              <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-secondary text-secondary-foreground hover:bg-secondary/90 gap-2">
+                    <PlusCircle size={18} /> Record Expense
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle className="font-display">Record Expense</DialogTitle></DialogHeader>
+                  <div className="space-y-4 mt-2">
+                    <div className="space-y-2">
+                      <Label>Student (Approved)</Label>
+                      <Select value={expenseForm.applicationId} onValueChange={(v) => setExpenseForm((p) => ({ ...p, applicationId: v }))}>
+                        <SelectTrigger><SelectValue placeholder="Select student..." /></SelectTrigger>
+                        <SelectContent>{approvedApps.map((a) => <SelectItem key={a.id} value={a.id}>{a.student_name}</SelectItem>)}</SelectContent>
+                      </Select>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{app.status}</Badge>
-                      <Button size="sm" variant="ghost" className="gap-1" onClick={() => openDetail(app)}>
-                        <Eye size={14} /> View
-                      </Button>
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <Input value={expenseForm.description} onChange={(e) => setExpenseForm((p) => ({ ...p, description: e.target.value }))} placeholder="e.g. Tuition Term 1" />
                     </div>
-                  </div>
-
-                  {/* Admin actions */}
-                  {(app.status === "pending" || app.status === "under_review") && (
-                    <div className="border-t border-border pt-3 mt-3 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label className="text-xs">Admin Notes</Label>
-                        <Textarea
-                          rows={2}
-                          value={reviewNotes[app.id] || ""}
-                          onChange={(e) => setReviewNotes((p) => ({ ...p, [app.id]: e.target.value }))}
-                          placeholder="Add notes about this application..."
-                        />
+                        <Label>Amount (UGX)</Label>
+                        <Input type="number" value={expenseForm.amount} onChange={(e) => setExpenseForm((p) => ({ ...p, amount: e.target.value }))} />
                       </div>
-                      <div className="flex gap-2">
-                        {app.status === "pending" && (
-                          <Button size="sm" variant="outline" onClick={() => updateStatus(app.id, "under_review")}>Mark Under Review</Button>
-                        )}
-                        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-1" onClick={() => updateStatus(app.id, "approved")}>
-                          <CheckCircle size={14} /> Approve
-                        </Button>
-                        <Button size="sm" variant="destructive" className="gap-1" onClick={() => updateStatus(app.id, "rejected")}>
-                          <XCircle size={14} /> Reject
-                        </Button>
+                      <div className="space-y-2">
+                        <Label>Term</Label>
+                        <Input value={expenseForm.term} onChange={(e) => setExpenseForm((p) => ({ ...p, term: e.target.value }))} placeholder="Term 1 2025" />
                       </div>
                     </div>
-                  )}
+                    <div className="space-y-2">
+                      <Label>Category</Label>
+                      <Select value={expenseForm.category} onValueChange={(v) => setExpenseForm((p) => ({ ...p, category: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="tuition">Tuition</SelectItem>
+                          <SelectItem value="materials">Scholastic Materials</SelectItem>
+                          <SelectItem value="uniform">Uniform</SelectItem>
+                          <SelectItem value="boarding">Boarding</SelectItem>
+                          <SelectItem value="examination">Examination Fees</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button onClick={addExpense} className="w-full bg-primary text-primary-foreground">Save Expense</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
-                  {/* Expenses summary for approved */}
-                  {app.status === "approved" && appExpenses.length > 0 && (
-                    <div className="border-t border-border pt-3 mt-3">
-                      <div className="flex justify-between mb-1">
-                        <p className="text-sm font-medium">Expenses</p>
-                        <p className="text-sm font-semibold text-secondary">Total: {formatUGX(totalSpent)}</p>
-                      </div>
+              {/* File Claim */}
+              <Dialog open={claimDialogOpen} onOpenChange={setClaimDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="destructive" className="gap-2">
+                    <ShieldAlert size={18} /> File Claim
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle className="font-display">File a Claim on Student</DialogTitle></DialogHeader>
+                  <div className="space-y-4 mt-2">
+                    <div className="space-y-2">
+                      <Label>Student</Label>
+                      <Select value={claimForm.applicationId} onValueChange={(v) => setClaimForm((p) => ({ ...p, applicationId: v }))}>
+                        <SelectTrigger><SelectValue placeholder="Select student..." /></SelectTrigger>
+                        <SelectContent>{approvedApps.map((a) => <SelectItem key={a.id} value={a.id}>{a.student_name}</SelectItem>)}</SelectContent>
+                      </Select>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-          {filtered.length === 0 && (
-            <Card><CardContent className="py-8 text-center text-muted-foreground">No applications found.</CardContent></Card>
-          )}
-        </div>
+                    <div className="space-y-2">
+                      <Label>Reporting School (optional)</Label>
+                      <Select value={claimForm.schoolId} onValueChange={(v) => setClaimForm((p) => ({ ...p, schoolId: v }))}>
+                        <SelectTrigger><SelectValue placeholder="Select school..." /></SelectTrigger>
+                        <SelectContent>{schools.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Claim Type</Label>
+                      <Select value={claimForm.claimType} onValueChange={(v) => setClaimForm((p) => ({ ...p, claimType: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{claimTypes.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Description *</Label>
+                      <Textarea rows={3} value={claimForm.description} onChange={(e) => setClaimForm((p) => ({ ...p, description: e.target.value }))} placeholder="Describe the issue..." />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Action Taken (optional)</Label>
+                      <Input value={claimForm.actionTaken} onChange={(e) => setClaimForm((p) => ({ ...p, actionTaken: e.target.value }))} placeholder="e.g. Sponsorship suspended" />
+                    </div>
+                    <Button onClick={addClaim} className="w-full" variant="destructive">Submit Claim</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Applications list */}
+            <div className="space-y-4">
+              {filtered.map((app) => {
+                const appExpenses = expenses.filter((e) => e.application_id === app.id);
+                const appClaims = claims.filter((c) => c.application_id === app.id);
+                const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
+                const school = getSchool(app.school_id);
+                const openClaimsCount = appClaims.filter((c) => c.status === "open").length;
+
+                return (
+                  <Card key={app.id}>
+                    <CardContent className="py-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-semibold text-lg text-foreground">{app.student_name}</h3>
+                            {openClaimsCount > 0 && (
+                              <Badge variant="destructive" className="gap-1 text-xs">
+                                <AlertTriangle size={12} /> {openClaimsCount} claim{openClaimsCount > 1 ? "s" : ""}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            <span className="inline-flex items-center gap-1"><User size={12} /> {app.parent_name}</span>
+                            <span className="mx-1">•</span>
+                            <span className="inline-flex items-center gap-1"><Phone size={12} /> {app.parent_phone}</span>
+                            <span className="mx-1">•</span>
+                            <span className="inline-flex items-center gap-1"><BookOpen size={12} /> {levelLabels[app.education_level] || app.education_level}</span>
+                            {app.class_grade && <span className="mx-1">• Class: {app.class_grade}</span>}
+                            {school && <><span className="mx-1">•</span><span className="inline-flex items-center gap-1"><School size={12} /> {school.name}</span></>}
+                            {app.district && <><span className="mx-1">•</span><span className="inline-flex items-center gap-1"><MapPin size={12} /> {app.district}</span></>}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">Applied: {new Date(app.created_at).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">{app.status}</Badge>
+                          <Button size="sm" variant="ghost" className="gap-1" onClick={() => openDetail(app)}>
+                            <Eye size={14} /> View
+                          </Button>
+                        </div>
+                      </div>
+
+                      {(app.status === "pending" || app.status === "under_review") && (
+                        <div className="border-t border-border pt-3 mt-3 space-y-3">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Admin Notes</Label>
+                            <Textarea
+                              rows={2}
+                              value={reviewNotes[app.id] || ""}
+                              onChange={(e) => setReviewNotes((p) => ({ ...p, [app.id]: e.target.value }))}
+                              placeholder="Add notes about this application..."
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            {app.status === "pending" && (
+                              <Button size="sm" variant="outline" onClick={() => updateStatus(app.id, "under_review")}>Mark Under Review</Button>
+                            )}
+                            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-1" onClick={() => updateStatus(app.id, "approved")}>
+                              <CheckCircle size={14} /> Approve
+                            </Button>
+                            <Button size="sm" variant="destructive" className="gap-1" onClick={() => updateStatus(app.id, "rejected")}>
+                              <XCircle size={14} /> Reject
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {app.status === "approved" && appExpenses.length > 0 && (
+                        <div className="border-t border-border pt-3 mt-3">
+                          <div className="flex justify-between mb-1">
+                            <p className="text-sm font-medium">Expenses</p>
+                            <p className="text-sm font-semibold text-secondary">Total: {formatUGX(totalSpent)}</p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+              {filtered.length === 0 && (
+                <Card><CardContent className="py-8 text-center text-muted-foreground">No applications found.</CardContent></Card>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* ===== STUDENTS TAB ===== */}
+          <TabsContent value="students">
+            <StudentManagement
+              applications={applications}
+              schools={schools}
+              expenses={expenses}
+              claims={claims}
+              reportCards={reportCards}
+              userId={user!.id}
+              formatUGX={formatUGX}
+              onRefresh={fetchData}
+            />
+          </TabsContent>
+
+          {/* ===== SCHOOLS TAB ===== */}
+          <TabsContent value="schools">
+            <SchoolAccountsSection schools={schools} />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Student Detail Dialog */}
@@ -541,7 +490,7 @@ const AdminDashboard = () => {
                 </DialogHeader>
 
                 <Tabs defaultValue="info" className="mt-4">
-                   <TabsList className="w-full">
+                  <TabsList className="w-full">
                     <TabsTrigger value="info" className="flex-1">Full Info</TabsTrigger>
                     <TabsTrigger value="requirements" className="flex-1">Requirements</TabsTrigger>
                     <TabsTrigger value="expenses" className="flex-1">Expenses ({appExpenses.length})</TabsTrigger>
@@ -549,7 +498,6 @@ const AdminDashboard = () => {
                     <TabsTrigger value="claims" className="flex-1">Claims ({appClaims.length})</TabsTrigger>
                   </TabsList>
 
-                  {/* Full Info Tab */}
                   <TabsContent value="info" className="space-y-5 mt-4">
                     <div>
                       <h4 className="font-semibold text-sm text-primary mb-3 flex items-center gap-2"><User size={16} /> Student Information</h4>
@@ -557,7 +505,7 @@ const AdminDashboard = () => {
                         <div><span className="text-muted-foreground">Full Name:</span> <span className="font-medium">{selectedApp.student_name}</span></div>
                         <div><span className="text-muted-foreground">Gender:</span> <span className="font-medium capitalize">{selectedApp.gender || "N/A"}</span></div>
                         <div><span className="text-muted-foreground">Date of Birth:</span> <span className="font-medium">{selectedApp.date_of_birth ? new Date(selectedApp.date_of_birth).toLocaleDateString() : "N/A"}</span></div>
-                         <div><span className="text-muted-foreground">Education Level:</span> <span className="font-medium">{levelLabels[selectedApp.education_level] || selectedApp.education_level}</span></div>
+                        <div><span className="text-muted-foreground">Education Level:</span> <span className="font-medium">{levelLabels[selectedApp.education_level] || selectedApp.education_level}</span></div>
                         <div><span className="text-muted-foreground">Class / Grade:</span> <span className="font-medium">{selectedApp.class_grade || "N/A"}</span></div>
                         <div><span className="text-muted-foreground">District:</span> <span className="font-medium">{selectedApp.district || "N/A"}</span></div>
                         <div><span className="text-muted-foreground">Current School:</span> <span className="font-medium">{selectedApp.current_school || "N/A"}</span></div>
@@ -604,7 +552,6 @@ const AdminDashboard = () => {
                     )}
                   </TabsContent>
 
-                  {/* Requirements Tab */}
                   <TabsContent value="requirements" className="mt-4">
                     {school?.requirements ? (
                       <div className="space-y-4">
@@ -614,26 +561,18 @@ const AdminDashboard = () => {
                         <div>
                           <h4 className="font-semibold text-sm mb-2">Student Checklist</h4>
                           <div className="space-y-2 text-sm">
-                            <div className="flex items-center gap-2">
-                              {selectedApp.date_of_birth ? <CheckCircle size={16} className="text-accent" /> : <XCircle size={16} className="text-destructive" />}
-                              <span>Date of birth provided</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {selectedApp.gender ? <CheckCircle size={16} className="text-accent" /> : <XCircle size={16} className="text-destructive" />}
-                              <span>Gender specified</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {selectedApp.district ? <CheckCircle size={16} className="text-accent" /> : <XCircle size={16} className="text-destructive" />}
-                              <span>District provided</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {selectedApp.parent_phone ? <CheckCircle size={16} className="text-accent" /> : <XCircle size={16} className="text-destructive" />}
-                              <span>Parent contact available</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {selectedApp.reason ? <CheckCircle size={16} className="text-accent" /> : <XCircle size={16} className="text-destructive" />}
-                              <span>Reason for support provided</span>
-                            </div>
+                            {[
+                              { ok: !!selectedApp.date_of_birth, label: "Date of birth provided" },
+                              { ok: !!selectedApp.gender, label: "Gender specified" },
+                              { ok: !!selectedApp.district, label: "District provided" },
+                              { ok: !!selectedApp.parent_phone, label: "Parent contact available" },
+                              { ok: !!selectedApp.reason, label: "Reason for support provided" },
+                            ].map((item) => (
+                              <div key={item.label} className="flex items-center gap-2">
+                                {item.ok ? <CheckCircle size={16} className="text-accent" /> : <XCircle size={16} className="text-destructive" />}
+                                <span>{item.label}</span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -642,7 +581,6 @@ const AdminDashboard = () => {
                     )}
                   </TabsContent>
 
-                  {/* Expenses Tab */}
                   <TabsContent value="expenses" className="mt-4">
                     {appExpenses.length > 0 ? (
                       <div className="space-y-3">
@@ -666,7 +604,6 @@ const AdminDashboard = () => {
                     )}
                   </TabsContent>
 
-                  {/* Report Cards Tab */}
                   <TabsContent value="reports" className="mt-4">
                     {appReports.length > 0 ? (
                       <div className="space-y-3">
