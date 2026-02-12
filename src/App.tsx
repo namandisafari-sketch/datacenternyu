@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import Auth from "./pages/Auth";
 import ParentDashboard from "./pages/ParentDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import SchoolDashboard from "./pages/SchoolDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<ParentDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/school" element={<SchoolDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

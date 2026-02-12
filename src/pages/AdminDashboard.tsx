@@ -27,6 +27,7 @@ interface Application {
   relationship: string | null;
   student_name: string;
   education_level: string;
+  class_grade: string | null;
   date_of_birth: string | null;
   gender: string | null;
   current_school: string | null;
@@ -72,6 +73,16 @@ interface Claim {
   created_at: string;
 }
 
+interface ReportCard {
+  id: string;
+  application_id: string;
+  term: string;
+  year: string;
+  file_url: string;
+  notes: string | null;
+  created_at: string;
+}
+
 const formatUGX = (amount: number) =>
   new Intl.NumberFormat("en-UG", { style: "currency", currency: "UGX", maximumFractionDigits: 0 }).format(amount);
 
@@ -95,6 +106,7 @@ const AdminDashboard = () => {
   const [schools, setSchools] = useState<SchoolRow[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
+  const [reportCards, setReportCards] = useState<ReportCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -111,16 +123,18 @@ const AdminDashboard = () => {
   }, [user, isAdmin, authLoading, navigate]);
 
   const fetchData = async () => {
-    const [appsRes, expsRes, schoolsRes, claimsRes] = await Promise.all([
+    const [appsRes, expsRes, schoolsRes, claimsRes, reportsRes] = await Promise.all([
       supabase.from("applications").select("*").order("created_at", { ascending: false }),
       supabase.from("expenses").select("*").order("created_at", { ascending: false }),
       supabase.from("schools").select("*"),
       supabase.from("student_claims").select("*").order("created_at", { ascending: false }),
+      supabase.from("report_cards").select("*").order("created_at", { ascending: false }),
     ]);
     setApplications((appsRes.data as unknown as Application[]) || []);
     setExpenses((expsRes.data as unknown as Expense[]) || []);
     setSchools((schoolsRes.data as unknown as SchoolRow[]) || []);
     setClaims((claimsRes.data as unknown as Claim[]) || []);
+    setReportCards((reportsRes.data as unknown as ReportCard[]) || []);
     setLoading(false);
   };
 
@@ -383,7 +397,8 @@ const AdminDashboard = () => {
                         <span className="mx-1">•</span>
                         <span className="inline-flex items-center gap-1"><Phone size={12} /> {app.parent_phone}</span>
                         <span className="mx-1">•</span>
-                        <span className="inline-flex items-center gap-1"><BookOpen size={12} /> {levelLabels[app.education_level] || app.education_level}</span>
+                         <span className="inline-flex items-center gap-1"><BookOpen size={12} /> {levelLabels[app.education_level] || app.education_level}</span>
+                        {app.class_grade && <span className="mx-1">• Class: {app.class_grade}</span>}
                         {school && <><span className="mx-1">•</span><span className="inline-flex items-center gap-1"><School size={12} /> {school.name}</span></>}
                         {app.district && <><span className="mx-1">•</span><span className="inline-flex items-center gap-1"><MapPin size={12} /> {app.district}</span></>}
                       </p>
@@ -449,6 +464,7 @@ const AdminDashboard = () => {
             const school = getSchool(selectedApp.school_id);
             const appExpenses = expenses.filter((e) => e.application_id === selectedApp.id);
             const appClaims = claims.filter((c) => c.application_id === selectedApp.id);
+            const appReports = reportCards.filter((r) => r.application_id === selectedApp.id);
             const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
 
             return (
@@ -461,10 +477,11 @@ const AdminDashboard = () => {
                 </DialogHeader>
 
                 <Tabs defaultValue="info" className="mt-4">
-                  <TabsList className="w-full">
+                   <TabsList className="w-full">
                     <TabsTrigger value="info" className="flex-1">Full Info</TabsTrigger>
                     <TabsTrigger value="requirements" className="flex-1">Requirements</TabsTrigger>
                     <TabsTrigger value="expenses" className="flex-1">Expenses ({appExpenses.length})</TabsTrigger>
+                    <TabsTrigger value="reports" className="flex-1">Reports ({appReports.length})</TabsTrigger>
                     <TabsTrigger value="claims" className="flex-1">Claims ({appClaims.length})</TabsTrigger>
                   </TabsList>
 
@@ -476,7 +493,8 @@ const AdminDashboard = () => {
                         <div><span className="text-muted-foreground">Full Name:</span> <span className="font-medium">{selectedApp.student_name}</span></div>
                         <div><span className="text-muted-foreground">Gender:</span> <span className="font-medium capitalize">{selectedApp.gender || "N/A"}</span></div>
                         <div><span className="text-muted-foreground">Date of Birth:</span> <span className="font-medium">{selectedApp.date_of_birth ? new Date(selectedApp.date_of_birth).toLocaleDateString() : "N/A"}</span></div>
-                        <div><span className="text-muted-foreground">Education Level:</span> <span className="font-medium">{levelLabels[selectedApp.education_level] || selectedApp.education_level}</span></div>
+                         <div><span className="text-muted-foreground">Education Level:</span> <span className="font-medium">{levelLabels[selectedApp.education_level] || selectedApp.education_level}</span></div>
+                        <div><span className="text-muted-foreground">Class / Grade:</span> <span className="font-medium">{selectedApp.class_grade || "N/A"}</span></div>
                         <div><span className="text-muted-foreground">District:</span> <span className="font-medium">{selectedApp.district || "N/A"}</span></div>
                         <div><span className="text-muted-foreground">Current School:</span> <span className="font-medium">{selectedApp.current_school || "N/A"}</span></div>
                       </div>
@@ -584,7 +602,28 @@ const AdminDashboard = () => {
                     )}
                   </TabsContent>
 
-                  {/* Claims Tab */}
+                  {/* Report Cards Tab */}
+                  <TabsContent value="reports" className="mt-4">
+                    {appReports.length > 0 ? (
+                      <div className="space-y-3">
+                        {appReports.map((report) => (
+                          <div key={report.id} className="flex justify-between items-center text-sm p-3 bg-muted/30 rounded-lg">
+                            <div>
+                              <p className="font-medium">{report.term} {report.year}</p>
+                              {report.notes && <p className="text-xs text-muted-foreground mt-1">{report.notes}</p>}
+                              <p className="text-xs text-muted-foreground">{new Date(report.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <a href={report.file_url} target="_blank" rel="noopener noreferrer">
+                              <Button size="sm" variant="outline" className="gap-1"><FileText size={14} /> View</Button>
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground py-4 text-center">No report cards uploaded yet.</p>
+                    )}
+                  </TabsContent>
+
                   <TabsContent value="claims" className="mt-4">
                     {appClaims.length > 0 ? (
                       <div className="space-y-3">

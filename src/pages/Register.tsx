@@ -59,6 +59,7 @@ const Register = () => {
     studentName: "",
     dateOfBirth: "",
     gender: "",
+    classGrade: "",
     currentSchool: "",
     district: "",
     reason: "",
@@ -106,6 +107,7 @@ const Register = () => {
       student_name: form.studentName,
       date_of_birth: form.dateOfBirth || null,
       gender: form.gender,
+      class_grade: form.classGrade,
       education_level: selectedLevel as EducationLevel,
       school_id: selectedSchool?.id || null,
       current_school: form.currentSchool,
@@ -307,7 +309,7 @@ const Register = () => {
                       <Label htmlFor="dateOfBirth">Date of Birth</Label>
                       <Input id="dateOfBirth" type="date" value={form.dateOfBirth} onChange={(e) => update("dateOfBirth", e.target.value)} />
                     </div>
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                       <Label>Gender</Label>
                       <Select value={form.gender} onValueChange={(v) => update("gender", v)}>
                         <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
@@ -316,6 +318,10 @@ const Register = () => {
                           <SelectItem value="female">Female</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="classGrade">Class / Grade</Label>
+                      <Input id="classGrade" value={form.classGrade} onChange={(e) => update("classGrade", e.target.value)} placeholder="e.g. P.5, S.2, Year 1" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="district">District</Label>

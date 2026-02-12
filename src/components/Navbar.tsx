@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, Shield } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Shield, School } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/nyunga-logo.png";
@@ -8,7 +8,7 @@ import logo from "@/assets/nyunga-logo.png";
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, isSchool, signOut } = useAuth();
 
   const publicLinks = [
     { to: "/", label: "Home" },
@@ -46,6 +46,11 @@ const Navbar = () => {
                   <Shield size={16} /> Admin
                 </Link>
               )}
+              {isSchool && (
+                <Link to="/school" className={`text-sm font-medium transition-colors hover:text-secondary flex items-center gap-1 ${isActive("/school") ? "text-secondary" : "text-foreground"}`}>
+                  <School size={16} /> School Portal
+                </Link>
+              )}
               <Link to="/register">
                 <Button size="sm" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Apply Now</Button>
               </Link>
@@ -81,6 +86,7 @@ const Navbar = () => {
             <>
               <Link to="/dashboard" onClick={() => setOpen(false)} className="block py-2 text-sm font-medium">Dashboard</Link>
               {isAdmin && <Link to="/admin" onClick={() => setOpen(false)} className="block py-2 text-sm font-medium">Admin</Link>}
+              {isSchool && <Link to="/school" onClick={() => setOpen(false)} className="block py-2 text-sm font-medium">School Portal</Link>}
               <Link to="/register" onClick={() => setOpen(false)}>
                 <Button className="w-full bg-secondary text-secondary-foreground">Apply Now</Button>
               </Link>

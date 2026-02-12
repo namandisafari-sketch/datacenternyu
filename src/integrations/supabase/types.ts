@@ -17,6 +17,7 @@ export type Database = {
       applications: {
         Row: {
           admin_notes: string | null
+          class_grade: string | null
           created_at: string
           current_school: string | null
           date_of_birth: string | null
@@ -39,6 +40,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          class_grade?: string | null
           created_at?: string
           current_school?: string | null
           date_of_birth?: string | null
@@ -61,6 +63,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          class_grade?: string | null
           created_at?: string
           current_school?: string | null
           date_of_birth?: string | null
@@ -161,6 +164,86 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      report_cards: {
+        Row: {
+          application_id: string
+          created_at: string
+          file_url: string
+          id: string
+          notes: string | null
+          school_id: string | null
+          term: string
+          uploaded_by: string | null
+          year: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          file_url: string
+          id?: string
+          notes?: string | null
+          school_id?: string | null
+          term?: string
+          uploaded_by?: string | null
+          year?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          file_url?: string
+          id?: string
+          notes?: string | null
+          school_id?: string | null
+          term?: string
+          uploaded_by?: string | null
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_cards_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_cards_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_users: {
+        Row: {
+          created_at: string
+          id: string
+          school_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          school_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          school_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_users_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       schools: {
         Row: {
