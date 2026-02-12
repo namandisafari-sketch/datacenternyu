@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import {
   Users, CheckCircle, XCircle, Search, Eye, AlertTriangle,
-  School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, PlusCircle, DollarSign, GraduationCap,
+  School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, PlusCircle, DollarSign, GraduationCap, ArrowRightLeft,
 } from "lucide-react";
 
 interface Application {
@@ -112,6 +113,8 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
   const [detailOpen, setDetailOpen] = useState(false);
   const [editNotesId, setEditNotesId] = useState<string | null>(null);
   const [editNotesValue, setEditNotesValue] = useState("");
+  const [reassignAppId, setReassignAppId] = useState<string | null>(null);
+  const [reassignSchoolId, setReassignSchoolId] = useState("");
 
   const sponsoredStudents = applications.filter((a) => a.status === "approved");
   const getSchool = (schoolId: string | null) => schools.find((s) => s.id === schoolId);
@@ -136,6 +139,18 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
     const { error } = await supabase.from("applications").update({ status: "rejected", admin_notes: "Sponsorship stopped by admin", reviewed_at: new Date().toISOString(), reviewed_by: userId } as any).eq("id", appId);
     if (error) toast.error(error.message);
     else { toast.success("Sponsorship stopped"); onRefresh(); }
+  };
+
+  const reassignSchool = async () => {
+    if (!reassignAppId || !reassignSchoolId) return;
+    const { error } = await supabase.from("applications").update({ school_id: reassignSchoolId } as any).eq("id", reassignAppId);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Student reassigned to new school");
+      setReassignAppId(null);
+      setReassignSchoolId("");
+      onRefresh();
+    }
   };
 
   const totalInvestment = sponsoredStudents.reduce((sum, a) => {
@@ -266,10 +281,31 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                       <span>Claims: {appClaims.length}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Button size="sm" variant="ghost" className="gap-1" onClick={() => { setSelectedApp(app); setDetailOpen(true); }}>
                       <Eye size={14} /> Details
                     </Button>
+                    <Popover open={reassignAppId === app.id} onOpenChange={(open) => { setReassignAppId(open ? app.id : null); setReassignSchoolId(""); }}>
+                      <PopoverTrigger asChild>
+                        <Button size="sm" variant="outline" className="gap-1">
+                          <ArrowRightLeft size={14} /> Reassign
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 space-y-3" align="end">
+                        <p className="text-sm font-medium">Reassign {app.student_name}</p>
+                        <Select value={reassignSchoolId} onValueChange={setReassignSchoolId}>
+                          <SelectTrigger><SelectValue placeholder="Select new school..." /></SelectTrigger>
+                          <SelectContent>
+                            {schools.filter((s) => s.id !== app.school_id).map((s) => (
+                              <SelectItem key={s.id} value={s.id}>{s.name} — {s.district}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button size="sm" className="w-full" disabled={!reassignSchoolId} onClick={reassignSchool}>
+                          Confirm Reassignment
+                        </Button>
+                      </PopoverContent>
+                    </Popover>
                     <Button size="sm" variant="destructive" className="gap-1" onClick={() => stopSponsorship(app.id)}>
                       <XCircle size={14} /> Stop
                     </Button>
