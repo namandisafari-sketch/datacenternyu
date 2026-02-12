@@ -14,16 +14,237 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          current_school: string | null
+          date_of_birth: string | null
+          district: string | null
+          education_level: Database["public"]["Enums"]["education_level"]
+          gender: string | null
+          id: string
+          parent_email: string | null
+          parent_name: string
+          parent_phone: string
+          reason: string | null
+          relationship: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          school_id: string | null
+          status: Database["public"]["Enums"]["application_status"]
+          student_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          current_school?: string | null
+          date_of_birth?: string | null
+          district?: string | null
+          education_level: Database["public"]["Enums"]["education_level"]
+          gender?: string | null
+          id?: string
+          parent_email?: string | null
+          parent_name: string
+          parent_phone: string
+          reason?: string | null
+          relationship?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          student_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          current_school?: string | null
+          date_of_birth?: string | null
+          district?: string | null
+          education_level?: Database["public"]["Enums"]["education_level"]
+          gender?: string | null
+          id?: string
+          parent_email?: string | null
+          parent_name?: string
+          parent_phone?: string
+          reason?: string | null
+          relationship?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          student_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          application_id: string
+          category: string | null
+          created_at: string
+          description: string
+          id: string
+          recorded_by: string | null
+          term: string | null
+        }
+        Insert: {
+          amount?: number
+          application_id: string
+          category?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          recorded_by?: string | null
+          term?: string | null
+        }
+        Update: {
+          amount?: number
+          application_id?: string
+          category?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          recorded_by?: string | null
+          term?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      schools: {
+        Row: {
+          boarding_available: boolean | null
+          created_at: string
+          district: string
+          full_fees: number
+          id: string
+          is_active: boolean | null
+          level: Database["public"]["Enums"]["education_level"]
+          name: string
+          nyunga_covered_fees: number
+          parent_pays: number | null
+          requirements: string | null
+        }
+        Insert: {
+          boarding_available?: boolean | null
+          created_at?: string
+          district?: string
+          full_fees?: number
+          id?: string
+          is_active?: boolean | null
+          level: Database["public"]["Enums"]["education_level"]
+          name: string
+          nyunga_covered_fees?: number
+          parent_pays?: number | null
+          requirements?: string | null
+        }
+        Update: {
+          boarding_available?: boolean | null
+          created_at?: string
+          district?: string
+          full_fees?: number
+          id?: string
+          is_active?: boolean | null
+          level?: Database["public"]["Enums"]["education_level"]
+          name?: string
+          nyunga_covered_fees?: number
+          parent_pays?: number | null
+          requirements?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "parent"
+      application_status: "pending" | "under_review" | "approved" | "rejected"
+      education_level:
+        | "nursery"
+        | "primary"
+        | "secondary_o"
+        | "secondary_a"
+        | "vocational"
+        | "university"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +371,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "parent"],
+      application_status: ["pending", "under_review", "approved", "rejected"],
+      education_level: [
+        "nursery",
+        "primary",
+        "secondary_o",
+        "secondary_a",
+        "vocational",
+        "university",
+      ],
+    },
   },
 } as const
