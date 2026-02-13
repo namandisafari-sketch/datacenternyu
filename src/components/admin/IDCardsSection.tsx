@@ -72,10 +72,24 @@ const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
     container.style.position = "absolute";
     container.style.left = "-9999px";
     container.style.top = "0";
+    // Copy computed CSS custom properties from root so html-to-image resolves them
+    const root = document.documentElement;
+    const computedStyle = getComputedStyle(root);
+    const cssVars = [
+      "--background", "--foreground", "--card", "--card-foreground",
+      "--primary", "--primary-foreground", "--secondary", "--secondary-foreground",
+      "--muted", "--muted-foreground", "--accent", "--accent-foreground",
+      "--border", "--destructive", "--destructive-foreground",
+    ];
+    cssVars.forEach((v) => {
+      const val = computedStyle.getPropertyValue(v);
+      if (val) container.style.setProperty(v, val);
+    });
+    container.style.fontFamily = computedStyle.fontFamily;
     document.body.appendChild(container);
 
-    const root = createRoot(container);
-    root.render(
+    const reactRoot = createRoot(container);
+    reactRoot.render(
       <StudentIDCard
         application={app}
         schoolName={getSchoolName(app.school_id)}
@@ -84,14 +98,15 @@ const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
       />
     );
 
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 800));
 
     try {
+      // warm-up render then final capture
       await toPng(container, { quality: 1, pixelRatio: 3 });
       const dataUrl = await toPng(container, { quality: 1, pixelRatio: 3 });
       return dataUrl;
     } finally {
-      root.unmount();
+      reactRoot.unmount();
       document.body.removeChild(container);
     }
   }, [schools]);
