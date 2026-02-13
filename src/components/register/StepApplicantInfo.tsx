@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ApplicationForm } from "./types";
 import FileUpload from "./FileUpload";
 import { isValidNIN, NIN_HINT } from "./ninValidation";
+import LocationSelector from "./LocationSelector";
 
 interface Props {
   form: ApplicationForm;
@@ -55,15 +56,23 @@ const StepApplicantInfo = ({ form, update, userId }: Props) => (
             <p className="text-xs text-destructive">{NIN_HINT}</p>
           )}
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="district">District *</Label>
-          <Input id="district" value={form.district} onChange={(e) => update("district", e.target.value)} placeholder="e.g. Kampala" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="subCounty">Sub-county</Label>
-          <Input id="subCounty" value={form.subCounty} onChange={(e) => update("subCounty", e.target.value)} placeholder="e.g. Makindye" />
-        </div>
       </div>
+
+      {/* Location selector - cascading dropdowns */}
+      <div className="pt-2">
+        <Label className="text-base font-semibold mb-3 block">Location of Residence</Label>
+        <LocationSelector
+          district={form.district}
+          subCounty={form.subCounty}
+          parish={form.parish}
+          village={form.village}
+          onDistrictChange={(v) => update("district", v)}
+          onSubCountyChange={(v) => update("subCounty", v)}
+          onParishChange={(v) => update("parish", v)}
+          onVillageChange={(v) => update("village", v)}
+        />
+      </div>
+
       <FileUpload userId={userId} folder="passport-photo" label="Passport Photo" accept="image/*" value={form.passportPhotoUrl} onChange={(url) => update("passportPhotoUrl", url)} />
     </CardContent>
   </Card>
