@@ -20,6 +20,7 @@ import {
 import AdminStats from "@/components/admin/AdminStats";
 import SchoolAccountsSection from "@/components/admin/SchoolAccountsSection";
 import StudentManagement from "@/components/admin/StudentManagement";
+import LocationStats from "@/components/admin/LocationStats";
 
 interface Application {
   id: string;
@@ -35,6 +36,9 @@ interface Application {
   gender: string | null;
   current_school: string | null;
   district: string | null;
+  sub_county: string | null;
+  parish: string | null;
+  village: string | null;
   reason: string | null;
   school_id: string | null;
   status: string;
@@ -241,6 +245,8 @@ const AdminDashboard = () => {
         <h1 className="font-display text-3xl font-bold text-primary mb-8">Admin Dashboard</h1>
 
         <AdminStats {...counts} formatUGX={formatUGX} />
+
+        <LocationStats applications={applications} />
 
         {/* Main tabs */}
         <Tabs defaultValue="applications" className="space-y-6">
