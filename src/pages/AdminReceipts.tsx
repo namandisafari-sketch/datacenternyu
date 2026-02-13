@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Printer, Search, Receipt } from "lucide-react";
+import { Printer, Search, Receipt, CheckCircle, AlertTriangle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { createRoot } from "react-dom/client";
 
@@ -184,7 +184,8 @@ const AdminReceipts = () => {
           <div class="fee-row"><span>Application Form</span><span>${formatUGX(receiptConfig.applicationFormFee)}</span></div>
           <div class="fee-row"><span>Lawyer/Legal Form</span><span>${formatUGX(receiptConfig.lawyerFormFee)}</span></div>
           <div class="total-row"><span>TOTAL PAID</span><span>${formatUGX(totalFees)}</span></div>
-          <div class="center"><span class="payment-badge">PAID ✓</span></div>
+          <div class="center"><span class="payment-badge">${payment ? "VERIFIED ✓" : "PAID ✓"}</span></div>
+          ${payment ? `<div class="center" style="font-size:9px;margin-top:2px;">Code: ${payment.code}</div>` : ""}
           <div class="divider"></div>
           <div class="qr-container" id="qr-target"></div>
           <div class="center" style="font-size:8px;color:#555;">Scan to look up documents</div>
@@ -244,6 +245,7 @@ const AdminReceipts = () => {
       <div className="space-y-3">
         {filtered.map((app) => {
           const payment = getPaymentCode(app.id);
+          const hasPayment = !!payment;
           return (
             <Card key={app.id}>
               <CardContent className="py-4 flex items-center justify-between gap-4">
@@ -252,7 +254,7 @@ const AdminReceipts = () => {
                   <p className="text-sm text-muted-foreground">
                     {levelLabels[app.education_level] || app.education_level} • {getSchoolName(app.school_id)} • Parent: {app.parent_name}
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className="text-xs text-muted-foreground">
                       Receipt: {generateReceiptNumber(app)}
                     </span>
@@ -260,6 +262,11 @@ const AdminReceipts = () => {
                       <Badge variant="secondary" className="text-xs">Code: {payment.code}</Badge>
                     )}
                     <Badge className="text-xs bg-accent text-accent-foreground">{formatUGX(totalFees)}</Badge>
+                    {hasPayment ? (
+                      <Badge className="text-xs bg-green-600 text-white gap-1"><CheckCircle className="h-3 w-3" /> Payment Verified</Badge>
+                    ) : (
+                      <Badge variant="destructive" className="text-xs gap-1"><AlertTriangle className="h-3 w-3" /> No Payment Code</Badge>
+                    )}
                   </div>
                 </div>
                 <Button size="sm" className="gap-1" onClick={() => printReceipt(app.id)}>

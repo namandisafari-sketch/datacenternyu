@@ -216,16 +216,18 @@ const AdminApplications = () => {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search student or parent..." className="pl-9" />
         </div>
-        <Select value={filter} onValueChange={setFilter}>
+         <Select value={filter} onValueChange={setFilter}>
           <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="under_review">Under Review</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="approved">Completed</SelectItem>
           </SelectContent>
         </Select>
+
+        <Button className="gap-2" onClick={() => window.location.href = "/register"}>
+          <PlusCircle size={18} /> New Application
+        </Button>
 
         <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
           <DialogTrigger asChild>
@@ -355,28 +357,22 @@ const AdminApplications = () => {
                     <p className="text-xs text-muted-foreground mt-1">Applied: {new Date(app.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">{app.status}</Badge>
+                    <Badge variant="outline">{app.status === "approved" ? "Completed" : app.status}</Badge>
                     <Button size="sm" variant="ghost" className="gap-1" onClick={() => { setSelectedApp(app); setDetailOpen(true); }}>
                       <Eye size={14} /> View
                     </Button>
                   </div>
                 </div>
 
-                {(app.status === "pending" || app.status === "under_review") && (
+                {(app.status === "pending") && (
                   <div className="border-t border-border pt-3 mt-3 space-y-3">
                     <div className="space-y-2">
                       <Label className="text-xs">Admin Notes</Label>
                       <Textarea rows={2} value={reviewNotes[app.id] || ""} onChange={(e) => setReviewNotes((p) => ({ ...p, [app.id]: e.target.value }))} placeholder="Add notes..." />
                     </div>
                     <div className="flex gap-2">
-                      {app.status === "pending" && (
-                        <Button size="sm" variant="outline" onClick={() => updateStatus(app.id, "under_review")}>Mark Under Review</Button>
-                      )}
                       <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 gap-1" onClick={() => updateStatus(app.id, "approved")}>
-                        <CheckCircle size={14} /> Approve
-                      </Button>
-                      <Button size="sm" variant="destructive" className="gap-1" onClick={() => updateStatus(app.id, "rejected")}>
-                        <XCircle size={14} /> Reject
+                        <CheckCircle size={14} /> Mark Completed
                       </Button>
                     </div>
                   </div>
