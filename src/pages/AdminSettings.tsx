@@ -1,0 +1,230 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { Settings, Receipt, Building2, Save } from "lucide-react";
+
+interface ReceiptConfig {
+  orgName: string;
+  orgAddress: string;
+  orgPhone: string;
+  orgEmail: string;
+  logoText: string;
+  footerNote: string;
+  signatureName: string;
+  signatureTitle: string;
+}
+
+const defaultReceiptConfig: ReceiptConfig = {
+  orgName: "God's Will Scholarship Fund",
+  orgAddress: "Kampala, Uganda",
+  orgPhone: "+256 700 000000",
+  orgEmail: "info@godswill.org",
+  logoText: "GW",
+  footerNote: "This receipt confirms the approval of the scholarship application. Keep this document for your records.",
+  signatureName: "Administrator",
+  signatureTitle: "Program Director",
+};
+
+const AdminSettings = () => {
+  const { user } = useAuth();
+  const [receiptConfig, setReceiptConfig] = useState<ReceiptConfig>(defaultReceiptConfig);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("*")
+        .eq("key", "receipt_config")
+        .maybeSingle();
+      if (data?.value) {
+        setReceiptConfig({ ...defaultReceiptConfig, ...(data.value as any) });
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const saveReceiptConfig = async () => {
+    setSaving(true);
+    const { data: existing } = await supabase
+      .from("app_settings")
+      .select("id")
+      .eq("key", "receipt_config")
+      .maybeSingle();
+
+    let error;
+    if (existing) {
+      ({ error } = await supabase
+        .from("app_settings")
+        .update({ value: receiptConfig as any, updated_by: user!.id })
+        .eq("key", "receipt_config"));
+    } else {
+      ({ error } = await supabase
+        .from("app_settings")
+        .insert({ key: "receipt_config", value: receiptConfig as any, updated_by: user!.id }));
+    }
+
+    setSaving(false);
+    if (error) toast.error("Failed to save: " + error.message);
+    else toast.success("Receipt settings saved");
+  };
+
+  const updateField = (field: keyof ReceiptConfig, value: string) => {
+    setReceiptConfig((prev) => ({ ...prev, [field]: value }));
+  };
+
+  return (
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div>
+        <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
+          <Settings className="h-6 w-6 text-primary" /> System Settings
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">Configure system preferences and receipt layout</p>
+      </div>
+
+      <Tabs defaultValue="receipt" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="receipt" className="gap-1"><Receipt className="h-4 w-4" /> Receipt Layout</TabsTrigger>
+          <TabsTrigger value="organization" className="gap-1"><Building2 className="h-4 w-4" /> Organization</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="receipt" className="space-y-4">
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Config Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Receipt Configuration</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Organization Name</Label>
+                  <Input value={receiptConfig.orgName} onChange={(e) => updateField("orgName", e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Address</Label>
+                  <Input value={receiptConfig.orgAddress} onChange={(e) => updateField("orgAddress", e.target.value)} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Phone</Label>
+                    <Input value={receiptConfig.orgPhone} onChange={(e) => updateField("orgPhone", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input value={receiptConfig.orgEmail} onChange={(e) => updateField("orgEmail", e.target.value)} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Logo Initials</Label>
+                  <Input value={receiptConfig.logoText} onChange={(e) => updateField("logoText", e.target.value)} maxLength={4} />
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <Label>Footer Note</Label>
+                  <Textarea rows={3} value={receiptConfig.footerNote} onChange={(e) => updateField("footerNote", e.target.value)} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Signatory Name</Label>
+                    <Input value={receiptConfig.signatureName} onChange={(e) => updateField("signatureName", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Signatory Title</Label>
+                    <Input value={receiptConfig.signatureTitle} onChange={(e) => updateField("signatureTitle", e.target.value)} />
+                  </div>
+                </div>
+                <Button onClick={saveReceiptConfig} disabled={saving} className="w-full gap-2">
+                  <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Receipt Settings"}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Receipt Preview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Preview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="border border-border rounded-lg p-6 bg-background text-sm space-y-4">
+                  {/* Header */}
+                  <div className="text-center space-y-1">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg mx-auto">
+                      {receiptConfig.logoText}
+                    </div>
+                    <h3 className="font-display text-lg font-bold text-foreground">{receiptConfig.orgName}</h3>
+                    <p className="text-xs text-muted-foreground">{receiptConfig.orgAddress}</p>
+                    <p className="text-xs text-muted-foreground">{receiptConfig.orgPhone} • {receiptConfig.orgEmail}</p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="text-center">
+                    <h4 className="font-semibold text-foreground uppercase tracking-wider text-xs">Scholarship Approval Receipt</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Receipt No: GW-2026-0001</p>
+                    <p className="text-xs text-muted-foreground">Date: {new Date().toLocaleDateString()}</p>
+                  </div>
+
+                  <Separator />
+
+                  {/* Sample Data */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Student:</span>
+                      <span className="font-medium">John Doe</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Level:</span>
+                      <span className="font-medium">Secondary O-Level</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">School:</span>
+                      <span className="font-medium">Sample School</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Parent/Guardian:</span>
+                      <span className="font-medium">Jane Doe</span>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <p className="text-xs text-muted-foreground italic">{receiptConfig.footerNote}</p>
+
+                  <div className="text-right pt-4">
+                    <div className="border-t border-border inline-block pt-1 px-4">
+                      <p className="font-medium text-xs">{receiptConfig.signatureName}</p>
+                      <p className="text-[10px] text-muted-foreground">{receiptConfig.signatureTitle}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="organization" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Organization Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Organization details are configured in the Receipt Layout tab. Additional system settings will be available here in future updates.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default AdminSettings;

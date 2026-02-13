@@ -1,0 +1,116 @@
+import { useLocation } from "react-router-dom";
+import { NavLink } from "@/components/NavLink";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  LayoutDashboard,
+  FileText,
+  GraduationCap,
+  School,
+  Receipt,
+  Settings,
+  LogOut,
+  ShieldCheck,
+  Users,
+  CreditCard,
+  Ticket,
+} from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarSeparator,
+} from "@/components/ui/sidebar";
+
+const adminItems = [
+  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+  { title: "Applications", url: "/admin/applications", icon: FileText },
+  { title: "Students", url: "/admin/students", icon: GraduationCap },
+  { title: "Schools", url: "/admin/schools", icon: School },
+  { title: "Receipts", url: "/admin/receipts", icon: Receipt },
+  { title: "ID Cards", url: "/admin/id-cards", icon: CreditCard },
+  { title: "Payments", url: "/admin/payments", icon: Ticket },
+  { title: "Settings", url: "/admin/settings", icon: Settings },
+];
+
+const staffItems = [
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Applications", url: "/dashboard", icon: FileText },
+];
+
+const schoolItems = [
+  { title: "School Portal", url: "/school", icon: School },
+];
+
+export function AppSidebar() {
+  const location = useLocation();
+  const { isAdmin, isSchool, signOut, user } = useAuth();
+
+  const items = isAdmin ? adminItems : isSchool ? schoolItems : staffItems;
+
+  return (
+    <Sidebar>
+      <SidebarHeader className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold text-sm">
+            GW
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-sidebar-foreground">God's Will</span>
+            <span className="text-xs text-sidebar-foreground/60">Management System</span>
+          </div>
+        </div>
+      </SidebarHeader>
+
+      <SidebarSeparator />
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+                    <NavLink to={item.url} end>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="p-3">
+        <SidebarSeparator />
+        <div className="flex items-center gap-2 px-2 py-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-accent-foreground text-xs font-medium">
+            {user?.email?.charAt(0).toUpperCase() || "U"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-sidebar-foreground truncate">{user?.email}</p>
+            <p className="text-[10px] text-sidebar-foreground/50 capitalize">
+              {isAdmin ? "Admin" : isSchool ? "School" : "Staff"}
+            </p>
+          </div>
+          <button
+            onClick={signOut}
+            className="p-1.5 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}

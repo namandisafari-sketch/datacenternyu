@@ -246,9 +246,9 @@ const AdminDashboard = () => {
   const approvedApps = applications.filter((a) => a.status === "approved");
 
   return (
-    <div className="py-10 bg-background min-h-screen">
-      <div className="container mx-auto px-4">
-        <h1 className="font-display text-3xl font-bold text-primary mb-8">Admin Dashboard</h1>
+    <div className="p-6 bg-background min-h-full">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="font-display text-2xl font-bold text-foreground mb-6">Dashboard</h1>
 
         <AdmissionSettings />
 
