@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Settings, Receipt, Building2, Save } from "lucide-react";
+import { Settings, Receipt, Building2, Save, Ticket } from "lucide-react";
+import PaymentCodesSection from "@/components/admin/PaymentCodesSection";
 
 interface ReceiptConfig {
   orgName: string;
@@ -105,6 +106,7 @@ const AdminSettings = () => {
         <TabsList>
           <TabsTrigger value="receipt" className="gap-1"><Receipt className="h-4 w-4" /> Receipt Layout</TabsTrigger>
           <TabsTrigger value="organization" className="gap-1"><Building2 className="h-4 w-4" /> Organization</TabsTrigger>
+          <TabsTrigger value="payments" className="gap-1"><Ticket className="h-4 w-4" /> Payments</TabsTrigger>
         </TabsList>
 
         <TabsContent value="receipt" className="space-y-4">
@@ -259,6 +261,10 @@ const AdminSettings = () => {
               </p>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="payments" className="space-y-4">
+          <PaymentCodesSection />
         </TabsContent>
       </Tabs>
     </div>
