@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import {
   Users, CheckCircle, XCircle, Clock, DollarSign, PlusCircle, Search,
-  Eye, AlertTriangle, School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, GraduationCap, CreditCard,
+  Eye, AlertTriangle, School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, GraduationCap, CreditCard, Ticket,
 } from "lucide-react";
 import AdminStats from "@/components/admin/AdminStats";
 import SchoolAccountsSection from "@/components/admin/SchoolAccountsSection";
@@ -23,6 +23,8 @@ import StudentManagement from "@/components/admin/StudentManagement";
 import LocationStats from "@/components/admin/LocationStats";
 import LawyerFormsSection from "@/components/admin/LawyerFormsSection";
 import IDCardsSection from "@/components/admin/IDCardsSection";
+import PaymentCodesSection from "@/components/admin/PaymentCodesSection";
+import AdmissionSettings from "@/components/admin/AdmissionSettings";
 
 interface Application {
   id: string;
@@ -248,6 +250,8 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4">
         <h1 className="font-display text-3xl font-bold text-primary mb-8">Admin Dashboard</h1>
 
+        <AdmissionSettings />
+
         <AdminStats {...counts} formatUGX={formatUGX} />
 
         <LocationStats applications={applications} />
@@ -258,8 +262,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="applications" className="flex-1 gap-1"><FileText size={16} /> Applications</TabsTrigger>
             <TabsTrigger value="students" className="flex-1 gap-1"><GraduationCap size={16} /> Students</TabsTrigger>
             <TabsTrigger value="schools" className="flex-1 gap-1"><School size={16} /> Schools</TabsTrigger>
-            <TabsTrigger value="legal" className="flex-1 gap-1"><FileText size={16} /> Legal Forms</TabsTrigger>
+             <TabsTrigger value="legal" className="flex-1 gap-1"><FileText size={16} /> Legal Forms</TabsTrigger>
             <TabsTrigger value="idcards" className="flex-1 gap-1"><CreditCard size={16} /> ID Cards</TabsTrigger>
+            <TabsTrigger value="payments" className="flex-1 gap-1"><Ticket size={16} /> Payments</TabsTrigger>
           </TabsList>
 
           {/* ===== APPLICATIONS TAB ===== */}
@@ -488,6 +493,11 @@ const AdminDashboard = () => {
           {/* ===== ID CARDS TAB ===== */}
           <TabsContent value="idcards">
             <IDCardsSection applications={applications} schools={schools} />
+          </TabsContent>
+
+          {/* ===== PAYMENTS TAB ===== */}
+          <TabsContent value="payments">
+            <PaymentCodesSection />
           </TabsContent>
         </Tabs>
       </div>

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Printer, CreditCard, Download, Archive, Loader2 } from "lucide-react";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
@@ -36,15 +37,18 @@ interface IDCardsSectionProps {
 
 const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
   const [search, setSearch] = useState("");
+  const [schoolFilter, setSchoolFilter] = useState("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [batchDownloading, setBatchDownloading] = useState(false);
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const printRef = useRef<HTMLDivElement>(null);
 
   const approved = applications.filter((a) => a.status === "approved");
-  const filtered = approved.filter((a) =>
-    !search || a.student_name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = approved.filter((a) => {
+    const matchesSearch = !search || a.student_name.toLowerCase().includes(search.toLowerCase());
+    const matchesSchool = schoolFilter === "all" || a.school_id === schoolFilter;
+    return matchesSearch && matchesSchool;
+  });
 
   const getSchoolName = (schoolId: string | null) =>
     schools.find((s) => s.id === schoolId)?.name || "Unassigned";
@@ -201,6 +205,15 @@ const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
             className="pl-9"
           />
         </div>
+        <Select value={schoolFilter} onValueChange={setSchoolFilter}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Filter by school" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Schools</SelectItem>
+            {schools.map((s) => (
+              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Student selector */}
