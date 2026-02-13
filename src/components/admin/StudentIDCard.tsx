@@ -68,23 +68,23 @@ const StudentIDCard = ({ application, schoolName, sponsorshipNumber }: StudentID
       </div>
 
       {/* Back Side */}
-      <div className="w-[340px] h-[214px] rounded-xl border-2 border-primary bg-card shadow-lg overflow-hidden print:shadow-none flex flex-col items-center justify-center">
-        <div className="bg-primary w-full px-4 py-1.5 text-center">
+      <div className="w-[340px] h-[214px] rounded-xl border-2 border-primary bg-card shadow-lg overflow-hidden print:shadow-none flex flex-col">
+        <div className="bg-primary w-full px-3 py-1 text-center">
           <p className="text-primary-foreground text-[10px] font-semibold">SCAN IF FOUND — REPORT LOST ID</p>
         </div>
-        <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex items-center justify-center px-2 py-1">
           <QRCodeSVG
             value={qrUrl}
-            size={140}
+            size={130}
             level="H"
-            includeMargin
+            includeMargin={false}
             bgColor="hsl(0, 0%, 100%)"
             fgColor="hsl(215, 58%, 26%)"
           />
         </div>
-        <div className="px-4 pb-2 text-center">
-          <p className="text-[9px] text-muted-foreground">If you find this card, please scan the QR code or visit</p>
-          <p className="text-[9px] text-primary font-medium break-all">{BASE_URL}/lost-id</p>
+        <div className="px-3 pb-1.5 text-center">
+          <p className="text-[9px] text-muted-foreground leading-tight">If you find this card, please scan the QR code or visit</p>
+          <p className="text-[9px] text-primary font-medium break-all leading-tight">{BASE_URL}/lost-id</p>
         </div>
       </div>
     </div>

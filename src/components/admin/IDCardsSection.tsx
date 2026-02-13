@@ -2,9 +2,11 @@ import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Printer, CreditCard } from "lucide-react";
+import { Search, Printer, CreditCard, Download } from "lucide-react";
+import { toPng } from "html-to-image";
+import { toast } from "sonner";
+import { differenceInYears } from "date-fns";
 import StudentIDCard from "./StudentIDCard";
 
 interface Application {
@@ -47,6 +49,29 @@ const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
     const year = new Date(app.created_at).getFullYear();
     const short = app.id.substring(0, 6).toUpperCase();
     return `NYG-${year}-${short}`;
+  };
+
+  const getFileName = (app: Application) => {
+    const name = app.student_name.replace(/\s+/g, "_");
+    const age = app.date_of_birth
+      ? differenceInYears(new Date(), new Date(app.date_of_birth))
+      : "unknown";
+    return `${name}_age${age}`;
+  };
+
+  const handleSaveAsJpg = async () => {
+    if (!printRef.current || !selectedApp) return;
+    try {
+      await toPng(printRef.current, { quality: 1, pixelRatio: 3 });
+      const dataUrl = await toPng(printRef.current, { quality: 1, pixelRatio: 3 });
+      const link = document.createElement("a");
+      link.download = `${getFileName(selectedApp)}.jpg`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("ID card saved!");
+    } catch {
+      toast.error("Failed to save ID card image.");
+    }
   };
 
   const handlePrint = () => {
@@ -123,9 +148,14 @@ const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-foreground">ID Card Preview</h3>
-            <Button onClick={handlePrint} className="gap-2">
-              <Printer size={16} /> Print Card
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleSaveAsJpg} className="gap-2">
+                <Download size={16} /> Save as JPG
+              </Button>
+              <Button onClick={handlePrint} className="gap-2">
+                <Printer size={16} /> Print Card
+              </Button>
+            </div>
           </div>
           <div ref={printRef} className="card-container">
             <StudentIDCard
