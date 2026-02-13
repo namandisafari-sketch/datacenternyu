@@ -10,6 +10,8 @@ export interface ApplicationForm {
   passportPhotoUrl: string;
   district: string;
   subCounty: string;
+  parish: string;
+  village: string;
 
   // Step 2: Education level
   educationLevel: EducationLevel | "";
@@ -72,6 +74,8 @@ export const initialForm: ApplicationForm = {
   passportPhotoUrl: "",
   district: "",
   subCounty: "",
+  parish: "",
+  village: "",
   educationLevel: "",
   schoolId: "",
   currentSchool: "",

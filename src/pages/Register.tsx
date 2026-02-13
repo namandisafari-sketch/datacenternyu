@@ -96,6 +96,8 @@ const Register = () => {
       passport_photo_url: form.passportPhotoUrl,
       district: form.district,
       sub_county: form.subCounty,
+      parish: form.parish,
+      village: form.village,
       education_level: form.educationLevel as EducationLevel,
       school_id: selectedSchool?.id || null,
       current_school: form.currentSchool,

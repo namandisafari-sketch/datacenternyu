@@ -46,6 +46,7 @@ export type Database = {
           parent_nin: string | null
           parent_occupation: string | null
           parent_phone: string
+          parish: string | null
           passport_photo_url: string | null
           personal_statement: string | null
           previous_bursary: boolean | null
@@ -65,6 +66,7 @@ export type Database = {
           uneb_index_number: string | null
           updated_at: string
           user_id: string
+          village: string | null
           vulnerability_indicators: Json | null
           year_of_study: string | null
         }
@@ -99,6 +101,7 @@ export type Database = {
           parent_nin?: string | null
           parent_occupation?: string | null
           parent_phone: string
+          parish?: string | null
           passport_photo_url?: string | null
           personal_statement?: string | null
           previous_bursary?: boolean | null
@@ -118,6 +121,7 @@ export type Database = {
           uneb_index_number?: string | null
           updated_at?: string
           user_id: string
+          village?: string | null
           vulnerability_indicators?: Json | null
           year_of_study?: string | null
         }
@@ -152,6 +156,7 @@ export type Database = {
           parent_nin?: string | null
           parent_occupation?: string | null
           parent_phone?: string
+          parish?: string | null
           passport_photo_url?: string | null
           personal_statement?: string | null
           previous_bursary?: boolean | null
@@ -171,6 +176,7 @@ export type Database = {
           uneb_index_number?: string | null
           updated_at?: string
           user_id?: string
+          village?: string | null
           vulnerability_indicators?: Json | null
           year_of_study?: string | null
         }
@@ -433,6 +439,38 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      uganda_locations: {
+        Row: {
+          created_at: string
+          id: string
+          level: string
+          name: string
+          parent_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          level: string
+          name: string
+          parent_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: string
+          name?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uganda_locations_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "uganda_locations"
             referencedColumns: ["id"]
           },
         ]
