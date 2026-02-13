@@ -67,7 +67,7 @@ const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
     return `${name}_age${age}`;
   };
 
-  const renderCardToImage = useCallback(async (app: Application): Promise<string> => {
+  const renderCardSideToImage = useCallback(async (app: Application, side: "front" | "back"): Promise<string> => {
     const container = document.createElement("div");
     container.style.position = "absolute";
     container.style.left = "-9999px";
@@ -80,14 +80,13 @@ const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
         application={app}
         schoolName={getSchoolName(app.school_id)}
         sponsorshipNumber={generateSponsorshipNumber(app)}
+        side={side}
       />
     );
 
-    // Wait for render + images to load
     await new Promise((r) => setTimeout(r, 500));
 
     try {
-      // Double render for quality
       await toPng(container, { quality: 1, pixelRatio: 3 });
       const dataUrl = await toPng(container, { quality: 1, pixelRatio: 3 });
       return dataUrl;
@@ -111,10 +110,15 @@ const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
       for (let i = 0; i < approved.length; i++) {
         const app = approved[i];
         setBatchProgress({ current: i + 1, total: approved.length });
+        const fileName = getFileName(app);
 
-        const dataUrl = await renderCardToImage(app);
-        const base64 = dataUrl.split(",")[1];
-        zip.file(`${getFileName(app)}.png`, base64, { base64: true });
+        const frontUrl = await renderCardSideToImage(app, "front");
+        const frontBase64 = frontUrl.split(",")[1];
+        zip.file(`${fileName}_front.png`, frontBase64, { base64: true });
+
+        const backUrl = await renderCardSideToImage(app, "back");
+        const backBase64 = backUrl.split(",")[1];
+        zip.file(`${fileName}_back.png`, backBase64, { base64: true });
       }
 
       const blob = await zip.generateAsync({ type: "blob" });
@@ -133,18 +137,31 @@ const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
     }
   };
 
-  const handleSaveAsJpg = async () => {
-    if (!printRef.current || !selectedApp) return;
+  const handleSaveFront = async () => {
+    if (!selectedApp) return;
     try {
-      await toPng(printRef.current, { quality: 1, pixelRatio: 3 });
-      const dataUrl = await toPng(printRef.current, { quality: 1, pixelRatio: 3 });
+      const dataUrl = await renderCardSideToImage(selectedApp, "front");
       const link = document.createElement("a");
-      link.download = `${getFileName(selectedApp)}.jpg`;
+      link.download = `${getFileName(selectedApp)}_front.png`;
       link.href = dataUrl;
       link.click();
-      toast.success("ID card saved!");
+      toast.success("Front side saved!");
     } catch {
-      toast.error("Failed to save ID card image.");
+      toast.error("Failed to save front side.");
+    }
+  };
+
+  const handleSaveBack = async () => {
+    if (!selectedApp) return;
+    try {
+      const dataUrl = await renderCardSideToImage(selectedApp, "back");
+      const link = document.createElement("a");
+      link.download = `${getFileName(selectedApp)}_back.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("Back side saved!");
+    } catch {
+      toast.error("Failed to save back side.");
     }
   };
 
@@ -251,8 +268,11 @@ const IDCardsSection = ({ applications, schools }: IDCardsSectionProps) => {
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-foreground">ID Card Preview</h3>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleSaveAsJpg} className="gap-2">
-                <Download size={16} /> Save as JPG
+              <Button variant="outline" onClick={handleSaveFront} className="gap-2">
+                <Download size={16} /> Save Front
+              </Button>
+              <Button variant="outline" onClick={handleSaveBack} className="gap-2">
+                <Download size={16} /> Save Back
               </Button>
               <Button onClick={handlePrint} className="gap-2">
                 <Printer size={16} /> Print Card
