@@ -1,1 +1,4 @@
 project_id = "tzyyanrugsazqeozsyek"
+
+[functions.auto-lock-admissions]
+verify_jwt = false
