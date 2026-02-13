@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ApplicationForm } from "./types";
+import { isValidNIN, NIN_HINT } from "./ninValidation";
 
 interface Props {
   form: ApplicationForm;
@@ -64,7 +65,10 @@ const StepParentInfo = ({ form, update }: Props) => (
         </div>
         <div className="space-y-2">
           <Label htmlFor="parentNin">Parent NIN (optional)</Label>
-          <Input id="parentNin" value={form.parentNin} onChange={(e) => update("parentNin", e.target.value)} />
+          <Input id="parentNin" value={form.parentNin} onChange={(e) => update("parentNin", e.target.value.toUpperCase())} placeholder="e.g. CF1234567ABC1Z" maxLength={14} />
+          {form.parentNin && !isValidNIN(form.parentNin) && (
+            <p className="text-xs text-destructive">{NIN_HINT}</p>
+          )}
         </div>
       </div>
     </CardContent>

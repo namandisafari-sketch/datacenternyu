@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ApplicationForm } from "./types";
 import FileUpload from "./FileUpload";
+import { isValidNIN, NIN_HINT } from "./ninValidation";
 
 interface Props {
   form: ApplicationForm;
@@ -49,7 +50,10 @@ const StepApplicantInfo = ({ form, update, userId }: Props) => (
         </div>
         <div className="space-y-2">
           <Label htmlFor="nin">NIN (if available)</Label>
-          <Input id="nin" value={form.nin} onChange={(e) => update("nin", e.target.value)} placeholder="National ID Number" />
+          <Input id="nin" value={form.nin} onChange={(e) => update("nin", e.target.value.toUpperCase())} placeholder="e.g. CM1234567ABC1Z" maxLength={14} />
+          {form.nin && !isValidNIN(form.nin) && (
+            <p className="text-xs text-destructive">{NIN_HINT}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="district">District *</Label>
