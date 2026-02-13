@@ -17,72 +17,162 @@ export type Database = {
       applications: {
         Row: {
           admin_notes: string | null
+          admission_letter_url: string | null
+          birth_certificate_url: string | null
+          children_in_school: number | null
           class_grade: string | null
+          course_program: string | null
           created_at: string
+          current_fee_payer: string | null
           current_school: string | null
           date_of_birth: string | null
+          declaration_consent: boolean | null
+          declaration_date: string | null
           district: string | null
           education_level: Database["public"]["Enums"]["education_level"]
+          expected_graduation_year: string | null
+          fees_per_term: number | null
           gender: string | null
+          household_income_range: string | null
           id: string
+          institution_name: string | null
+          nationality: string | null
+          nin: string | null
+          outstanding_balances: number | null
           parent_email: string | null
+          parent_id_url: string | null
+          parent_monthly_income: string | null
           parent_name: string
+          parent_nin: string | null
+          parent_occupation: string | null
           parent_phone: string
+          passport_photo_url: string | null
+          personal_statement: string | null
+          previous_bursary: boolean | null
+          proof_of_need_url: string | null
           reason: string | null
+          registration_number: string | null
           relationship: string | null
+          report_card_url: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           school_id: string | null
+          school_type: string | null
           status: Database["public"]["Enums"]["application_status"]
           student_name: string
+          sub_county: string | null
+          transcript_url: string | null
+          uneb_index_number: string | null
           updated_at: string
           user_id: string
+          vulnerability_indicators: Json | null
+          year_of_study: string | null
         }
         Insert: {
           admin_notes?: string | null
+          admission_letter_url?: string | null
+          birth_certificate_url?: string | null
+          children_in_school?: number | null
           class_grade?: string | null
+          course_program?: string | null
           created_at?: string
+          current_fee_payer?: string | null
           current_school?: string | null
           date_of_birth?: string | null
+          declaration_consent?: boolean | null
+          declaration_date?: string | null
           district?: string | null
           education_level: Database["public"]["Enums"]["education_level"]
+          expected_graduation_year?: string | null
+          fees_per_term?: number | null
           gender?: string | null
+          household_income_range?: string | null
           id?: string
+          institution_name?: string | null
+          nationality?: string | null
+          nin?: string | null
+          outstanding_balances?: number | null
           parent_email?: string | null
+          parent_id_url?: string | null
+          parent_monthly_income?: string | null
           parent_name: string
+          parent_nin?: string | null
+          parent_occupation?: string | null
           parent_phone: string
+          passport_photo_url?: string | null
+          personal_statement?: string | null
+          previous_bursary?: boolean | null
+          proof_of_need_url?: string | null
           reason?: string | null
+          registration_number?: string | null
           relationship?: string | null
+          report_card_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           school_id?: string | null
+          school_type?: string | null
           status?: Database["public"]["Enums"]["application_status"]
           student_name: string
+          sub_county?: string | null
+          transcript_url?: string | null
+          uneb_index_number?: string | null
           updated_at?: string
           user_id: string
+          vulnerability_indicators?: Json | null
+          year_of_study?: string | null
         }
         Update: {
           admin_notes?: string | null
+          admission_letter_url?: string | null
+          birth_certificate_url?: string | null
+          children_in_school?: number | null
           class_grade?: string | null
+          course_program?: string | null
           created_at?: string
+          current_fee_payer?: string | null
           current_school?: string | null
           date_of_birth?: string | null
+          declaration_consent?: boolean | null
+          declaration_date?: string | null
           district?: string | null
           education_level?: Database["public"]["Enums"]["education_level"]
+          expected_graduation_year?: string | null
+          fees_per_term?: number | null
           gender?: string | null
+          household_income_range?: string | null
           id?: string
+          institution_name?: string | null
+          nationality?: string | null
+          nin?: string | null
+          outstanding_balances?: number | null
           parent_email?: string | null
+          parent_id_url?: string | null
+          parent_monthly_income?: string | null
           parent_name?: string
+          parent_nin?: string | null
+          parent_occupation?: string | null
           parent_phone?: string
+          passport_photo_url?: string | null
+          personal_statement?: string | null
+          previous_bursary?: boolean | null
+          proof_of_need_url?: string | null
           reason?: string | null
+          registration_number?: string | null
           relationship?: string | null
+          report_card_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           school_id?: string | null
+          school_type?: string | null
           status?: Database["public"]["Enums"]["application_status"]
           student_name?: string
+          sub_county?: string | null
+          transcript_url?: string | null
+          uneb_index_number?: string | null
           updated_at?: string
           user_id?: string
+          vulnerability_indicators?: Json | null
+          year_of_study?: string | null
         }
         Relationships: [
           {
