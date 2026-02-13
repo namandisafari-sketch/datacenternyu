@@ -20,6 +20,8 @@ interface ReceiptConfig {
   footerNote: string;
   signatureName: string;
   signatureTitle: string;
+  applicationFormFee: number;
+  lawyerFormFee: number;
 }
 
 const defaultReceiptConfig: ReceiptConfig = {
@@ -28,9 +30,11 @@ const defaultReceiptConfig: ReceiptConfig = {
   orgPhone: "+256 700 000000",
   orgEmail: "info@godswill.org",
   logoText: "GW",
-  footerNote: "This receipt confirms the approval of the scholarship application. Keep this document for your records.",
+  footerNote: "This receipt confirms payment for application and legal documentation fees. Keep for your records.",
   signatureName: "Administrator",
   signatureTitle: "Program Director",
+  applicationFormFee: 50000,
+  lawyerFormFee: 100000,
 };
 
 const AdminSettings = () => {
@@ -81,6 +85,13 @@ const AdminSettings = () => {
     setReceiptConfig((prev) => ({ ...prev, [field]: value }));
   };
 
+  const updateNumberField = (field: keyof ReceiptConfig, value: string) => {
+    setReceiptConfig((prev) => ({ ...prev, [field]: parseInt(value) || 0 }));
+  };
+
+  const formatUGX = (amount: number) =>
+    new Intl.NumberFormat("en-UG", { style: "currency", currency: "UGX", maximumFractionDigits: 0 }).format(amount);
+
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <div>
@@ -125,6 +136,17 @@ const AdminSettings = () => {
                 <div className="space-y-2">
                   <Label>Logo Initials</Label>
                   <Input value={receiptConfig.logoText} onChange={(e) => updateField("logoText", e.target.value)} maxLength={4} />
+                </div>
+                <Separator />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Application Form Fee (UGX)</Label>
+                    <Input type="number" value={receiptConfig.applicationFormFee} onChange={(e) => updateNumberField("applicationFormFee", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Lawyer Form Fee (UGX)</Label>
+                    <Input type="number" value={receiptConfig.lawyerFormFee} onChange={(e) => updateNumberField("lawyerFormFee", e.target.value)} />
+                  </div>
                 </div>
                 <Separator />
                 <div className="space-y-2">
@@ -196,6 +218,22 @@ const AdminSettings = () => {
 
                   <Separator />
 
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span>Application Form</span>
+                      <span>{formatUGX(receiptConfig.applicationFormFee)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>Lawyer/Legal Form</span>
+                      <span>{formatUGX(receiptConfig.lawyerFormFee)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-sm border-t border-border pt-1 mt-1">
+                      <span>TOTAL PAID</span>
+                      <span>{formatUGX(receiptConfig.applicationFormFee + receiptConfig.lawyerFormFee)}</span>
+                    </div>
+                  </div>
+
+                  <Separator />
                   <p className="text-xs text-muted-foreground italic">{receiptConfig.footerNote}</p>
 
                   <div className="text-right pt-4">

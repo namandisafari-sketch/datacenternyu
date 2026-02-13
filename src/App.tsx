@@ -7,8 +7,13 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminSettings from "./pages/AdminSettings";
+import AdminApplications from "./pages/AdminApplications";
+import AdminStudents from "./pages/AdminStudents";
+import AdminSchools from "./pages/AdminSchools";
 import AdminReceipts from "./pages/AdminReceipts";
+import AdminIDCards from "./pages/AdminIDCards";
+import AdminPayments from "./pages/AdminPayments";
+import AdminSettings from "./pages/AdminSettings";
 import SchoolDashboard from "./pages/SchoolDashboard";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
@@ -31,12 +36,12 @@ const AppContent = () => {
     <Routes>
       <Route path="/auth" element={user ? <Navigate to="/admin" replace /> : <Auth />} />
       <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/admin/applications" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/admin/students" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/admin/schools" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/applications" element={<ProtectedRoute><AdminApplications /></ProtectedRoute>} />
+      <Route path="/admin/students" element={<ProtectedRoute><AdminStudents /></ProtectedRoute>} />
+      <Route path="/admin/schools" element={<ProtectedRoute><AdminSchools /></ProtectedRoute>} />
       <Route path="/admin/receipts" element={<ProtectedRoute><AdminReceipts /></ProtectedRoute>} />
-      <Route path="/admin/id-cards" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/admin/payments" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/id-cards" element={<ProtectedRoute><AdminIDCards /></ProtectedRoute>} />
+      <Route path="/admin/payments" element={<ProtectedRoute><AdminPayments /></ProtectedRoute>} />
       <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
       <Route path="/school" element={<ProtectedRoute><SchoolDashboard /></ProtectedRoute>} />
       <Route path="/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
