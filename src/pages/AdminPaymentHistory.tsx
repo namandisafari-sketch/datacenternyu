@@ -18,6 +18,7 @@ import {
   Search, PlusCircle, Loader2, Banknote, TrendingUp, Users, Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
+import StudentQRScanner from "@/components/admin/StudentQRScanner";
 
 interface Payment {
   id: string;
@@ -39,12 +40,12 @@ const FEE_TYPES = [
 
 const AdminPaymentHistory = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
 
   const [form, setForm] = useState({
     application_id: "",
@@ -63,17 +64,8 @@ const AdminPaymentHistory = () => {
     setLoading(false);
   };
 
-  const fetchApplications = async () => {
-    const { data } = await supabase
-      .from("applications")
-      .select("id, student_name, parent_name")
-      .order("student_name");
-    setApplications(data || []);
-  };
-
   useEffect(() => {
     fetchPayments();
-    fetchApplications();
   }, []);
 
   const handleSave = async () => {
@@ -96,6 +88,7 @@ const AdminPaymentHistory = () => {
     else {
       toast.success("Payment recorded!");
       setDialogOpen(false);
+      setSelectedStudent(null);
       setForm({
         application_id: "",
         amount: "",
@@ -143,24 +136,13 @@ const AdminPaymentHistory = () => {
               <DialogTitle>Record Registration Payment</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
-              <div className="space-y-1">
-                <Label>Student / Applicant</Label>
-                <Select
-                  value={form.application_id}
-                  onValueChange={(v) => setForm({ ...form, application_id: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select applicant" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {applications.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>
-                        {a.student_name} — {a.parent_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <StudentQRScanner
+                selectedStudent={selectedStudent}
+                onStudentFound={(appId, student) => {
+                  setForm({ ...form, application_id: appId });
+                  setSelectedStudent(student || null);
+                }}
+              />
               <div className="space-y-1">
                 <Label>Fee Type</Label>
                 <Select
