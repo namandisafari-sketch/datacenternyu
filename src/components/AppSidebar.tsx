@@ -14,6 +14,7 @@ import {
   CreditCard,
   Ticket,
   Banknote,
+  PieChart,
 } from "lucide-react";
 import {
   Sidebar,
@@ -38,6 +39,7 @@ const adminItems = [
   { title: "ID Cards", url: "/admin/id-cards", icon: CreditCard },
   { title: "Payment Codes", url: "/admin/payments", icon: Ticket },
   { title: "Payment History", url: "/admin/payment-history", icon: Banknote },
+  { title: "Payments Analytics", url: "/admin/payments-dashboard", icon: PieChart },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
