@@ -15,6 +15,7 @@ import {
   Ticket,
   Banknote,
   PieChart,
+  Search,
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,6 +35,7 @@ const adminItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Applications", url: "/admin/applications", icon: FileText },
   { title: "Students", url: "/admin/students", icon: GraduationCap },
+  { title: "Student Search", url: "/admin/student-search", icon: Search },
   { title: "Schools", url: "/admin/schools", icon: School },
   { title: "Receipts", url: "/admin/receipts", icon: Receipt },
   { title: "ID Cards", url: "/admin/id-cards", icon: CreditCard },
