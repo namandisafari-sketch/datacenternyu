@@ -951,6 +951,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_schools_with_availability: {
+        Args: never
+        Returns: {
+          approved_count: number
+          available_slots: number
+          id: string
+          level: string
+          name: string
+          total_bursaries: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

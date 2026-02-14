@@ -86,30 +86,21 @@ const BursaryRequest = () => {
       .then(({ data }) => setDistricts(data || []));
   }, []);
 
-  // Fetch schools with available bursaries
+  // Fetch schools with available bursaries using DB function (works without auth)
   useEffect(() => {
     const fetchSchools = async () => {
-      const [schoolsRes, appsRes] = await Promise.all([
-        supabase.from("schools").select("id, name, level, total_bursaries").eq("is_active", true),
-        supabase.from("applications").select("school_id").eq("status", "approved"),
-      ]);
-
-      const schoolsList = schoolsRes.data || [];
-      const approvedApps = appsRes.data || [];
-
-      const countBySchool: Record<string, number> = {};
-      approvedApps.forEach((a) => {
-        if (a.school_id) countBySchool[a.school_id] = (countBySchool[a.school_id] || 0) + 1;
-      });
-
-      const withAvailability: SchoolOption[] = schoolsList
-        .map((s) => ({
-          ...s,
-          approved_count: countBySchool[s.id] || 0,
-        }))
-        .filter((s) => s.total_bursaries > s.approved_count);
-
-      setSchools(withAvailability);
+      const { data, error } = await supabase.rpc("get_schools_with_availability");
+      if (!error && data) {
+        setSchools(
+          data.map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            level: s.level,
+            total_bursaries: s.total_bursaries,
+            approved_count: Number(s.approved_count),
+          }))
+        );
+      }
     };
     fetchSchools();
   }, []);
@@ -313,7 +304,7 @@ const BursaryRequest = () => {
                         setSubCounties([]);
                         setParishes([]);
                         setVillages([]);
-                        if (dist) setSubCounties(await loadSubLocations(dist.id, "sub_county"));
+                        if (dist) setSubCounties(await loadSubLocations(dist.id, "subcounty"));
                       }}
                     >
                       <SelectTrigger><SelectValue placeholder="Select district..." /></SelectTrigger>

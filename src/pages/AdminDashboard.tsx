@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, CheckCircle, Clock, DollarSign, AlertTriangle, School } from "lucide-react";
+import { Users, CheckCircle, Clock, DollarSign, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import AdmissionSettings from "@/components/admin/AdmissionSettings";
 import LocationStats from "@/components/admin/LocationStats";
+import BursaryManagementDashboard from "@/components/admin/BursaryManagementDashboard";
 
 interface Application {
   id: string;
@@ -253,61 +254,7 @@ const AdminDashboard = () => {
 
         <LocationStats applications={applications} />
 
-        {/* Bursary Tracking by School */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <School className="h-4 w-4" /> Bursary Allocation by School
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>School</TableHead>
-                    <TableHead className="text-center">Allocated</TableHead>
-                    <TableHead className="text-center">Used</TableHead>
-                    <TableHead className="text-center">Available</TableHead>
-                    <TableHead>Utilization</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {schools.filter(s => s.total_bursaries > 0).length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-6">No bursary allocations set</TableCell>
-                    </TableRow>
-                  ) : (
-                    schools
-                      .filter(s => s.total_bursaries > 0)
-                      .sort((a, b) => b.total_bursaries - a.total_bursaries)
-                      .map((school) => {
-                        const used = approved.filter(a => a.school_id === school.id).length;
-                        const available = Math.max(0, school.total_bursaries - used);
-                        const pct = school.total_bursaries > 0 ? Math.round((used / school.total_bursaries) * 100) : 0;
-                        return (
-                          <TableRow key={school.id}>
-                            <TableCell className="font-medium">{school.name}</TableCell>
-                            <TableCell className="text-center">{school.total_bursaries}</TableCell>
-                            <TableCell className="text-center">{used}</TableCell>
-                            <TableCell className="text-center">
-                              <Badge variant={available === 0 ? "destructive" : "outline"}>{available}</Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Progress value={pct} className="h-2 w-20" />
-                                <span className="text-xs text-muted-foreground">{pct}%</span>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        <BursaryManagementDashboard />
       </div>
     </div>
   );
