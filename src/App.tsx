@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import BursaryRequest from "./pages/BursaryRequest";
 import AdminBursaryRequests from "./pages/AdminBursaryRequests";
 import AdminAppointments from "./pages/AdminAppointments";
+import AdminPassportPhoto from "./pages/AdminPassportPhoto";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
@@ -62,6 +63,7 @@ const AppContent = () => {
       <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
       <Route path="/admin/bursary-requests" element={<ProtectedRoute><AdminBursaryRequests /></ProtectedRoute>} />
       <Route path="/admin/appointments" element={<ProtectedRoute><AdminAppointments /></ProtectedRoute>} />
+      <Route path="/admin/passport-photo" element={<ProtectedRoute><AdminPassportPhoto /></ProtectedRoute>} />
       <Route path="/bursary-request" element={<BursaryRequest />} />
       <Route path="/school" element={<ProtectedRoute><SchoolDashboard /></ProtectedRoute>} />
       <Route path="/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />

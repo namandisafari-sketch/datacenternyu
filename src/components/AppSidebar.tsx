@@ -18,6 +18,7 @@ import {
   Search,
   CalendarDays,
   Link2,
+  Camera,
 } from "lucide-react";
 import {
   Sidebar,
@@ -46,6 +47,7 @@ const adminItems = [
   { title: "Payments Analytics", url: "/admin/payments-dashboard", icon: PieChart },
   { title: "Bursary Requests", url: "/admin/bursary-requests", icon: Link2 },
   { title: "Appointments", url: "/admin/appointments", icon: CalendarDays },
+  { title: "Passport Photo", url: "/admin/passport-photo", icon: Camera },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
