@@ -109,6 +109,15 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Hide scrollbars globally */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
 /* PWA standalone mode overrides */
 @media (display-mode: standalone) {
   body {

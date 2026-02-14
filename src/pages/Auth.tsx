@@ -4,19 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Fingerprint, Mail } from "lucide-react";
 
 const Auth = () => {
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [authMethod, setAuthMethod] = useState<"passkey" | "email">("passkey");
-
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-  const [signupForm, setSignupForm] = useState({ fullName: "", email: "", password: "", confirmPassword: "" });
 
   const handlePasskeyLogin = async () => {
     if (!window.PublicKeyCredential) {
@@ -38,26 +35,6 @@ const Auth = () => {
     } else {
       toast.success("Welcome back!");
       navigate("/dashboard");
-    }
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (signupForm.password !== signupForm.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    if (signupForm.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-    setLoading(true);
-    const { error } = await signUp(signupForm.email, signupForm.password, signupForm.fullName);
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Account created! Please check your email to verify your account.");
     }
   };
 
@@ -101,52 +78,19 @@ const Auth = () => {
             </div>
           ) : (
             <>
-              <Tabs defaultValue="login">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="login">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup">Create Account</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="login">
-                  <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email">Email</Label>
-                      <Input id="login-email" type="email" required value={loginForm.email} onChange={(e) => setLoginForm((p) => ({ ...p, email: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="login-password">Password</Label>
-                      <Input id="login-password" type="password" required value={loginForm.password} onChange={(e) => setLoginForm((p) => ({ ...p, password: e.target.value }))} />
-                    </div>
-                    <Button type="submit" className="w-full bg-primary text-primary-foreground" disabled={loading}>
-                      {loading ? "Signing in..." : "Sign In"}
-                    </Button>
-                  </form>
-                </TabsContent>
-
-                <TabsContent value="signup">
-                  <form onSubmit={handleSignup} className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-name">Full Name</Label>
-                      <Input id="signup-name" required value={signupForm.fullName} onChange={(e) => setSignupForm((p) => ({ ...p, fullName: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email</Label>
-                      <Input id="signup-email" type="email" required value={signupForm.email} onChange={(e) => setSignupForm((p) => ({ ...p, email: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">Password</Label>
-                      <Input id="signup-password" type="password" required value={signupForm.password} onChange={(e) => setSignupForm((p) => ({ ...p, password: e.target.value }))} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-confirm">Confirm Password</Label>
-                      <Input id="signup-confirm" type="password" required value={signupForm.confirmPassword} onChange={(e) => setSignupForm((p) => ({ ...p, confirmPassword: e.target.value }))} />
-                    </div>
-                    <Button type="submit" className="w-full bg-secondary text-secondary-foreground" disabled={loading}>
-                      {loading ? "Creating account..." : "Create Account"}
-                    </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email">Email</Label>
+                  <Input id="login-email" type="email" required value={loginForm.email} onChange={(e) => setLoginForm((p) => ({ ...p, email: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">Password</Label>
+                  <Input id="login-password" type="password" required value={loginForm.password} onChange={(e) => setLoginForm((p) => ({ ...p, password: e.target.value }))} />
+                </div>
+                <Button type="submit" className="w-full bg-primary text-primary-foreground" disabled={loading}>
+                  {loading ? "Signing in..." : "Sign In"}
+                </Button>
+              </form>
               <div className="mt-4 text-center">
                 <button onClick={() => setAuthMethod("passkey")} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mx-auto">
                   <Fingerprint size={14} /> Use Passkey instead
