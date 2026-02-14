@@ -6,26 +6,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SchoolManagementSection from "@/components/admin/SchoolManagementSection";
 import SchoolAccountsSection from "@/components/admin/SchoolAccountsSection";
 
-interface SchoolRow {
-  id: string;
-  name: string;
-  level: string;
-  district: string;
-  requirements: string | null;
-  full_fees: number;
-  nyunga_covered_fees: number;
-  parent_pays: number | null;
-  boarding_available: boolean | null;
-}
-
 const AdminSchools = () => {
   const { user } = useAuth();
-  const [schools, setSchools] = useState<SchoolRow[]>([]);
+  const [schools, setSchools] = useState<any[]>([]);
+  const [approvedCounts, setApprovedCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   const fetchSchools = useCallback(async () => {
-    const { data } = await supabase.from("schools").select("*");
-    setSchools((data as unknown as SchoolRow[]) || []);
+    const [{ data: schoolData }, { data: appData }] = await Promise.all([
+      supabase.from("schools").select("*"),
+      supabase.from("applications").select("school_id").eq("status", "approved"),
+    ]);
+    setSchools(schoolData || []);
+
+    // Count approved applications per school
+    const counts: Record<string, number> = {};
+    (appData || []).forEach((a: any) => {
+      if (a.school_id) counts[a.school_id] = (counts[a.school_id] || 0) + 1;
+    });
+    setApprovedCounts(counts);
     setLoading(false);
   }, []);
 
@@ -47,7 +46,7 @@ const AdminSchools = () => {
           <TabsTrigger value="accounts">School Accounts</TabsTrigger>
         </TabsList>
         <TabsContent value="schools" className="mt-4">
-          <SchoolManagementSection schools={schools} onRefresh={fetchSchools} />
+          <SchoolManagementSection schools={schools} approvedCounts={approvedCounts} onRefresh={fetchSchools} />
         </TabsContent>
         <TabsContent value="accounts" className="mt-4">
           <SchoolAccountsSection schools={schools} />

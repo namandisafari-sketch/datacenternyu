@@ -603,7 +603,9 @@ export type Database = {
       schools: {
         Row: {
           boarding_available: boolean | null
+          boarding_functional_fees: Json
           created_at: string
+          day_functional_fees: Json
           district: string
           full_fees: number
           id: string
@@ -612,11 +614,17 @@ export type Database = {
           name: string
           nyunga_covered_fees: number
           parent_pays: number | null
+          parish: string | null
           requirements: string | null
+          sub_county: string | null
+          total_bursaries: number
+          village: string | null
         }
         Insert: {
           boarding_available?: boolean | null
+          boarding_functional_fees?: Json
           created_at?: string
+          day_functional_fees?: Json
           district?: string
           full_fees?: number
           id?: string
@@ -625,11 +633,17 @@ export type Database = {
           name: string
           nyunga_covered_fees?: number
           parent_pays?: number | null
+          parish?: string | null
           requirements?: string | null
+          sub_county?: string | null
+          total_bursaries?: number
+          village?: string | null
         }
         Update: {
           boarding_available?: boolean | null
+          boarding_functional_fees?: Json
           created_at?: string
+          day_functional_fees?: Json
           district?: string
           full_fees?: number
           id?: string
@@ -638,7 +652,11 @@ export type Database = {
           name?: string
           nyunga_covered_fees?: number
           parent_pays?: number | null
+          parish?: string | null
           requirements?: string | null
+          sub_county?: string | null
+          total_bursaries?: number
+          village?: string | null
         }
         Relationships: []
       }
