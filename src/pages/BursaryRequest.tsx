@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { CheckCircle, AlertTriangle, Clock, Send } from "lucide-react";
+import { CheckCircle, AlertTriangle, Clock, Send, Plus, Trash2 } from "lucide-react";
 
 interface LinkInfo {
   id: string;
@@ -16,6 +16,32 @@ interface LinkInfo {
   expires_at: string;
   is_used: boolean;
 }
+
+interface ChildEntry {
+  name: string;
+  education_level: string;
+  school_id: string;
+  school_name: string;
+}
+
+interface SchoolOption {
+  id: string;
+  name: string;
+  level: string;
+  total_bursaries: number;
+  approved_count: number;
+}
+
+const LEVEL_LABELS: Record<string, string> = {
+  nursery: "Nursery",
+  primary: "Primary",
+  secondary_o: "Secondary O-Level",
+  secondary_a: "Secondary A-Level",
+  vocational: "Vocational",
+  university: "University",
+};
+
+const emptyChild = (): ChildEntry => ({ name: "", education_level: "", school_id: "", school_name: "" });
 
 const BursaryRequest = () => {
   const [searchParams] = useSearchParams();
@@ -26,35 +52,66 @@ const BursaryRequest = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const [form, setForm] = useState({
-    full_name: "",
-    phone: "",
-    nin: "",
-    district: "",
-    sub_county: "",
-    parish: "",
-    village: "",
-    education_level: "",
-    school_name: "",
-    reason: "",
-    income_details: "",
-  });
+  // Parent info
+  const [parentName, setParentName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [nin, setNin] = useState("");
+  const [reason, setReason] = useState("");
+  const [incomeDetails, setIncomeDetails] = useState("");
+
+  // Location
+  const [district, setDistrict] = useState("");
+  const [subCounty, setSubCounty] = useState("");
+  const [parish, setParish] = useState("");
+  const [village, setVillage] = useState("");
 
   const [districts, setDistricts] = useState<{ id: string; name: string }[]>([]);
   const [subCounties, setSubCounties] = useState<{ id: string; name: string }[]>([]);
   const [parishes, setParishes] = useState<{ id: string; name: string }[]>([]);
   const [villages, setVillages] = useState<{ id: string; name: string }[]>([]);
 
+  // Children (1-3)
+  const [children, setChildren] = useState<ChildEntry[]>([emptyChild()]);
+
+  // Schools with available bursaries
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
+
+  // Fetch districts
   useEffect(() => {
-    const fetchDistricts = async () => {
-      const { data } = await supabase
-        .from("uganda_locations")
-        .select("id, name")
-        .eq("level", "district")
-        .order("name");
-      setDistricts(data || []);
+    supabase
+      .from("uganda_locations")
+      .select("id, name")
+      .eq("level", "district")
+      .order("name")
+      .then(({ data }) => setDistricts(data || []));
+  }, []);
+
+  // Fetch schools with available bursaries
+  useEffect(() => {
+    const fetchSchools = async () => {
+      const [schoolsRes, appsRes] = await Promise.all([
+        supabase.from("schools").select("id, name, level, total_bursaries").eq("is_active", true),
+        supabase.from("applications").select("school_id").eq("status", "approved"),
+      ]);
+
+      const schoolsList = schoolsRes.data || [];
+      const approvedApps = appsRes.data || [];
+
+      const countBySchool: Record<string, number> = {};
+      approvedApps.forEach((a) => {
+        if (a.school_id) countBySchool[a.school_id] = (countBySchool[a.school_id] || 0) + 1;
+      });
+
+      const withAvailability: SchoolOption[] = schoolsList
+        .map((s) => ({
+          ...s,
+          approved_count: countBySchool[s.id] || 0,
+        }))
+        .filter((s) => s.total_bursaries > s.approved_count);
+
+      setSchools(withAvailability);
     };
-    fetchDistricts();
+    fetchSchools();
   }, []);
 
   const loadSubLocations = async (parentId: string, level: string) => {
@@ -67,11 +124,9 @@ const BursaryRequest = () => {
     return data || [];
   };
 
+  // Validate link
   useEffect(() => {
-    if (!token) {
-      setLinkStatus("invalid");
-      return;
-    }
+    if (!token) { setLinkStatus("invalid"); return; }
     const validate = async () => {
       const { data, error } = await supabase
         .from("bursary_request_links")
@@ -79,55 +134,76 @@ const BursaryRequest = () => {
         .eq("token", token)
         .maybeSingle();
 
-      if (error || !data) {
-        setLinkStatus("invalid");
-        return;
-      }
-
-      if (data.is_used) {
-        setLinkStatus("used");
-        return;
-      }
-
-      if (new Date(data.expires_at) < new Date()) {
-        setLinkStatus("expired");
-        return;
-      }
-
+      if (error || !data) { setLinkStatus("invalid"); return; }
+      if (data.is_used) { setLinkStatus("used"); return; }
+      if (new Date(data.expires_at) < new Date()) { setLinkStatus("expired"); return; }
       setLinkInfo(data as LinkInfo);
       setLinkStatus("valid");
     };
     validate();
   }, [token]);
 
+  const updateChild = (index: number, field: keyof ChildEntry, value: string) => {
+    setChildren((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      // If education_level changed, reset school
+      if (field === "education_level") {
+        updated[index].school_id = "";
+        updated[index].school_name = "";
+      }
+      if (field === "school_id") {
+        const school = schools.find((s) => s.id === value);
+        updated[index].school_name = school?.name || "";
+      }
+      return updated;
+    });
+  };
+
+  const addChild = () => {
+    if (children.length < 3) setChildren((prev) => [...prev, emptyChild()]);
+  };
+
+  const removeChild = (index: number) => {
+    if (children.length > 1) setChildren((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const getSchoolsForLevel = (level: string) => schools.filter((s) => s.level === level);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!linkInfo) return;
 
-    if (!form.full_name.trim() || !form.phone.trim()) {
-      toast.error("Name and phone are required");
+    if (!parentName.trim() || !phone.trim()) {
+      toast.error("Parent name and phone are required");
+      return;
+    }
+
+    const validChildren = children.filter((c) => c.name.trim());
+    if (validChildren.length === 0) {
+      toast.error("Please add at least one child's name");
       return;
     }
 
     setSubmitting(true);
 
-    // Insert request
     const { error: insertError } = await supabase
       .from("bursary_requests")
       .insert({
         link_id: linkInfo.id,
-        full_name: form.full_name.trim(),
-        phone: form.phone.trim(),
-        nin: form.nin.trim() || null,
-        district: form.district,
-        sub_county: form.sub_county,
-        parish: form.parish,
-        village: form.village,
-        education_level: form.education_level,
-        school_name: form.school_name.trim(),
-        reason: form.reason.trim(),
-        income_details: form.income_details.trim(),
-      });
+        full_name: parentName.trim(),
+        phone: phone.trim(),
+        nin: nin.trim() || null,
+        district,
+        sub_county: subCounty,
+        parish,
+        village,
+        education_level: validChildren[0]?.education_level || null,
+        school_name: validChildren[0]?.school_name || null,
+        reason: reason.trim(),
+        income_details: incomeDetails.trim(),
+        children: validChildren,
+      } as any);
 
     if (insertError) {
       toast.error("Failed to submit: " + insertError.message);
@@ -135,7 +211,6 @@ const BursaryRequest = () => {
       return;
     }
 
-    // Mark link as used
     await supabase
       .from("bursary_request_links")
       .update({ is_used: true, used_at: new Date().toISOString() })
@@ -162,15 +237,13 @@ const BursaryRequest = () => {
               <>
                 <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
                 <h2 className="text-xl font-bold">Request Submitted!</h2>
-                <p className="text-muted-foreground text-sm">
-                  Your bursary request has been received. You will be contacted if your request is approved.
-                </p>
+                <p className="text-muted-foreground text-sm">Your bursary request has been received. You will be contacted if approved.</p>
               </>
             ) : linkStatus === "used" ? (
               <>
                 <AlertTriangle className="h-16 w-16 text-amber-500 mx-auto" />
                 <h2 className="text-xl font-bold">Link Already Used</h2>
-                <p className="text-muted-foreground text-sm">This link has already been used for a submission.</p>
+                <p className="text-muted-foreground text-sm">This link has already been used.</p>
               </>
             ) : linkStatus === "expired" ? (
               <>
@@ -203,122 +276,180 @@ const BursaryRequest = () => {
             <CardDescription>Fill in your details to submit a bursary request</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label>Full Name *</Label>
-                  <Input value={form.full_name} onChange={(e) => setForm((p) => ({ ...p, full_name: e.target.value }))} required maxLength={100} />
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Parent / Requester Info */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm text-foreground border-b pb-1">Parent / Guardian Information</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label>Parent / Guardian Name *</Label>
+                    <Input value={parentName} onChange={(e) => setParentName(e.target.value)} required maxLength={100} placeholder="Full name" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Phone Number *</Label>
+                    <Input value={phone} onChange={(e) => setPhone(e.target.value)} required maxLength={20} placeholder="07XXXXXXXX" />
+                  </div>
                 </div>
                 <div className="space-y-1">
-                  <Label>Phone Number *</Label>
-                  <Input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} required maxLength={20} />
+                  <Label>National ID Number (NIN)</Label>
+                  <Input value={nin} onChange={(e) => setNin(e.target.value.toUpperCase())} maxLength={14} />
                 </div>
-              </div>
-
-              <div className="space-y-1">
-                <Label>National ID Number (NIN)</Label>
-                <Input value={form.nin} onChange={(e) => setForm((p) => ({ ...p, nin: e.target.value }))} maxLength={20} />
               </div>
 
               {/* Location */}
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label>District</Label>
-                  <Select
-                    value={form.district}
-                    onValueChange={async (val) => {
-                      const dist = districts.find((d) => d.name === val);
-                      setForm((p) => ({ ...p, district: val, sub_county: "", parish: "", village: "" }));
-                      setSubCounties([]);
-                      setParishes([]);
-                      setVillages([]);
-                      if (dist) {
-                        const subs = await loadSubLocations(dist.id, "sub_county");
-                        setSubCounties(subs);
-                      }
-                    }}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Select district" /></SelectTrigger>
-                    <SelectContent>{districts.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label>Sub County</Label>
-                  <Select
-                    value={form.sub_county}
-                    onValueChange={async (val) => {
-                      const sc = subCounties.find((s) => s.name === val);
-                      setForm((p) => ({ ...p, sub_county: val, parish: "", village: "" }));
-                      setParishes([]);
-                      setVillages([]);
-                      if (sc) {
-                        const par = await loadSubLocations(sc.id, "parish");
-                        setParishes(par);
-                      }
-                    }}
-                    disabled={!form.district}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Select sub county" /></SelectTrigger>
-                    <SelectContent>{subCounties.map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label>Parish</Label>
-                  <Select
-                    value={form.parish}
-                    onValueChange={async (val) => {
-                      const p = parishes.find((x) => x.name === val);
-                      setForm((prev) => ({ ...prev, parish: val, village: "" }));
-                      setVillages([]);
-                      if (p) {
-                        const vills = await loadSubLocations(p.id, "village");
-                        setVillages(vills);
-                      }
-                    }}
-                    disabled={!form.sub_county}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Select parish" /></SelectTrigger>
-                    <SelectContent>{parishes.map((p) => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label>Village</Label>
-                  <Select value={form.village} onValueChange={(val) => setForm((p) => ({ ...p, village: val }))} disabled={!form.parish}>
-                    <SelectTrigger><SelectValue placeholder="Select village" /></SelectTrigger>
-                    <SelectContent>{villages.map((v) => <SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label>Education Level</Label>
-                  <Select value={form.education_level} onValueChange={(val) => setForm((p) => ({ ...p, education_level: val }))}>
-                    <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="nursery">Nursery</SelectItem>
-                      <SelectItem value="primary">Primary</SelectItem>
-                      <SelectItem value="secondary_o">Secondary O-Level</SelectItem>
-                      <SelectItem value="secondary_a">Secondary A-Level</SelectItem>
-                      <SelectItem value="vocational">Vocational</SelectItem>
-                      <SelectItem value="university">University</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label>School / Institution Name</Label>
-                  <Input value={form.school_name} onChange={(e) => setForm((p) => ({ ...p, school_name: e.target.value }))} maxLength={200} />
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm text-foreground border-b pb-1">Location of Residence</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label>District *</Label>
+                    <Select
+                      value={district}
+                      onValueChange={async (val) => {
+                        const dist = districts.find((d) => d.name === val);
+                        setDistrict(val);
+                        setSubCounty("");
+                        setParish("");
+                        setVillage("");
+                        setSubCounties([]);
+                        setParishes([]);
+                        setVillages([]);
+                        if (dist) setSubCounties(await loadSubLocations(dist.id, "sub_county"));
+                      }}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Select district..." /></SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {districts.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Sub County</Label>
+                    <Select
+                      value={subCounty}
+                      onValueChange={async (val) => {
+                        const sc = subCounties.find((s) => s.name === val);
+                        setSubCounty(val);
+                        setParish("");
+                        setVillage("");
+                        setParishes([]);
+                        setVillages([]);
+                        if (sc) setParishes(await loadSubLocations(sc.id, "parish"));
+                      }}
+                      disabled={!district}
+                    >
+                      <SelectTrigger><SelectValue placeholder={district ? "Select sub county" : "Select district first"} /></SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {subCounties.map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Parish</Label>
+                    <Select
+                      value={parish}
+                      onValueChange={async (val) => {
+                        const p = parishes.find((x) => x.name === val);
+                        setParish(val);
+                        setVillage("");
+                        setVillages([]);
+                        if (p) setVillages(await loadSubLocations(p.id, "village"));
+                      }}
+                      disabled={!subCounty}
+                    >
+                      <SelectTrigger><SelectValue placeholder={subCounty ? "Select parish" : "Select sub county first"} /></SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {parishes.map((p) => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Village</Label>
+                    <Select value={village} onValueChange={setVillage} disabled={!parish}>
+                      <SelectTrigger><SelectValue placeholder={parish ? "Select village" : "Select parish first"} /></SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {villages.map((v) => <SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <Label>Reason for Bursary Request</Label>
-                <Textarea rows={3} value={form.reason} onChange={(e) => setForm((p) => ({ ...p, reason: e.target.value }))} maxLength={1000} placeholder="Explain why you need a bursary..." />
+              {/* Children */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b pb-1">
+                  <h3 className="font-semibold text-sm text-foreground">Children Requesting Bursary For</h3>
+                  {children.length < 3 && (
+                    <Button type="button" variant="ghost" size="sm" onClick={addChild} className="gap-1 text-xs h-7">
+                      <Plus size={14} /> Add Child
+                    </Button>
+                  )}
+                </div>
+
+                {children.map((child, idx) => (
+                  <Card key={idx} className="border-dashed">
+                    <CardContent className="pt-4 pb-3 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted-foreground">Child {idx + 1}</span>
+                        {children.length > 1 && (
+                          <Button type="button" variant="ghost" size="sm" onClick={() => removeChild(idx)} className="h-6 w-6 p-0 text-destructive">
+                            <Trash2 size={14} />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <Label>Child's Full Name *</Label>
+                        <Input value={child.name} onChange={(e) => updateChild(idx, "name", e.target.value)} placeholder="Student name" maxLength={100} />
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label>Education Level</Label>
+                          <Select value={child.education_level} onValueChange={(val) => updateChild(idx, "education_level", val)}>
+                            <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(LEVEL_LABELS).map(([key, label]) => (
+                                <SelectItem key={key} value={key}>{label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label>School / Institution</Label>
+                          <Select
+                            value={child.school_id}
+                            onValueChange={(val) => updateChild(idx, "school_id", val)}
+                            disabled={!child.education_level}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={child.education_level ? "Select school" : "Select level first"} />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-60">
+                              {getSchoolsForLevel(child.education_level).map((s) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  {s.name} ({s.total_bursaries - s.approved_count} slots)
+                                </SelectItem>
+                              ))}
+                              {getSchoolsForLevel(child.education_level).length === 0 && (
+                                <div className="px-3 py-2 text-xs text-muted-foreground">No schools with available bursaries at this level</div>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
 
-              <div className="space-y-1">
-                <Label>Income / Financial Details</Label>
-                <Textarea rows={2} value={form.income_details} onChange={(e) => setForm((p) => ({ ...p, income_details: e.target.value }))} maxLength={500} placeholder="Describe your household income situation..." />
+              {/* Reason & Income */}
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label>Reason for Bursary Request</Label>
+                  <Textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={1000} placeholder="Explain why you need a bursary..." />
+                </div>
+                <div className="space-y-1">
+                  <Label>Income / Financial Details</Label>
+                  <Textarea rows={2} value={incomeDetails} onChange={(e) => setIncomeDetails(e.target.value)} maxLength={500} placeholder="Describe your household income situation..." />
+                </div>
               </div>
 
               <Button type="submit" className="w-full gap-2" disabled={submitting}>

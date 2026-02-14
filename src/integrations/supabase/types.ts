@@ -314,6 +314,7 @@ export type Database = {
         Row: {
           admin_notes: string | null
           appointment_id: string | null
+          children: Json | null
           created_at: string
           district: string | null
           education_level: string | null
@@ -336,6 +337,7 @@ export type Database = {
         Insert: {
           admin_notes?: string | null
           appointment_id?: string | null
+          children?: Json | null
           created_at?: string
           district?: string | null
           education_level?: string | null
@@ -358,6 +360,7 @@ export type Database = {
         Update: {
           admin_notes?: string | null
           appointment_id?: string | null
+          children?: Json | null
           created_at?: string
           district?: string | null
           education_level?: string | null
