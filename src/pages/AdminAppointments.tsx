@@ -1,0 +1,286 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { CalendarDays, Plus, MessageCircle, UserCheck, Clock, X } from "lucide-react";
+
+interface Appointment {
+  id: string;
+  person_name: string;
+  phone: string;
+  appointment_date: string;
+  seat_number: string | null;
+  purpose: string;
+  requirements: string[];
+  notes: string;
+  status: string;
+  bursary_request_id: string | null;
+  application_id: string | null;
+  created_at: string;
+}
+
+const AdminAppointments = () => {
+  const { user } = useAuth();
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [filterDate, setFilterDate] = useState("");
+  const [requirements, setRequirements] = useState<string[]>([]);
+
+  const [form, setForm] = useState({
+    person_name: "",
+    phone: "",
+    appointment_date: "",
+    seat_number: "",
+    purpose: "general",
+    notes: "",
+  });
+
+  const fetchData = async () => {
+    setLoading(true);
+    let query = supabase.from("appointments").select("*").order("appointment_date", { ascending: true });
+    if (filterDate) {
+      query = query.eq("appointment_date", filterDate);
+    }
+    const [apptRes, settingsRes] = await Promise.all([
+      query,
+      supabase.from("app_settings").select("value").eq("key", "appointment_requirements").maybeSingle(),
+    ]);
+    setAppointments((apptRes.data as Appointment[]) || []);
+    const reqItems = (settingsRes.data?.value as any)?.items || [];
+    setRequirements(reqItems);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchData(); }, [filterDate]);
+
+  const createAppointment = async () => {
+    if (!form.person_name || !form.phone || !form.appointment_date) {
+      toast.error("Name, phone and date are required");
+      return;
+    }
+
+    const { error } = await supabase.from("appointments").insert({
+      person_name: form.person_name.trim(),
+      phone: form.phone.trim(),
+      appointment_date: form.appointment_date,
+      seat_number: form.seat_number || null,
+      purpose: form.purpose,
+      requirements,
+      notes: form.notes,
+      created_by: user!.id,
+    });
+
+    if (error) {
+      toast.error("Failed to create appointment");
+      return;
+    }
+
+    toast.success("Appointment created!");
+    setShowCreateDialog(false);
+    setForm({ person_name: "", phone: "", appointment_date: "", seat_number: "", purpose: "general", notes: "" });
+    fetchData();
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    await supabase.from("appointments").update({ status }).eq("id", id);
+    toast.success(`Status updated to ${status}`);
+    fetchData();
+  };
+
+  const sendWhatsApp = (appt: Appointment) => {
+    const dateFormatted = new Date(appt.appointment_date).toLocaleDateString("en-UG", {
+      weekday: "long", year: "numeric", month: "long", day: "numeric",
+    });
+    const reqList = (appt.requirements || []).map((r, i) => `${i + 1}. ${r}`).join("\n");
+
+    const message = `Hello ${appt.person_name},\n\nThis is a reminder of your appointment:\n\n📅 *Date:* ${dateFormatted}\n💺 *Seat:* ${appt.seat_number || "TBD"}\n📝 *Purpose:* ${appt.purpose.replace("_", " ")}\n\n📋 *Please bring:*\n${reqList}\n\n— God's Will Scholarship Fund`;
+
+    const whatsappUrl = `https://wa.me/${appt.phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const statusBadge = (status: string) => {
+    const colors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+      scheduled: "outline",
+      completed: "default",
+      cancelled: "destructive",
+      no_show: "secondary",
+    };
+    return <Badge variant={colors[status] || "outline"} className="capitalize">{status.replace("_", " ")}</Badge>;
+  };
+
+  const todayCount = appointments.filter((a) => a.appointment_date === new Date().toISOString().split("T")[0]).length;
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <CalendarDays className="h-6 w-6 text-primary" /> Appointments
+          </h1>
+          <p className="text-muted-foreground text-sm">Manage office appointments and visits</p>
+        </div>
+        <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+          <Plus className="h-4 w-4" /> New Appointment
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="py-4 text-center">
+            <p className="text-2xl font-bold">{appointments.length}</p>
+            <p className="text-xs text-muted-foreground">Total</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4 text-center">
+            <p className="text-2xl font-bold text-primary">{todayCount}</p>
+            <p className="text-xs text-muted-foreground">Today</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4 text-center">
+            <p className="text-2xl font-bold text-green-600">{appointments.filter((a) => a.status === "completed").length}</p>
+            <p className="text-xs text-muted-foreground">Completed</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4 text-center">
+            <p className="text-2xl font-bold text-amber-600">{appointments.filter((a) => a.status === "scheduled").length}</p>
+            <p className="text-xs text-muted-foreground">Scheduled</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filter */}
+      <div className="flex items-center gap-3">
+        <Label className="text-sm">Filter by date:</Label>
+        <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="w-48" />
+        {filterDate && <Button variant="ghost" size="sm" onClick={() => setFilterDate("")}>Clear</Button>}
+      </div>
+
+      {/* Table */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Seat</TableHead>
+                  <TableHead>Purpose</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">Loading...</TableCell>
+                  </TableRow>
+                ) : appointments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">No appointments found</TableCell>
+                  </TableRow>
+                ) : (
+                  appointments.map((appt) => (
+                    <TableRow key={appt.id}>
+                      <TableCell className="font-medium">{appt.person_name}</TableCell>
+                      <TableCell>{appt.phone}</TableCell>
+                      <TableCell>{new Date(appt.appointment_date).toLocaleDateString()}</TableCell>
+                      <TableCell>{appt.seat_number || "—"}</TableCell>
+                      <TableCell className="capitalize">{appt.purpose.replace("_", " ")}</TableCell>
+                      <TableCell>{statusBadge(appt.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="ghost" onClick={() => sendWhatsApp(appt)} title="Send WhatsApp">
+                            <MessageCircle className="h-3 w-3" />
+                          </Button>
+                          {appt.status === "scheduled" && (
+                            <>
+                              <Button size="sm" variant="ghost" onClick={() => updateStatus(appt.id, "completed")} title="Mark complete">
+                                <UserCheck className="h-3 w-3 text-green-600" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => updateStatus(appt.id, "no_show")} title="No show">
+                                <Clock className="h-3 w-3 text-amber-600" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => updateStatus(appt.id, "cancelled")} title="Cancel">
+                                <X className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Create Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>New Appointment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Person Name *</Label>
+              <Input value={form.person_name} onChange={(e) => setForm((p) => ({ ...p, person_name: e.target.value }))} maxLength={100} />
+            </div>
+            <div className="space-y-2">
+              <Label>Phone *</Label>
+              <Input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} maxLength={20} />
+            </div>
+            <div className="space-y-2">
+              <Label>Date *</Label>
+              <Input type="date" value={form.appointment_date} onChange={(e) => setForm((p) => ({ ...p, appointment_date: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label>Seat Number</Label>
+              <Input value={form.seat_number} onChange={(e) => setForm((p) => ({ ...p, seat_number: e.target.value }))} placeholder="e.g. A1, 15" maxLength={10} />
+            </div>
+            <div className="space-y-2">
+              <Label>Purpose</Label>
+              <Select value={form.purpose} onValueChange={(val) => setForm((p) => ({ ...p, purpose: val }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="bursary_request">Bursary Request</SelectItem>
+                  <SelectItem value="document_review">Document Review</SelectItem>
+                  <SelectItem value="follow_up">Follow Up</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} rows={2} maxLength={500} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancel</Button>
+            <Button onClick={createAppointment}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default AdminAppointments;

@@ -214,6 +214,179 @@ export type Database = {
           },
         ]
       }
+      appointments: {
+        Row: {
+          application_id: string | null
+          appointment_date: string
+          bursary_request_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          person_name: string
+          phone: string
+          purpose: string
+          requirements: string[] | null
+          seat_number: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          application_id?: string | null
+          appointment_date: string
+          bursary_request_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          person_name: string
+          phone: string
+          purpose?: string
+          requirements?: string[] | null
+          seat_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string | null
+          appointment_date?: string
+          bursary_request_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          person_name?: string
+          phone?: string
+          purpose?: string
+          requirements?: string[] | null
+          seat_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_bursary_request_id_fkey"
+            columns: ["bursary_request_id"]
+            isOneToOne: false
+            referencedRelation: "bursary_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bursary_request_links: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          is_used: boolean
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at: string
+          id?: string
+          is_used?: boolean
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
+      bursary_requests: {
+        Row: {
+          admin_notes: string | null
+          appointment_id: string | null
+          created_at: string
+          district: string | null
+          education_level: string | null
+          full_name: string
+          id: string
+          income_details: string | null
+          link_id: string
+          nin: string | null
+          parish: string | null
+          phone: string
+          reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          school_name: string | null
+          status: string
+          sub_county: string | null
+          updated_at: string
+          village: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          appointment_id?: string | null
+          created_at?: string
+          district?: string | null
+          education_level?: string | null
+          full_name: string
+          id?: string
+          income_details?: string | null
+          link_id: string
+          nin?: string | null
+          parish?: string | null
+          phone: string
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_name?: string | null
+          status?: string
+          sub_county?: string | null
+          updated_at?: string
+          village?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          appointment_id?: string | null
+          created_at?: string
+          district?: string | null
+          education_level?: string | null
+          full_name?: string
+          id?: string
+          income_details?: string | null
+          link_id?: string
+          nin?: string | null
+          parish?: string | null
+          phone?: string
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_name?: string | null
+          status?: string
+          sub_county?: string | null
+          updated_at?: string
+          village?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bursary_requests_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "bursary_request_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number

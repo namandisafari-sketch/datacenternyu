@@ -16,6 +16,8 @@ import {
   Banknote,
   PieChart,
   Search,
+  CalendarDays,
+  Link2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -42,6 +44,8 @@ const adminItems = [
   { title: "Payment Codes", url: "/admin/payments", icon: Ticket },
   { title: "Payment History", url: "/admin/payment-history", icon: Banknote },
   { title: "Payments Analytics", url: "/admin/payments-dashboard", icon: PieChart },
+  { title: "Bursary Requests", url: "/admin/bursary-requests", icon: Link2 },
+  { title: "Appointments", url: "/admin/appointments", icon: CalendarDays },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 

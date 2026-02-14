@@ -20,6 +20,9 @@ import AdminSettings from "./pages/AdminSettings";
 import SchoolDashboard from "./pages/SchoolDashboard";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
+import BursaryRequest from "./pages/BursaryRequest";
+import AdminBursaryRequests from "./pages/AdminBursaryRequests";
+import AdminAppointments from "./pages/AdminAppointments";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
@@ -57,6 +60,9 @@ const AppContent = () => {
       <Route path="/admin/payments-dashboard" element={<ProtectedRoute><AdminPaymentsDashboard /></ProtectedRoute>} />
       <Route path="/admin/student-search" element={<ProtectedRoute><AdminStudentSearch /></ProtectedRoute>} />
       <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
+      <Route path="/admin/bursary-requests" element={<ProtectedRoute><AdminBursaryRequests /></ProtectedRoute>} />
+      <Route path="/admin/appointments" element={<ProtectedRoute><AdminAppointments /></ProtectedRoute>} />
+      <Route path="/bursary-request" element={<BursaryRequest />} />
       <Route path="/school" element={<ProtectedRoute><SchoolDashboard /></ProtectedRoute>} />
       <Route path="/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
       <Route path="/dashboard" element={<Navigate to="/admin" replace />} />

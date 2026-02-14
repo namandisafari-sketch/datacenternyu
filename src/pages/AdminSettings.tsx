@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Settings, Receipt, Building2, Save, Ticket } from "lucide-react";
+import { Settings, Receipt, Building2, Save, Ticket, CalendarDays, Plus, X } from "lucide-react";
 import PaymentCodesSection from "@/components/admin/PaymentCodesSection";
 
 interface ReceiptConfig {
@@ -42,16 +42,20 @@ const AdminSettings = () => {
   const { user } = useAuth();
   const [receiptConfig, setReceiptConfig] = useState<ReceiptConfig>(defaultReceiptConfig);
   const [saving, setSaving] = useState(false);
-
+  const [appointmentReqs, setAppointmentReqs] = useState<string[]>([]);
+  const [newReq, setNewReq] = useState("");
+  const [savingReqs, setSavingReqs] = useState(false);
   useEffect(() => {
     const fetchSettings = async () => {
-      const { data } = await supabase
-        .from("app_settings")
-        .select("*")
-        .eq("key", "receipt_config")
-        .maybeSingle();
-      if (data?.value) {
-        setReceiptConfig({ ...defaultReceiptConfig, ...(data.value as any) });
+      const [receiptRes, reqsRes] = await Promise.all([
+        supabase.from("app_settings").select("*").eq("key", "receipt_config").maybeSingle(),
+        supabase.from("app_settings").select("*").eq("key", "appointment_requirements").maybeSingle(),
+      ]);
+      if (receiptRes.data?.value) {
+        setReceiptConfig({ ...defaultReceiptConfig, ...(receiptRes.data.value as any) });
+      }
+      if (reqsRes.data?.value) {
+        setAppointmentReqs((reqsRes.data.value as any)?.items || []);
       }
     };
     fetchSettings();
@@ -93,6 +97,36 @@ const AdminSettings = () => {
   const formatUGX = (amount: number) =>
     new Intl.NumberFormat("en-UG", { style: "currency", currency: "UGX", maximumFractionDigits: 0 }).format(amount);
 
+  const addRequirement = () => {
+    if (!newReq.trim()) return;
+    setAppointmentReqs((prev) => [...prev, newReq.trim()]);
+    setNewReq("");
+  };
+
+  const removeRequirement = (index: number) => {
+    setAppointmentReqs((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const saveAppointmentReqs = async () => {
+    setSavingReqs(true);
+    const { data: existing } = await supabase
+      .from("app_settings")
+      .select("id")
+      .eq("key", "appointment_requirements")
+      .maybeSingle();
+
+    let error;
+    const val = { items: appointmentReqs } as any;
+    if (existing) {
+      ({ error } = await supabase.from("app_settings").update({ value: val, updated_by: user!.id }).eq("key", "appointment_requirements"));
+    } else {
+      ({ error } = await supabase.from("app_settings").insert({ key: "appointment_requirements", value: val, updated_by: user!.id }));
+    }
+    setSavingReqs(false);
+    if (error) toast.error("Failed to save");
+    else toast.success("Appointment requirements saved");
+  };
+
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <div>
@@ -107,6 +141,7 @@ const AdminSettings = () => {
           <TabsTrigger value="receipt" className="gap-1"><Receipt className="h-4 w-4" /> Receipt Layout</TabsTrigger>
           <TabsTrigger value="organization" className="gap-1"><Building2 className="h-4 w-4" /> Organization</TabsTrigger>
           <TabsTrigger value="payments" className="gap-1"><Ticket className="h-4 w-4" /> Payments</TabsTrigger>
+          <TabsTrigger value="appointments" className="gap-1"><CalendarDays className="h-4 w-4" /> Appointments</TabsTrigger>
         </TabsList>
 
         <TabsContent value="receipt" className="space-y-4">
@@ -265,6 +300,42 @@ const AdminSettings = () => {
 
         <TabsContent value="payments" className="space-y-4">
           <PaymentCodesSection />
+        </TabsContent>
+
+        <TabsContent value="appointments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Appointment Requirements</CardTitle>
+              <p className="text-sm text-muted-foreground">Set the default items visitors must bring. These are included in WhatsApp messages.</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                {appointmentReqs.map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-muted/50 rounded-md p-2">
+                    <span className="text-sm flex-1">{i + 1}. {item}</span>
+                    <Button size="sm" variant="ghost" onClick={() => removeRequirement(i)}>
+                      <X className="h-3 w-3 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add a requirement (e.g. National ID)"
+                  value={newReq}
+                  onChange={(e) => setNewReq(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addRequirement())}
+                  maxLength={200}
+                />
+                <Button variant="outline" onClick={addRequirement} className="gap-1">
+                  <Plus className="h-4 w-4" /> Add
+                </Button>
+              </div>
+              <Button onClick={saveAppointmentReqs} disabled={savingReqs} className="w-full gap-2">
+                <Save className="h-4 w-4" /> {savingReqs ? "Saving..." : "Save Requirements"}
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
