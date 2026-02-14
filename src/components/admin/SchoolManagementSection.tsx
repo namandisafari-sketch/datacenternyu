@@ -202,7 +202,6 @@ const SchoolManagementSection = ({ schools, approvedCounts, onRefresh }: SchoolM
       requirements: form.requirements || null,
       full_fees: form.full_fees,
       nyunga_covered_fees: form.nyunga_covered_fees,
-      parent_pays: form.parent_pays,
       boarding_available: form.boarding_available,
       total_bursaries: form.total_bursaries,
       boarding_functional_fees: form.boarding_functional_fees as any,
