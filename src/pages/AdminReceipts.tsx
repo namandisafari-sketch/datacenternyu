@@ -128,71 +128,108 @@ const AdminReceipts = () => {
       return;
     }
 
+    const receiptDate = app.reviewed_at ? new Date(app.reviewed_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
     printWindow.document.write(`
       <html>
         <head>
           <title>Receipt ${receiptNo}</title>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
           <style>
             @page { size: 80mm auto; margin: 0; }
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Courier New', monospace; width: 80mm; padding: 4mm; color: #000; font-size: 11px; line-height: 1.4; }
-            .center { text-align: center; }
-            .bold { font-weight: bold; }
-            .logo { font-size: 20px; font-weight: bold; letter-spacing: 2px; margin-bottom: 2px; }
-            .org-name { font-size: 13px; font-weight: bold; margin-bottom: 1px; }
-            .org-info { font-size: 9px; color: #333; }
-            .divider { border-top: 1px dashed #000; margin: 4px 0; }
-            .title { font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin: 4px 0; }
-            .row { display: flex; justify-content: space-between; padding: 1px 0; }
-            .row-label { color: #555; }
-            .row-value { font-weight: bold; text-align: right; max-width: 55%; }
-            .fee-row { display: flex; justify-content: space-between; padding: 2px 0; }
-            .total-row { display: flex; justify-content: space-between; padding: 3px 0; font-weight: bold; font-size: 13px; border-top: 1px solid #000; margin-top: 2px; }
-            .qr-container { text-align: center; margin: 6px 0; }
-            .qr-container canvas, .qr-container svg { margin: 0 auto; }
-            .footer { font-size: 8px; color: #555; text-align: center; margin-top: 4px; font-style: italic; }
-            .sig { text-align: right; margin-top: 8px; padding-top: 4px; border-top: 1px solid #000; display: inline-block; float: right; }
-            .sig-name { font-size: 10px; font-weight: bold; }
-            .sig-title { font-size: 8px; color: #555; }
-            .payment-badge { display: inline-block; padding: 2px 8px; background: #000; color: #fff; font-size: 9px; font-weight: bold; letter-spacing: 1px; margin-top: 4px; }
+            body { font-family: 'Inter', sans-serif; width: 80mm; padding: 5mm 4mm; color: #1a1a2e; font-size: 10px; line-height: 1.5; background: #fff; }
+            .header { text-align: center; padding-bottom: 10px; border-bottom: 2px solid #1a1a2e; }
+            .logo { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #1a1a2e; color: #d4a843; font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; border-radius: 8px; margin-bottom: 6px; letter-spacing: 1px; }
+            .org-name { font-size: 13px; font-weight: 700; color: #1a1a2e; letter-spacing: 0.5px; }
+            .org-contact { font-size: 8px; color: #666; margin-top: 2px; }
+            .receipt-title { text-align: center; margin: 10px 0 6px; }
+            .receipt-title h2 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #1a1a2e; }
+            .receipt-meta { display: flex; justify-content: space-between; background: #f5f5f0; border-radius: 4px; padding: 5px 8px; margin-bottom: 10px; font-size: 9px; }
+            .receipt-meta .label { color: #888; }
+            .receipt-meta .value { font-family: 'JetBrains Mono', monospace; font-weight: 500; color: #1a1a2e; }
+            .section { margin-bottom: 8px; }
+            .section-title { font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #999; margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px solid #eee; }
+            .info-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 10px; }
+            .info-row .label { color: #666; }
+            .info-row .value { font-weight: 600; color: #1a1a2e; text-align: right; max-width: 55%; }
+            .fees-table { width: 100%; border-collapse: collapse; margin: 6px 0; }
+            .fees-table td { padding: 4px 0; font-size: 10px; }
+            .fees-table td:last-child { text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+            .fees-table .item { color: #444; }
+            .total-row td { padding-top: 6px; border-top: 2px solid #1a1a2e; font-size: 12px; font-weight: 700; color: #1a1a2e; }
+            .status-badge { text-align: center; margin: 8px 0; }
+            .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 14px; border-radius: 20px; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+            .badge-verified { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+            .badge-paid { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+            .payment-code { text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #1a1a2e; background: #f5f5f0; padding: 3px 10px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+            .qr-section { text-align: center; margin: 10px 0 6px; padding: 8px 0; border-top: 1px dashed #ccc; border-bottom: 1px dashed #ccc; }
+            .qr-section canvas, .qr-section svg { margin: 0 auto; }
+            .qr-label { font-size: 7px; color: #999; margin-top: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+            .footer { text-align: center; margin-top: 8px; }
+            .footer-note { font-size: 7px; color: #999; font-style: italic; line-height: 1.4; max-width: 90%; margin: 0 auto; }
+            .signature { text-align: right; margin-top: 12px; padding-top: 6px; }
+            .sig-line { width: 45%; margin-left: auto; border-top: 1px solid #1a1a2e; padding-top: 3px; }
+            .sig-name { font-size: 9px; font-weight: 600; color: #1a1a2e; }
+            .sig-title { font-size: 7px; color: #888; }
+            .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 40px; font-weight: 800; color: rgba(26,26,46,0.03); letter-spacing: 4px; pointer-events: none; z-index: 0; }
           </style>
         </head>
-        <body onload="window.print(); window.close();">
-          <div class="center">
+        <body onload="setTimeout(()=>{window.print(); window.close();}, 200);">
+          <div class="watermark">PAID</div>
+          <div class="header">
             <div class="logo">${receiptConfig.logoText}</div>
             <div class="org-name">${receiptConfig.orgName}</div>
-            <div class="org-info">${receiptConfig.orgAddress}</div>
-            <div class="org-info">${receiptConfig.orgPhone} | ${receiptConfig.orgEmail}</div>
+            <div class="org-contact">${receiptConfig.orgAddress} • ${receiptConfig.orgPhone}</div>
+            <div class="org-contact">${receiptConfig.orgEmail}</div>
           </div>
-          <div class="divider"></div>
-          <div class="center title">Payment Receipt</div>
-          <div class="center" style="font-size:10px;color:#555;">
-            No: ${receiptNo}<br/>
-            Date: ${app.reviewed_at ? new Date(app.reviewed_at).toLocaleDateString() : new Date().toLocaleDateString()}
+
+          <div class="receipt-title"><h2>Payment Receipt</h2></div>
+
+          <div class="receipt-meta">
+            <div><span class="label">No:</span> <span class="value">${receiptNo}</span></div>
+            <div><span class="label">Date:</span> <span class="value">${receiptDate}</span></div>
           </div>
-          <div class="divider"></div>
-          <div class="row"><span class="row-label">Student:</span><span class="row-value">${app.student_name}</span></div>
-          <div class="row"><span class="row-label">Level:</span><span class="row-value">${levelLabels[app.education_level] || app.education_level}</span></div>
-          ${app.class_grade ? `<div class="row"><span class="row-label">Class:</span><span class="row-value">${app.class_grade}</span></div>` : ""}
-          <div class="row"><span class="row-label">School:</span><span class="row-value">${getSchoolName(app.school_id)}</span></div>
-          <div class="divider"></div>
-          <div class="row"><span class="row-label">Parent:</span><span class="row-value">${app.parent_name}</span></div>
-          <div class="row"><span class="row-label">Phone:</span><span class="row-value">${app.parent_phone}</span></div>
-          ${payment ? `<div class="row"><span class="row-label">Pay Code:</span><span class="row-value">${payment.code}</span></div>` : ""}
-          <div class="divider"></div>
-          <div class="center bold" style="font-size:10px;margin:3px 0;">FEES BREAKDOWN</div>
-          <div class="fee-row"><span>Application Form</span><span>${formatUGX(receiptConfig.applicationFormFee)}</span></div>
-          <div class="fee-row"><span>Lawyer/Legal Form</span><span>${formatUGX(receiptConfig.lawyerFormFee)}</span></div>
-          <div class="total-row"><span>TOTAL PAID</span><span>${formatUGX(totalFees)}</span></div>
-          <div class="center"><span class="payment-badge">${payment ? "VERIFIED ✓" : "PAID ✓"}</span></div>
-          ${payment ? `<div class="center" style="font-size:9px;margin-top:2px;">Code: ${payment.code}</div>` : ""}
-          <div class="divider"></div>
-          <div class="qr-container" id="qr-target"></div>
-          <div class="center" style="font-size:8px;color:#555;">Scan to look up documents</div>
-          <div class="divider"></div>
-          <div class="footer">${receiptConfig.footerNote}</div>
-          <div style="overflow:hidden;">
-            <div class="sig">
+
+          <div class="section">
+            <div class="section-title">Student Details</div>
+            <div class="info-row"><span class="label">Name</span><span class="value">${app.student_name}</span></div>
+            <div class="info-row"><span class="label">Level</span><span class="value">${levelLabels[app.education_level] || app.education_level}</span></div>
+            ${app.class_grade ? `<div class="info-row"><span class="label">Class</span><span class="value">${app.class_grade}</span></div>` : ""}
+            <div class="info-row"><span class="label">School</span><span class="value">${getSchoolName(app.school_id)}</span></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Parent / Guardian</div>
+            <div class="info-row"><span class="label">Name</span><span class="value">${app.parent_name}</span></div>
+            <div class="info-row"><span class="label">Phone</span><span class="value">${app.parent_phone}</span></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Payment Summary</div>
+            <table class="fees-table">
+              <tr><td class="item">Application Form Fee</td><td>${formatUGX(receiptConfig.applicationFormFee)}</td></tr>
+              <tr><td class="item">Lawyer / Legal Form Fee</td><td>${formatUGX(receiptConfig.lawyerFormFee)}</td></tr>
+              <tr class="total-row"><td>TOTAL PAID</td><td>${formatUGX(totalFees)}</td></tr>
+            </table>
+          </div>
+
+          <div class="status-badge">
+            <span class="badge ${payment ? 'badge-verified' : 'badge-paid'}">${payment ? '✓ PAYMENT VERIFIED' : '✓ PAID'}</span>
+            ${payment ? `<div><span class="payment-code">${payment.code}</span></div>` : ""}
+          </div>
+
+          <div class="qr-section">
+            <div id="qr-target"></div>
+            <div class="qr-label">Scan to verify payment</div>
+          </div>
+
+          <div class="footer">
+            <div class="footer-note">${receiptConfig.footerNote}</div>
+          </div>
+
+          <div class="signature">
+            <div class="sig-line">
               <div class="sig-name">${receiptConfig.signatureName}</div>
               <div class="sig-title">${receiptConfig.signatureTitle}</div>
             </div>
