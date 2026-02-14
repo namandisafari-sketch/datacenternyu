@@ -71,28 +71,6 @@ const About = () => (
       </div>
     </section>
 
-    {/* Scam Warning */}
-    <section className="py-16 bg-destructive/5 border-y border-destructive/20">
-      <div className="container mx-auto px-4 max-w-3xl text-center">
-        <div className="inline-flex items-center gap-2 bg-destructive/10 text-destructive font-bold px-4 py-2 rounded-full text-sm mb-4">
-          ⚠️ IMPORTANT NOTICE
-        </div>
-        <h2 className="font-display text-2xl font-bold text-primary mb-4">Beware of Fake Programs</h2>
-        <p className="text-muted-foreground leading-relaxed mb-6">
-          Nyunga Foundation does <strong className="text-foreground">NOT</strong> conduct camps, roadshows, or collect payments outside our office.
-          All fees and form-filling are done <strong className="text-foreground">only at our official office</strong>.
-          Do not send money to anyone claiming to represent us.
-        </p>
-        <div className="bg-card border border-border rounded-lg p-6 inline-block">
-          <p className="text-sm text-muted-foreground mb-1">Official Contact</p>
-          <a href="tel:0746960654" className="font-display text-2xl font-bold text-primary hover:text-secondary transition-colors">
-            📞 0746 960654
-          </a>
-          <p className="text-xs text-muted-foreground mt-2">Verify any communication through this number only</p>
-        </div>
-      </div>
-    </section>
-
     {/* CTA */}
     <section className="py-20">
       <div className="container mx-auto px-4 text-center">

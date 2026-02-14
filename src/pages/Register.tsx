@@ -306,6 +306,13 @@ const Register = () => {
               <Button onClick={() => navigate("/")} variant="ghost" className="w-full">
                 Go Back
               </Button>
+              <div className="mt-2 bg-destructive/5 border border-destructive/20 rounded-lg p-4 text-center">
+                <p className="text-destructive font-semibold text-sm mb-1">⚠️ Beware of Fake Programs</p>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Nyunga Foundation does <strong className="text-foreground">NOT</strong> conduct camps or collect payments outside our office. All fees are paid <strong className="text-foreground">only at our official office</strong>.
+                </p>
+                <a href="tel:0746960654" className="text-primary font-bold text-sm mt-2 inline-block">📞 0746 960654</a>
+              </div>
             </div>
           </CardContent>
         </Card>
