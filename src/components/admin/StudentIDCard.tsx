@@ -69,6 +69,19 @@ const StudentIDCard = ({ application, schoolName, sponsorshipNumber, side = "bot
             <Row label="Expires" value={format(expiryDate, "dd MMM yyyy")} />
           </div>
         </div>
+
+        {/* Sponsorship QR */}
+        <div className="shrink-0 flex flex-col items-center justify-center gap-1">
+          <QRCodeSVG
+            value={sponsorshipNumber}
+            size={72}
+            level="M"
+            includeMargin={false}
+            bgColor="hsl(0, 0%, 100%)"
+            fgColor="hsl(215, 58%, 26%)"
+          />
+          <p className="text-[8px] text-muted-foreground leading-tight">Scan to verify</p>
+        </div>
       </div>
 
       {/* Footer stripe */}
