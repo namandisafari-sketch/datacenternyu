@@ -335,9 +335,12 @@ const Register = () => {
           {/* Progress bar */}
           <div className="flex gap-1 max-w-md mx-auto mt-4">
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-              <div
+              <button
                 key={i}
-                className={`h-2 flex-1 rounded-full transition-colors ${
+                type="button"
+                onClick={() => setStep(i + 1)}
+                title={stepLabels[i]}
+                className={`h-2 flex-1 rounded-full transition-colors cursor-pointer hover:opacity-80 ${
                   i < step ? "bg-secondary" : "bg-muted"
                 }`}
               />
@@ -366,13 +369,25 @@ const Register = () => {
             )}
             <div className="flex-1" />
             {step < TOTAL_STEPS ? (
-              <Button
-                onClick={() => setStep(step + 1)}
-                disabled={!canProceed()}
-                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 gap-2"
-              >
-                Next <ArrowRight size={18} />
-              </Button>
+              <div className="flex gap-2">
+                {!canProceed() && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setStep(step + 1)}
+                    className="text-muted-foreground text-sm"
+                  >
+                    Skip
+                  </Button>
+                )}
+                <Button
+                  onClick={() => setStep(step + 1)}
+                  disabled={!canProceed()}
+                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90 gap-2"
+                >
+                  Next <ArrowRight size={18} />
+                </Button>
+              </div>
             ) : (
               <Button
                 onClick={handleSubmit}
