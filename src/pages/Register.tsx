@@ -149,7 +149,7 @@ const Register = () => {
     if (!form.declarationConsent) { toast.error("Please accept the declaration"); return; }
 
     setLoading(true);
-    const { error } = await supabase.from("applications").insert({
+    const { data: appData, error } = await supabase.from("applications").insert({
       user_id: user.id,
       student_name: form.studentName,
       date_of_birth: form.dateOfBirth || null,
@@ -196,12 +196,41 @@ const Register = () => {
       parent_id_url: form.parentIdUrl,
       declaration_consent: form.declarationConsent,
       declaration_date: form.declarationDate || null,
-    } as any);
+    } as any).select("id").single();
 
     setLoading(false);
     if (error) {
       toast.error("Failed to submit: " + error.message);
     } else {
+      // Link payment code to application and auto-record payment
+      if (appData?.id && codeVerified && paymentCode) {
+        const verifiedCode = await supabase
+          .from("payment_codes")
+          .select("id")
+          .eq("code", paymentCode.trim().toUpperCase())
+          .eq("is_used", true)
+          .maybeSingle();
+
+        if (verifiedCode.data) {
+          // Link the payment code to this application
+          await supabase
+            .from("payment_codes")
+            .update({ application_id: appData.id } as any)
+            .eq("id", verifiedCode.data.id);
+
+          // Auto-create payment record in parent_payments
+          await supabase.from("parent_payments").insert({
+            application_id: appData.id,
+            amount: 50000,
+            payment_method: "payment_code",
+            payment_date: new Date().toISOString().split("T")[0],
+            description: "application_fee",
+            payment_code_id: verifiedCode.data.id,
+            recorded_by: user.id,
+          } as any);
+        }
+      }
+
       setSubmitted(true);
       toast.success("Application submitted successfully!");
     }
