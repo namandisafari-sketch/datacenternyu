@@ -50,17 +50,28 @@ const StudentQRScanner = ({ onStudentFound, selectedStudent }: StudentQRScannerP
 
   const searchByIdPrefix = async (prefix: string) => {
     setSearching(true);
-    // Sponsorship number uses app.id.substring(0,6).toUpperCase()
-    // UUIDs are lowercase, so we search with lowercase prefix
     const lowerPrefix = prefix.toLowerCase();
     const { data, error } = await supabase
       .from("applications")
       .select("id, student_name, parent_name, parent_phone, education_level")
-      .ilike("id", `${lowerPrefix}%`)
+      .filter("id::text", "ilike", `${lowerPrefix}%`)
       .limit(1)
       .maybeSingle();
 
     if (error || !data) {
+      // Fallback: fetch all and filter client-side if cast filter not supported
+      if (error) {
+        const { data: allData } = await supabase
+          .from("applications")
+          .select("id, student_name, parent_name, parent_phone, education_level");
+        const match = allData?.find((a) => a.id.toLowerCase().startsWith(lowerPrefix));
+        if (match) {
+          onStudentFound(match.id, match as StudentInfo);
+          setSearching(false);
+          toast.success(`Found: ${match.student_name}`);
+          return;
+        }
+      }
       toast.error("No student found with that sponsorship number.");
       setSearching(false);
       return;
