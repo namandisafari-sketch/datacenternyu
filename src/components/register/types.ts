@@ -1,37 +1,132 @@
 export type EducationLevel = "nursery" | "primary" | "secondary_o" | "secondary_a" | "vocational" | "university";
 
+export interface ParentDetail {
+  name: string;
+  occupation: string;
+  nin: string;
+  residence: string;
+  telephone: string;
+  religion: string;
+  tribe: string;
+}
+
+export interface GuardianDetail {
+  name: string;
+  relationship: string;
+  occupation: string;
+  nin: string;
+  residence: string;
+  placeOfWork: string;
+  contact: string;
+}
+
+export interface NextOfKin {
+  name: string;
+  residence: string;
+  relationship: string;
+  telephone: string;
+}
+
+export interface NearbyRelative {
+  name: string;
+  address: string;
+  contact: string;
+}
+
+export interface NearestNeighbor {
+  name: string;
+  contacts: string;
+}
+
+export interface AcademicResults {
+  pleYear: string;
+  pleIndex: string;
+  pleAggregates: string;
+  pleGrade: string;
+  pleEnglish: string;
+  pleMath: string;
+  pleSst: string;
+  pleScience: string;
+  uceYear: string;
+  uceIndex: string;
+  uceGrade: string;
+  uaceYear: string;
+  uaceIndex: string;
+  uacePoints: string;
+  uaceCombination: string;
+}
+
+export interface SubjectGrade {
+  name: string;
+  grade: string;
+}
+
+export interface PreviousSchools {
+  primaryPle: string;
+  secondaryUce: string;
+  secondaryUace: string;
+  universityInstitute: string;
+}
+
 export interface ApplicationForm {
-  // Step 1: Applicant info
+  // Step 1: Student Particulars
   studentName: string;
   dateOfBirth: string;
   gender: string;
   nationality: string;
+  religion: string;
+  tribe: string;
   nin: string;
   passportPhotoUrl: string;
+  educationLevel: EducationLevel | "";
+  classGrade: string;
+  subjectCombination: string;
+  courseProgram: string;
+  previousSchools: PreviousSchools;
+  academicResults: AcademicResults;
+
+  // Step 2: Results, Home Location & Health
+  subjectGrades: SubjectGrade[];
   district: string;
   subCounty: string;
   parish: string;
   village: string;
+  lciChairperson: string;
+  lciContact: string;
+  orphanStatus: string;
+  deceasedParent: string;
+  physicalDefect: boolean;
+  physicalDefectDetails: string;
+  chronicDisease: boolean;
+  chronicDiseaseDetails: string;
 
-  // Step 2: Education level
-  educationLevel: EducationLevel | "";
+  // Step 3: Parent/Guardian Particulars
+  fatherDetails: ParentDetail;
+  motherDetails: ParentDetail;
+  whoPaysFees: string;
+  guardianDetails: GuardianDetail;
+  nextOfKin: NextOfKin;
+  nearbyRelative: NearbyRelative;
+  nearestNeighbor: NearestNeighbor;
 
-  // Step 3: School info
+  // Step 4: Qualification, Financial & Declaration
+  previousFeesAmount: number;
+  affordableFeesAmount: number;
+  declarationConsent: boolean;
+  declarationDate: string;
+
+  // Legacy fields kept for compatibility
   schoolId: string;
   currentSchool: string;
   schoolType: string;
-  classGrade: string;
   reportCardUrl: string;
   unebIndexNumber: string;
   institutionName: string;
-  courseProgram: string;
   yearOfStudy: string;
   registrationNumber: string;
   admissionLetterUrl: string;
   transcriptUrl: string;
   expectedGraduationYear: string;
-
-  // Step 4: Parent/guardian
   parentName: string;
   parentPhone: string;
   parentEmail: string;
@@ -40,51 +135,97 @@ export interface ApplicationForm {
   parentMonthlyIncome: string;
   parentNin: string;
   childrenInSchool: number;
-
-  // Step 5: Financial need
   currentFeePayer: string;
   feesPerTerm: number;
   outstandingBalances: number;
   previousBursary: boolean;
   householdIncomeRange: string;
   proofOfNeedUrl: string;
-
-  // Step 6: Personal statement
   personalStatement: string;
   reason: string;
-
-  // Step 7: Vulnerability
   vulnerabilityIndicators: string[];
-
-  // Step 8: Documents
   birthCertificateUrl: string;
   parentIdUrl: string;
-
-  // Step 9: Declaration
-  declarationConsent: boolean;
-  declarationDate: string;
 }
+
+const emptyParentDetail = (): ParentDetail => ({
+  name: "", occupation: "", nin: "", residence: "", telephone: "", religion: "", tribe: "",
+});
+
+const emptyGuardianDetail = (): GuardianDetail => ({
+  name: "", relationship: "", occupation: "", nin: "", residence: "", placeOfWork: "", contact: "",
+});
+
+const emptyNextOfKin = (): NextOfKin => ({
+  name: "", residence: "", relationship: "", telephone: "",
+});
+
+const emptyAcademicResults = (): AcademicResults => ({
+  pleYear: "", pleIndex: "", pleAggregates: "", pleGrade: "",
+  pleEnglish: "", pleMath: "", pleSst: "", pleScience: "",
+  uceYear: "", uceIndex: "", uceGrade: "",
+  uaceYear: "", uaceIndex: "", uacePoints: "", uaceCombination: "",
+});
 
 export const initialForm: ApplicationForm = {
   studentName: "",
   dateOfBirth: "",
   gender: "",
   nationality: "Ugandan",
+  religion: "",
+  tribe: "",
   nin: "",
   passportPhotoUrl: "",
+  educationLevel: "",
+  classGrade: "",
+  subjectCombination: "",
+  courseProgram: "",
+  previousSchools: { primaryPle: "", secondaryUce: "", secondaryUace: "", universityInstitute: "" },
+  academicResults: emptyAcademicResults(),
+
+  subjectGrades: [
+    { name: "Mathematics", grade: "" },
+    { name: "English", grade: "" },
+    { name: "Physics", grade: "" },
+    { name: "Chemistry", grade: "" },
+    { name: "Biology", grade: "" },
+    { name: "Geography", grade: "" },
+    { name: "History", grade: "" },
+    { name: "Commerce", grade: "" },
+  ],
   district: "",
   subCounty: "",
   parish: "",
   village: "",
-  educationLevel: "",
+  lciChairperson: "",
+  lciContact: "",
+  orphanStatus: "no",
+  deceasedParent: "",
+  physicalDefect: false,
+  physicalDefectDetails: "",
+  chronicDisease: false,
+  chronicDiseaseDetails: "",
+
+  fatherDetails: emptyParentDetail(),
+  motherDetails: emptyParentDetail(),
+  whoPaysFees: "",
+  guardianDetails: emptyGuardianDetail(),
+  nextOfKin: emptyNextOfKin(),
+  nearbyRelative: { name: "", address: "", contact: "" },
+  nearestNeighbor: { name: "", contacts: "" },
+
+  previousFeesAmount: 0,
+  affordableFeesAmount: 0,
+  declarationConsent: false,
+  declarationDate: "",
+
+  // Legacy
   schoolId: "",
   currentSchool: "",
   schoolType: "",
-  classGrade: "",
   reportCardUrl: "",
   unebIndexNumber: "",
   institutionName: "",
-  courseProgram: "",
   yearOfStudy: "",
   registrationNumber: "",
   admissionLetterUrl: "",
@@ -109,8 +250,6 @@ export const initialForm: ApplicationForm = {
   vulnerabilityIndicators: [],
   birthCertificateUrl: "",
   parentIdUrl: "",
-  declarationConsent: false,
-  declarationDate: "",
 };
 
 export interface SchoolRow {

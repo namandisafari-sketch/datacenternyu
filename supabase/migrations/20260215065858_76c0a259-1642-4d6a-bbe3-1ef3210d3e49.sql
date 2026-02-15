@@ -1,0 +1,26 @@
+
+-- Add new columns to applications table to match the physical bursary application form
+ALTER TABLE public.applications
+ADD COLUMN IF NOT EXISTS religion text DEFAULT '',
+ADD COLUMN IF NOT EXISTS tribe text DEFAULT '',
+ADD COLUMN IF NOT EXISTS subject_combination text DEFAULT '',
+ADD COLUMN IF NOT EXISTS previous_schools jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS academic_results jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS subject_grades jsonb DEFAULT '[]',
+ADD COLUMN IF NOT EXISTS orphan_status text DEFAULT 'no',
+ADD COLUMN IF NOT EXISTS deceased_parent text DEFAULT '',
+ADD COLUMN IF NOT EXISTS physical_defect boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS physical_defect_details text DEFAULT '',
+ADD COLUMN IF NOT EXISTS chronic_disease boolean DEFAULT false,
+ADD COLUMN IF NOT EXISTS chronic_disease_details text DEFAULT '',
+ADD COLUMN IF NOT EXISTS father_details jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS mother_details jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS who_pays_fees text DEFAULT '',
+ADD COLUMN IF NOT EXISTS guardian_details jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS next_of_kin jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS nearby_relative jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS nearest_neighbor jsonb DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS previous_fees_amount numeric DEFAULT 0,
+ADD COLUMN IF NOT EXISTS affordable_fees_amount numeric DEFAULT 0,
+ADD COLUMN IF NOT EXISTS lci_chairperson text DEFAULT '',
+ADD COLUMN IF NOT EXISTS lci_contact text DEFAULT '';

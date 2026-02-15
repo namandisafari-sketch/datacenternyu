@@ -40,28 +40,42 @@ export type Database = {
       }
       applications: {
         Row: {
+          academic_results: Json | null
           admin_notes: string | null
           admission_letter_url: string | null
+          affordable_fees_amount: number | null
           birth_certificate_url: string | null
           children_in_school: number | null
+          chronic_disease: boolean | null
+          chronic_disease_details: string | null
           class_grade: string | null
           course_program: string | null
           created_at: string
           current_fee_payer: string | null
           current_school: string | null
           date_of_birth: string | null
+          deceased_parent: string | null
           declaration_consent: boolean | null
           declaration_date: string | null
           district: string | null
           education_level: Database["public"]["Enums"]["education_level"]
           expected_graduation_year: string | null
+          father_details: Json | null
           fees_per_term: number | null
           gender: string | null
+          guardian_details: Json | null
           household_income_range: string | null
           id: string
           institution_name: string | null
+          lci_chairperson: string | null
+          lci_contact: string | null
+          mother_details: Json | null
           nationality: string | null
+          nearby_relative: Json | null
+          nearest_neighbor: Json | null
+          next_of_kin: Json | null
           nin: string | null
+          orphan_status: string | null
           outstanding_balances: number | null
           parent_email: string | null
           parent_id_url: string | null
@@ -73,11 +87,16 @@ export type Database = {
           parish: string | null
           passport_photo_url: string | null
           personal_statement: string | null
+          physical_defect: boolean | null
+          physical_defect_details: string | null
           previous_bursary: boolean | null
+          previous_fees_amount: number | null
+          previous_schools: Json | null
           proof_of_need_url: string | null
           reason: string | null
           registration_number: string | null
           relationship: string | null
+          religion: string | null
           report_card_url: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -86,37 +105,55 @@ export type Database = {
           status: Database["public"]["Enums"]["application_status"]
           student_name: string
           sub_county: string | null
+          subject_combination: string | null
+          subject_grades: Json | null
           transcript_url: string | null
+          tribe: string | null
           uneb_index_number: string | null
           updated_at: string
           user_id: string
           village: string | null
           vulnerability_indicators: Json | null
+          who_pays_fees: string | null
           year_of_study: string | null
         }
         Insert: {
+          academic_results?: Json | null
           admin_notes?: string | null
           admission_letter_url?: string | null
+          affordable_fees_amount?: number | null
           birth_certificate_url?: string | null
           children_in_school?: number | null
+          chronic_disease?: boolean | null
+          chronic_disease_details?: string | null
           class_grade?: string | null
           course_program?: string | null
           created_at?: string
           current_fee_payer?: string | null
           current_school?: string | null
           date_of_birth?: string | null
+          deceased_parent?: string | null
           declaration_consent?: boolean | null
           declaration_date?: string | null
           district?: string | null
           education_level: Database["public"]["Enums"]["education_level"]
           expected_graduation_year?: string | null
+          father_details?: Json | null
           fees_per_term?: number | null
           gender?: string | null
+          guardian_details?: Json | null
           household_income_range?: string | null
           id?: string
           institution_name?: string | null
+          lci_chairperson?: string | null
+          lci_contact?: string | null
+          mother_details?: Json | null
           nationality?: string | null
+          nearby_relative?: Json | null
+          nearest_neighbor?: Json | null
+          next_of_kin?: Json | null
           nin?: string | null
+          orphan_status?: string | null
           outstanding_balances?: number | null
           parent_email?: string | null
           parent_id_url?: string | null
@@ -128,11 +165,16 @@ export type Database = {
           parish?: string | null
           passport_photo_url?: string | null
           personal_statement?: string | null
+          physical_defect?: boolean | null
+          physical_defect_details?: string | null
           previous_bursary?: boolean | null
+          previous_fees_amount?: number | null
+          previous_schools?: Json | null
           proof_of_need_url?: string | null
           reason?: string | null
           registration_number?: string | null
           relationship?: string | null
+          religion?: string | null
           report_card_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -141,37 +183,55 @@ export type Database = {
           status?: Database["public"]["Enums"]["application_status"]
           student_name: string
           sub_county?: string | null
+          subject_combination?: string | null
+          subject_grades?: Json | null
           transcript_url?: string | null
+          tribe?: string | null
           uneb_index_number?: string | null
           updated_at?: string
           user_id: string
           village?: string | null
           vulnerability_indicators?: Json | null
+          who_pays_fees?: string | null
           year_of_study?: string | null
         }
         Update: {
+          academic_results?: Json | null
           admin_notes?: string | null
           admission_letter_url?: string | null
+          affordable_fees_amount?: number | null
           birth_certificate_url?: string | null
           children_in_school?: number | null
+          chronic_disease?: boolean | null
+          chronic_disease_details?: string | null
           class_grade?: string | null
           course_program?: string | null
           created_at?: string
           current_fee_payer?: string | null
           current_school?: string | null
           date_of_birth?: string | null
+          deceased_parent?: string | null
           declaration_consent?: boolean | null
           declaration_date?: string | null
           district?: string | null
           education_level?: Database["public"]["Enums"]["education_level"]
           expected_graduation_year?: string | null
+          father_details?: Json | null
           fees_per_term?: number | null
           gender?: string | null
+          guardian_details?: Json | null
           household_income_range?: string | null
           id?: string
           institution_name?: string | null
+          lci_chairperson?: string | null
+          lci_contact?: string | null
+          mother_details?: Json | null
           nationality?: string | null
+          nearby_relative?: Json | null
+          nearest_neighbor?: Json | null
+          next_of_kin?: Json | null
           nin?: string | null
+          orphan_status?: string | null
           outstanding_balances?: number | null
           parent_email?: string | null
           parent_id_url?: string | null
@@ -183,11 +243,16 @@ export type Database = {
           parish?: string | null
           passport_photo_url?: string | null
           personal_statement?: string | null
+          physical_defect?: boolean | null
+          physical_defect_details?: string | null
           previous_bursary?: boolean | null
+          previous_fees_amount?: number | null
+          previous_schools?: Json | null
           proof_of_need_url?: string | null
           reason?: string | null
           registration_number?: string | null
           relationship?: string | null
+          religion?: string | null
           report_card_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -196,12 +261,16 @@ export type Database = {
           status?: Database["public"]["Enums"]["application_status"]
           student_name?: string
           sub_county?: string | null
+          subject_combination?: string | null
+          subject_grades?: Json | null
           transcript_url?: string | null
+          tribe?: string | null
           uneb_index_number?: string | null
           updated_at?: string
           user_id?: string
           village?: string | null
           vulnerability_indicators?: Json | null
+          who_pays_fees?: string | null
           year_of_study?: string | null
         }
         Relationships: [

@@ -10,28 +10,18 @@ import { toast } from "sonner";
 import { CheckCircle, ArrowRight, ArrowLeft, Lock, Ticket } from "lucide-react";
 
 import { ApplicationForm, SchoolRow, initialForm, EducationLevel } from "@/components/register/types";
-import StepApplicantInfo from "@/components/register/StepApplicantInfo";
-import StepEducationLevel from "@/components/register/StepEducationLevel";
-import StepSchoolInfo from "@/components/register/StepSchoolInfo";
-import StepParentInfo from "@/components/register/StepParentInfo";
-import StepFinancialNeed from "@/components/register/StepFinancialNeed";
-import StepPersonalStatement from "@/components/register/StepPersonalStatement";
-import StepVulnerability from "@/components/register/StepVulnerability";
-import StepDocuments from "@/components/register/StepDocuments";
-import StepDeclaration from "@/components/register/StepDeclaration";
+import StepStudentParticulars from "@/components/register/StepStudentParticulars";
+import StepResultsLocationHealth from "@/components/register/StepResultsLocationHealth";
+import StepParentGuardian from "@/components/register/StepParentGuardian";
+import StepQualificationDeclaration from "@/components/register/StepQualificationDeclaration";
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 4;
 
 const stepLabels = [
-  "Applicant",
-  "Level",
-  "School",
-  "Parent",
-  "Financial",
-  "Statement",
-  "Vulnerability",
-  "Documents",
-  "Declaration",
+  "Student Particulars",
+  "Results, Location & Health",
+  "Parent / Guardian",
+  "Qualification & Declaration",
 ];
 
 const Register = () => {
@@ -106,7 +96,6 @@ const Register = () => {
       return;
     }
 
-    // Mark code as used
     const { data: userData } = await supabase.auth.getUser();
     await supabase
       .from("payment_codes")
@@ -126,20 +115,10 @@ const Register = () => {
 
   const canProceed = (): boolean => {
     switch (step) {
-      case 1: return !!(form.studentName && form.dateOfBirth && form.gender && form.district);
-      case 2: return !!form.educationLevel;
-      case 3: {
-        const lvl = form.educationLevel;
-        if (["nursery", "primary", "secondary_o", "secondary_a"].includes(lvl)) return !!(form.currentSchool && form.classGrade);
-        if (["university", "vocational"].includes(lvl)) return !!(form.institutionName && form.courseProgram);
-        return true;
-      }
-      case 4: return !!(form.parentName && form.parentPhone);
-      case 5: return true;
-      case 6: return !!form.reason || !!form.personalStatement;
-      case 7: return true;
-      case 8: return true;
-      case 9: return form.declarationConsent;
+      case 1: return !!(form.studentName && form.dateOfBirth && form.gender);
+      case 2: return !!(form.district);
+      case 3: return true;
+      case 4: return form.declarationConsent;
       default: return true;
     }
   };
@@ -149,60 +128,67 @@ const Register = () => {
     if (!form.declarationConsent) { toast.error("Please accept the declaration"); return; }
 
     setLoading(true);
+
+    // Map father/mother details to legacy parent fields
+    const parentName = form.fatherDetails.name || form.motherDetails.name || form.guardianDetails.name || "";
+    const parentPhone = form.fatherDetails.telephone || form.motherDetails.telephone || form.guardianDetails.contact || "";
+
     const { data: appData, error } = await supabase.from("applications").insert({
       user_id: user.id,
       student_name: form.studentName,
       date_of_birth: form.dateOfBirth || null,
       gender: form.gender,
       nationality: form.nationality,
+      religion: form.religion,
+      tribe: form.tribe,
       nin: form.nin,
       passport_photo_url: form.passportPhotoUrl,
       district: form.district,
       sub_county: form.subCounty,
       parish: form.parish,
       village: form.village,
-      education_level: form.educationLevel as EducationLevel,
+      education_level: (form.educationLevel || "primary") as EducationLevel,
       school_id: selectedSchool?.id || null,
       current_school: form.currentSchool,
-      school_type: form.schoolType,
       class_grade: form.classGrade,
-      report_card_url: form.reportCardUrl,
-      uneb_index_number: form.unebIndexNumber,
-      institution_name: form.institutionName,
+      subject_combination: form.subjectCombination,
       course_program: form.courseProgram,
-      year_of_study: form.yearOfStudy,
-      registration_number: form.registrationNumber,
-      admission_letter_url: form.admissionLetterUrl,
-      transcript_url: form.transcriptUrl,
-      expected_graduation_year: form.expectedGraduationYear,
-      parent_name: form.parentName,
-      parent_phone: form.parentPhone,
-      parent_email: form.parentEmail,
-      relationship: form.relationship,
-      parent_occupation: form.parentOccupation,
-      parent_monthly_income: form.parentMonthlyIncome,
-      parent_nin: form.parentNin,
-      children_in_school: form.childrenInSchool,
-      current_fee_payer: form.currentFeePayer,
-      fees_per_term: form.feesPerTerm,
-      outstanding_balances: form.outstandingBalances,
-      previous_bursary: form.previousBursary,
-      household_income_range: form.householdIncomeRange,
-      proof_of_need_url: form.proofOfNeedUrl,
-      personal_statement: form.personalStatement,
+      previous_schools: form.previousSchools,
+      academic_results: form.academicResults,
+      subject_grades: form.subjectGrades,
+      orphan_status: form.orphanStatus,
+      deceased_parent: form.deceasedParent,
+      physical_defect: form.physicalDefect,
+      physical_defect_details: form.physicalDefectDetails,
+      chronic_disease: form.chronicDisease,
+      chronic_disease_details: form.chronicDiseaseDetails,
+      father_details: form.fatherDetails,
+      mother_details: form.motherDetails,
+      who_pays_fees: form.whoPaysFees,
+      guardian_details: form.guardianDetails,
+      next_of_kin: form.nextOfKin,
+      nearby_relative: form.nearbyRelative,
+      nearest_neighbor: form.nearestNeighbor,
+      lci_chairperson: form.lciChairperson,
+      lci_contact: form.lciContact,
+      previous_fees_amount: form.previousFeesAmount,
+      affordable_fees_amount: form.affordableFeesAmount,
+      parent_name: parentName || "N/A",
+      parent_phone: parentPhone || "N/A",
       reason: form.reason,
-      vulnerability_indicators: form.vulnerabilityIndicators,
+      report_card_url: form.reportCardUrl,
       birth_certificate_url: form.birthCertificateUrl,
       parent_id_url: form.parentIdUrl,
+      admission_letter_url: form.admissionLetterUrl,
       declaration_consent: form.declarationConsent,
       declaration_date: form.declarationDate || null,
+      vulnerability_indicators: form.orphanStatus === "yes" ? ["orphan_" + (form.deceasedParent || "single")] : [],
     } as any).select("id").single();
 
     setLoading(false);
     if (error) {
       toast.error("Failed to submit: " + error.message);
     } else {
-      // Link payment code to application and auto-record payment
       if (appData?.id && codeVerified && paymentCode) {
         const verifiedCode = await supabase
           .from("payment_codes")
@@ -212,13 +198,11 @@ const Register = () => {
           .maybeSingle();
 
         if (verifiedCode.data) {
-          // Link the payment code to this application
           await supabase
             .from("payment_codes")
             .update({ application_id: appData.id } as any)
             .eq("id", verifiedCode.data.id);
 
-          // Auto-create payment record in parent_payments
           await supabase.from("parent_payments").insert({
             application_id: appData.id,
             amount: 50000,
@@ -230,7 +214,6 @@ const Register = () => {
           } as any);
         }
       }
-
       setSubmitted(true);
       toast.success("Application submitted successfully!");
     }
@@ -325,10 +308,10 @@ const Register = () => {
       <div className="container mx-auto px-4 max-w-3xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="font-display text-3xl md:text-4xl font-bold text-primary mb-2">
-            Scholarship Application 🇺🇬
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-primary mb-1">
+            BURSARY APPLICATION FORM
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Step {step} of {TOTAL_STEPS} — {stepLabels[step - 1]}
           </p>
 
@@ -340,25 +323,36 @@ const Register = () => {
                 type="button"
                 onClick={() => setStep(i + 1)}
                 title={stepLabels[i]}
-                className={`h-2 flex-1 rounded-full transition-colors cursor-pointer hover:opacity-80 ${
-                  i < step ? "bg-secondary" : "bg-muted"
+                className={`h-2.5 flex-1 rounded-full transition-colors cursor-pointer hover:opacity-80 ${
+                  i < step ? "bg-secondary" : i === step - 1 ? "bg-secondary" : "bg-muted"
                 }`}
               />
+            ))}
+          </div>
+          <div className="flex justify-between max-w-md mx-auto mt-1 text-[10px] text-muted-foreground">
+            {stepLabels.map((l, i) => (
+              <span key={i} className={`${i === step - 1 ? "text-secondary font-medium" : ""}`}>
+                {i + 1}
+              </span>
             ))}
           </div>
         </div>
 
         {/* Step content */}
         <div className="space-y-6">
-          {step === 1 && <StepApplicantInfo form={form} update={update} userId={user?.id || ""} />}
-          {step === 2 && <StepEducationLevel form={form} update={update} schools={schools} selectedSchool={selectedSchool} setSelectedSchool={setSelectedSchool} />}
-          {step === 3 && <StepSchoolInfo form={form} update={update} userId={user?.id || ""} />}
-          {step === 4 && <StepParentInfo form={form} update={update} />}
-          {step === 5 && <StepFinancialNeed form={form} update={update} userId={user?.id || ""} />}
-          {step === 6 && <StepPersonalStatement form={form} update={update} />}
-          {step === 7 && <StepVulnerability form={form} update={update} />}
-          {step === 8 && <StepDocuments form={form} update={update} userId={user?.id || ""} />}
-          {step === 9 && <StepDeclaration form={form} update={update} />}
+          {step === 1 && <StepStudentParticulars form={form} update={update} userId={user?.id || ""} />}
+          {step === 2 && <StepResultsLocationHealth form={form} update={update} />}
+          {step === 3 && <StepParentGuardian form={form} update={update} />}
+          {step === 4 && (
+            <StepQualificationDeclaration
+              form={form}
+              update={update}
+              schools={schools}
+              selectedSchool={selectedSchool}
+              setSelectedSchool={setSelectedSchool}
+              userId={user?.id || ""}
+            />
+          )}
 
           {/* Navigation */}
           <div className="flex gap-3">
