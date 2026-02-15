@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { CheckCircle, ArrowRight, ArrowLeft, Lock, Ticket } from "lucide-react";
+import { CheckCircle, ArrowRight, ArrowLeft, Lock, Ticket, Printer } from "lucide-react";
+import PrintableApplicationForm from "@/components/register/PrintableApplicationForm";
 
 import { ApplicationForm, SchoolRow, initialForm, EducationLevel } from "@/components/register/types";
 import StepStudentParticulars from "@/components/register/StepStudentParticulars";
@@ -33,6 +34,8 @@ const Register = () => {
   const [form, setForm] = useState<ApplicationForm>(initialForm);
   const [schools, setSchools] = useState<SchoolRow[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<SchoolRow | null>(null);
+  const [submittedAppId, setSubmittedAppId] = useState<string>("");
+  const printRef = useRef<HTMLDivElement>(null);
 
   // Payment code gate
   const [paymentCode, setPaymentCode] = useState("");
@@ -214,9 +217,35 @@ const Register = () => {
           } as any);
         }
       }
+      setSubmittedAppId(appData?.id || "");
       setSubmitted(true);
       toast.success("Application submitted successfully!");
     }
+  };
+
+  const handlePrint = () => {
+    const content = printRef.current;
+    if (!content) return;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Bursary Application Form</title>
+          <style>
+            @page { size: A4; margin: 0; }
+            body { margin: 0; padding: 0; }
+            * { box-sizing: border-box; }
+          </style>
+        </head>
+        <body>${content.innerHTML}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
   };
 
   if (submitted) {
@@ -229,11 +258,25 @@ const Register = () => {
             <p className="text-muted-foreground mb-6">
               Your application has been received. You can track the status from your dashboard.
             </p>
-            <Button onClick={() => navigate("/dashboard")} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Go to Dashboard
-            </Button>
+            <div className="flex flex-col gap-3">
+              <Button onClick={handlePrint} variant="outline" className="gap-2">
+                <Printer size={18} /> Print Application Form
+              </Button>
+              <Button onClick={() => navigate("/dashboard")} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                Go to Dashboard
+              </Button>
+            </div>
           </CardContent>
         </Card>
+        {/* Hidden printable form */}
+        <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+          <PrintableApplicationForm
+            ref={printRef}
+            form={form}
+            applicationId={submittedAppId}
+            passportPhotoUrl={form.passportPhotoUrl}
+          />
+        </div>
       </div>
     );
   }
