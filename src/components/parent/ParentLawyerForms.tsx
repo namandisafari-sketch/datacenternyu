@@ -89,13 +89,23 @@ const ParentLawyerForms = () => {
     setResponses(prev => ({ ...prev, [fieldId]: value }));
   };
 
+  const getLocation = (): Promise<string> => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) { resolve("Geolocation not supported"); return; }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`),
+        () => resolve("Location denied"),
+        { timeout: 5000 }
+      );
+    });
+  };
+
   const submitForm = async () => {
     if (!activeTemplate || !user || !selectedAppId) {
       toast.error("Please select a student");
       return;
     }
 
-    // Validate required fields
     for (const field of activeTemplate.fields) {
       if (field.required && !responses[field.id]) {
         toast.error(`"${field.label}" is required`);
@@ -104,8 +114,8 @@ const ParentLawyerForms = () => {
     }
 
     setSubmitting(true);
+    const filledFromLocation = await getLocation();
 
-    // Check if submission already exists for this template + application
     const existing = submissions.find(s => s.template_id === activeTemplate.id && s.application_id === selectedAppId);
 
     if (existing && existing.status === "draft") {
@@ -114,6 +124,7 @@ const ParentLawyerForms = () => {
         signed_document_url: signedUrl,
         status: "submitted",
         submitted_at: new Date().toISOString(),
+        filled_from_location: filledFromLocation,
       } as any).eq("id", existing.id);
       if (error) toast.error(error.message);
       else { toast.success("Form submitted successfully"); setFillDialog(false); fetchData(); }
@@ -126,6 +137,7 @@ const ParentLawyerForms = () => {
         signed_document_url: signedUrl,
         status: "submitted",
         submitted_at: new Date().toISOString(),
+        filled_from_location: filledFromLocation,
       } as any);
       if (error) toast.error(error.message);
       else { toast.success("Form submitted successfully"); setFillDialog(false); fetchData(); }

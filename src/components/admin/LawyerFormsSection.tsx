@@ -41,6 +41,7 @@ interface Submission {
   submitted_at: string | null;
   admin_notes: string;
   created_at: string;
+  filled_from_location: string | null;
 }
 
 interface Application {
