@@ -155,7 +155,7 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
       </h2>
 
       {/* Quick stats */}
-      <div className="grid sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card>
           <CardContent className="py-4 flex items-center gap-3">
             <Users size={24} className="text-primary" />
@@ -227,51 +227,62 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
         </Select>
       </div>
 
-      {/* Student list */}
-      <div className="space-y-3">
-        {filtered.map((app) => {
-          const school = getSchool(app.school_id);
-          const appExpenses = expenses.filter((e) => e.application_id === app.id);
-          const appClaims = claims.filter((c) => c.application_id === app.id);
-          const appReports = reportCards.filter((r) => r.application_id === app.id);
-          const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
-          const openClaimsCount = appClaims.filter((c) => c.status === "open").length;
+      {/* Student card grid */}
+      {filtered.length === 0 ? (
+        <Card><CardContent className="py-8 text-center text-muted-foreground">No sponsored students found.</CardContent></Card>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((app) => {
+            const school = getSchool(app.school_id);
+            const appExpenses = expenses.filter((e) => e.application_id === app.id);
+            const appClaims = claims.filter((c) => c.application_id === app.id);
+            const appReports = reportCards.filter((r) => r.application_id === app.id);
+            const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
+            const openClaimsCount = appClaims.filter((c) => c.status === "open").length;
 
-          return (
-            <Card key={app.id}>
-              <CardContent className="py-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-foreground">{app.student_name}</h3>
-                      <Badge variant="outline" className="text-xs">{levelLabels[app.education_level] || app.education_level}</Badge>
-                      {app.class_grade && <Badge variant="secondary" className="text-xs">Class {app.class_grade}</Badge>}
-                      {openClaimsCount > 0 && (
-                        <Badge variant="destructive" className="gap-1 text-xs">
-                          <AlertTriangle size={12} /> {openClaimsCount} claim{openClaimsCount > 1 ? "s" : ""}
-                        </Badge>
-                      )}
+            return (
+              <Card key={app.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="py-4 space-y-3">
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-sm text-foreground truncate">{app.student_name}</h3>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        <Badge variant="outline" className="text-[10px]">{levelLabels[app.education_level] || app.education_level}</Badge>
+                        {app.class_grade && <Badge variant="secondary" className="text-[10px]">Class {app.class_grade}</Badge>}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
-                      {school && <span className="inline-flex items-center gap-1"><School size={12} /> {school.name}</span>}
-                      <span className="inline-flex items-center gap-1"><User size={12} /> {app.parent_name}</span>
-                      <span className="inline-flex items-center gap-1"><Phone size={12} /> {app.parent_phone}</span>
-                      {app.district && <span className="inline-flex items-center gap-1"><MapPin size={12} /> {app.district}</span>}
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 text-xs text-muted-foreground mt-1">
-                      <span>Expenses: {formatUGX(totalSpent)}</span>
-                      <span>Reports: {appReports.length}</span>
-                      <span>Claims: {appClaims.length}</span>
-                    </div>
+                    {openClaimsCount > 0 && (
+                      <Badge variant="destructive" className="gap-1 text-[10px] shrink-0">
+                        <AlertTriangle size={10} /> {openClaimsCount}
+                      </Badge>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button size="sm" variant="ghost" className="gap-1" onClick={() => { setSelectedApp(app); setDetailOpen(true); }}>
-                      <Eye size={14} /> Details
+
+                  {/* Details */}
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    {school && <p className="flex items-center gap-1 truncate"><School size={12} className="shrink-0" /> {school.name}</p>}
+                    <p className="flex items-center gap-1 truncate"><User size={12} className="shrink-0" /> {app.parent_name}</p>
+                    <p className="flex items-center gap-1"><Phone size={12} className="shrink-0" /> {app.parent_phone}</p>
+                    {app.district && <p className="flex items-center gap-1"><MapPin size={12} className="shrink-0" /> {app.district}</p>}
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs border-t border-border pt-2">
+                    <div><p className="font-semibold text-foreground">{formatUGX(totalSpent)}</p><p className="text-muted-foreground">Expenses</p></div>
+                    <div><p className="font-semibold text-foreground">{appReports.length}</p><p className="text-muted-foreground">Reports</p></div>
+                    <div><p className="font-semibold text-foreground">{appClaims.length}</p><p className="text-muted-foreground">Claims</p></div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-wrap gap-1 border-t border-border pt-2">
+                    <Button size="sm" variant="ghost" className="gap-1 text-xs flex-1" onClick={() => { setSelectedApp(app); setDetailOpen(true); }}>
+                      <Eye size={12} /> Details
                     </Button>
                     <Popover open={reassignAppId === app.id} onOpenChange={(open) => { setReassignAppId(open ? app.id : null); setReassignSchoolId(""); }}>
                       <PopoverTrigger asChild>
-                        <Button size="sm" variant="outline" className="gap-1">
-                          <ArrowRightLeft size={14} /> Reassign
+                        <Button size="sm" variant="outline" className="gap-1 text-xs">
+                          <ArrowRightLeft size={12} /> Reassign
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-72 space-y-3" align="end">
@@ -284,46 +295,38 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                             ))}
                           </SelectContent>
                         </Select>
-                        <Button size="sm" className="w-full" disabled={!reassignSchoolId} onClick={reassignSchool}>
-                          Confirm Reassignment
-                        </Button>
+                        <Button size="sm" className="w-full" disabled={!reassignSchoolId} onClick={reassignSchool}>Confirm</Button>
                       </PopoverContent>
                     </Popover>
-                    <Button size="sm" variant="destructive" className="gap-1" onClick={() => stopSponsorship(app.id)}>
-                      <XCircle size={14} /> Stop
+                    <Button size="sm" variant="destructive" className="gap-1 text-xs" onClick={() => stopSponsorship(app.id)}>
+                      <XCircle size={12} /> Stop
                     </Button>
                   </div>
-                </div>
 
-                {/* Inline notes */}
-                {editNotesId === app.id ? (
-                  <div className="mt-3 border-t border-border pt-3 space-y-2">
-                    <Textarea rows={2} value={editNotesValue} onChange={(e) => setEditNotesValue(e.target.value)} placeholder="Admin notes..." />
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => updateNotes(app.id)}>Save</Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditNotesId(null)}>Cancel</Button>
+                  {/* Notes */}
+                  {editNotesId === app.id ? (
+                    <div className="space-y-2 border-t border-border pt-2">
+                      <Textarea rows={2} value={editNotesValue} onChange={(e) => setEditNotesValue(e.target.value)} placeholder="Admin notes..." className="text-xs" />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => updateNotes(app.id)}>Save</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setEditNotesId(null)}>Cancel</Button>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  app.admin_notes && (
-                    <p className="text-xs text-muted-foreground mt-2 bg-muted/30 p-2 rounded cursor-pointer" onClick={() => { setEditNotesId(app.id); setEditNotesValue(app.admin_notes || ""); }}>
+                  ) : app.admin_notes ? (
+                    <p className="text-xs text-muted-foreground bg-muted/30 p-2 rounded cursor-pointer truncate" onClick={() => { setEditNotesId(app.id); setEditNotesValue(app.admin_notes || ""); }}>
                       📝 {app.admin_notes}
                     </p>
-                  )
-                )}
-                {!app.admin_notes && editNotesId !== app.id && (
-                  <button className="text-xs text-primary mt-2 hover:underline" onClick={() => { setEditNotesId(app.id); setEditNotesValue(""); }}>
-                    + Add notes
-                  </button>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-        {filtered.length === 0 && (
-          <Card><CardContent className="py-8 text-center text-muted-foreground">No sponsored students found.</CardContent></Card>
-        )}
-      </div>
+                  ) : (
+                    <button className="text-xs text-primary hover:underline" onClick={() => { setEditNotesId(app.id); setEditNotesValue(""); }}>
+                      + Add notes
+                    </button>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={(open) => { setDetailOpen(open); if (!open) setEditMode(false); }}>
