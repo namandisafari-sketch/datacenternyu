@@ -88,21 +88,21 @@ const ApplicantInsights = ({ applications }: Props) => {
         </Card>
         <Card>
           <CardContent className="py-3 text-center">
-            <HeartPulse size={20} className="mx-auto text-orange-500 mb-1" />
+            <HeartPulse size={20} className="mx-auto text-destructive mb-1" />
             <p className="text-lg font-bold text-foreground">{withChronicDisease}</p>
             <p className="text-xs text-muted-foreground">Chronic Disease</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-3 text-center">
-            <Eye size={20} className="mx-auto text-amber-500 mb-1" />
+            <Eye size={20} className="mx-auto text-accent mb-1" />
             <p className="text-lg font-bold text-foreground">{withPhysicalDefect}</p>
             <p className="text-xs text-muted-foreground">Physical Defect</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-3 text-center">
-            <Link2 size={20} className="mx-auto text-blue-500 mb-1" />
+            <Link2 size={20} className="mx-auto text-secondary mb-1" />
             <p className="text-lg font-bold text-foreground">{totalRelated}</p>
             <p className="text-xs text-muted-foreground">Related by Blood</p>
           </CardContent>
