@@ -17,6 +17,9 @@ import {
   Eye, AlertTriangle, School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert,
 } from "lucide-react";
 import ApplicationFullDetail, { FullApplication } from "@/components/admin/ApplicationFullDetail";
+import ApplicationEditForm from "@/components/admin/ApplicationEditForm";
+import ApplicantInsights from "@/components/admin/ApplicantInsights";
+import { Pencil } from "lucide-react";
 
 type Application = FullApplication;
 
