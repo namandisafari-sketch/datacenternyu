@@ -3,30 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { GraduationCap } from "lucide-react";
 import StudentManagement from "@/components/admin/StudentManagement";
+import { FullApplication } from "@/components/admin/ApplicationFullDetail";
 
-interface Application {
-  id: string;
-  user_id: string;
-  parent_name: string;
-  parent_phone: string;
-  parent_email: string | null;
-  relationship: string | null;
-  student_name: string;
-  education_level: string;
-  class_grade: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  current_school: string | null;
-  district: string | null;
-  reason: string | null;
-  school_id: string | null;
-  status: string;
-  admin_notes: string | null;
-  reviewed_at: string | null;
-  created_at: string;
-  passport_photo_url: string | null;
-  registration_number: string | null;
-}
+type Application = FullApplication;
 
 interface SchoolRow {
   id: string;

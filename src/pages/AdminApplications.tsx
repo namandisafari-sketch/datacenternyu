@@ -16,33 +16,9 @@ import {
   Users, CheckCircle, XCircle, PlusCircle, Search,
   Eye, AlertTriangle, School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert,
 } from "lucide-react";
+import ApplicationFullDetail, { FullApplication } from "@/components/admin/ApplicationFullDetail";
 
-interface Application {
-  id: string;
-  user_id: string;
-  parent_name: string;
-  parent_phone: string;
-  parent_email: string | null;
-  relationship: string | null;
-  student_name: string;
-  education_level: string;
-  class_grade: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  current_school: string | null;
-  district: string | null;
-  sub_county: string | null;
-  parish: string | null;
-  village: string | null;
-  reason: string | null;
-  school_id: string | null;
-  status: string;
-  admin_notes: string | null;
-  reviewed_at: string | null;
-  created_at: string;
-  passport_photo_url: string | null;
-  registration_number: string | null;
-}
+type Application = FullApplication;
 
 interface SchoolRow {
   id: string;
@@ -422,51 +398,8 @@ const AdminApplications = () => {
                     <TabsTrigger value="claims" className="flex-1">Claims ({appClaims.length})</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="info" className="space-y-5 mt-4">
-                    <div>
-                      <h4 className="font-semibold text-sm text-primary mb-3 flex items-center gap-2"><User size={16} /> Student</h4>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div><span className="text-muted-foreground">Name:</span> <span className="font-medium">{selectedApp.student_name}</span></div>
-                        <div><span className="text-muted-foreground">Gender:</span> <span className="font-medium capitalize">{selectedApp.gender || "N/A"}</span></div>
-                        <div><span className="text-muted-foreground">DOB:</span> <span className="font-medium">{selectedApp.date_of_birth ? new Date(selectedApp.date_of_birth).toLocaleDateString() : "N/A"}</span></div>
-                        <div><span className="text-muted-foreground">Level:</span> <span className="font-medium">{levelLabels[selectedApp.education_level] || selectedApp.education_level}</span></div>
-                        <div><span className="text-muted-foreground">Class:</span> <span className="font-medium">{selectedApp.class_grade || "N/A"}</span></div>
-                        <div><span className="text-muted-foreground">District:</span> <span className="font-medium">{selectedApp.district || "N/A"}</span></div>
-                      </div>
-                    </div>
-                    <Separator />
-                    <div>
-                      <h4 className="font-semibold text-sm text-primary mb-3 flex items-center gap-2"><Users size={16} /> Parent/Guardian</h4>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div className="flex items-center gap-2"><User size={14} className="text-muted-foreground" /> {selectedApp.parent_name}</div>
-                        <div className="flex items-center gap-2"><Phone size={14} className="text-muted-foreground" /> {selectedApp.parent_phone}</div>
-                        <div className="flex items-center gap-2"><Mail size={14} className="text-muted-foreground" /> {selectedApp.parent_email || "N/A"}</div>
-                        <div><span className="text-muted-foreground">Relationship:</span> <span className="font-medium capitalize">{selectedApp.relationship || "Parent"}</span></div>
-                      </div>
-                    </div>
-                    {school && (
-                      <>
-                        <Separator />
-                        <div>
-                          <h4 className="font-semibold text-sm text-primary mb-3 flex items-center gap-2"><School size={16} /> School</h4>
-                          <div className="grid grid-cols-2 gap-3 text-sm">
-                            <div><span className="text-muted-foreground">School:</span> <span className="font-medium">{school.name}</span></div>
-                            <div><span className="text-muted-foreground">Full Fees:</span> <span className="font-medium">{formatUGX(school.full_fees)}</span></div>
-                            <div><span className="text-muted-foreground">Covered:</span> <span className="font-medium text-accent">{formatUGX(school.nyunga_covered_fees)}</span></div>
-                            <div><span className="text-muted-foreground">Parent Pays:</span> <span className="font-medium text-secondary">{formatUGX(school.parent_pays || 0)}</span></div>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                    {selectedApp.reason && (
-                      <>
-                        <Separator />
-                        <div>
-                          <h4 className="font-semibold text-sm text-primary mb-2">Reason for Support</h4>
-                          <p className="text-sm bg-muted/50 p-3 rounded-md">{selectedApp.reason}</p>
-                        </div>
-                      </>
-                    )}
+                  <TabsContent value="info" className="mt-4">
+                    <ApplicationFullDetail app={selectedApp} schoolName={school?.name} />
                   </TabsContent>
 
                   <TabsContent value="expenses" className="mt-4">

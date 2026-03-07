@@ -16,28 +16,9 @@ import {
   Users, CheckCircle, XCircle, Search, Eye, AlertTriangle,
   School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, PlusCircle, DollarSign, GraduationCap, ArrowRightLeft,
 } from "lucide-react";
+import ApplicationFullDetail, { FullApplication } from "./ApplicationFullDetail";
 
-interface Application {
-  id: string;
-  user_id: string;
-  parent_name: string;
-  parent_phone: string;
-  parent_email: string | null;
-  relationship: string | null;
-  student_name: string;
-  education_level: string;
-  class_grade: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  current_school: string | null;
-  district: string | null;
-  reason: string | null;
-  school_id: string | null;
-  status: string;
-  admin_notes: string | null;
-  reviewed_at: string | null;
-  created_at: string;
-}
+type Application = FullApplication;
 
 interface SchoolRow {
   id: string;
@@ -370,40 +351,8 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                     <TabsTrigger value="claims" className="flex-1">Claims ({appClaims.length})</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="info" className="space-y-4 mt-4">
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div><span className="text-muted-foreground">Gender:</span> <span className="font-medium capitalize">{selectedApp.gender || "N/A"}</span></div>
-                      <div><span className="text-muted-foreground">DOB:</span> <span className="font-medium">{selectedApp.date_of_birth ? new Date(selectedApp.date_of_birth).toLocaleDateString() : "N/A"}</span></div>
-                      <div><span className="text-muted-foreground">District:</span> <span className="font-medium">{selectedApp.district || "N/A"}</span></div>
-                      <div><span className="text-muted-foreground">Current School:</span> <span className="font-medium">{selectedApp.current_school || "N/A"}</span></div>
-                    </div>
-                    <Separator />
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center gap-2"><User size={14} className="text-muted-foreground" /> {selectedApp.parent_name}</div>
-                      <div className="flex items-center gap-2"><Phone size={14} className="text-muted-foreground" /> {selectedApp.parent_phone}</div>
-                      <div className="flex items-center gap-2"><Mail size={14} className="text-muted-foreground" /> {selectedApp.parent_email || "N/A"}</div>
-                      <div><span className="text-muted-foreground">Relationship:</span> <span className="capitalize">{selectedApp.relationship || "Parent"}</span></div>
-                    </div>
-                    {school && (
-                      <>
-                        <Separator />
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div><span className="text-muted-foreground">School:</span> <span className="font-medium">{school.name}</span></div>
-                          <div><span className="text-muted-foreground">Full Fees:</span> <span className="font-medium">{formatUGX(school.full_fees)}</span></div>
-                          <div><span className="text-muted-foreground">Nyunga Covers:</span> <span className="font-medium text-accent">{formatUGX(school.nyunga_covered_fees)}</span></div>
-                          <div><span className="text-muted-foreground">Functional Fees:</span> <span className="font-medium text-secondary">{formatUGX(school.parent_pays || 0)}</span></div>
-                        </div>
-                      </>
-                    )}
-                    {selectedApp.reason && (
-                      <>
-                        <Separator />
-                        <div>
-                          <p className="text-sm font-medium mb-1">Reason for Support</p>
-                          <p className="text-sm bg-muted/50 p-3 rounded-md">{selectedApp.reason}</p>
-                        </div>
-                      </>
-                    )}
+                  <TabsContent value="info" className="mt-4">
+                    <ApplicationFullDetail app={selectedApp} schoolName={school?.name} />
                   </TabsContent>
 
                   <TabsContent value="expenses" className="mt-4">
