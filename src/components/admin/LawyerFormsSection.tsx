@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { PlusCircle, Trash2, GripVertical, FileText, Eye, Edit, ToggleLeft } from "lucide-react";
+import { PlusCircle, Trash2, GripVertical, FileText, Eye, Edit, ToggleLeft, MapPin } from "lucide-react";
 
 interface FormField {
   id: string;
