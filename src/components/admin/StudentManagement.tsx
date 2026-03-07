@@ -97,6 +97,7 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
   const [editNotesValue, setEditNotesValue] = useState("");
   const [reassignAppId, setReassignAppId] = useState<string | null>(null);
   const [reassignSchoolId, setReassignSchoolId] = useState("");
+  const [editMode, setEditMode] = useState(false);
 
   const sponsoredStudents = applications.filter((a) => a.status === "approved");
   const getSchool = (schoolId: string | null) => schools.find((s) => s.id === schoolId);
