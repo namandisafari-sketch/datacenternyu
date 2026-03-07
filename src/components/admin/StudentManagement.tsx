@@ -155,7 +155,7 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
       </h2>
 
       {/* Quick stats */}
-      <div className="grid sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card>
           <CardContent className="py-4 flex items-center gap-3">
             <Users size={24} className="text-primary" />
