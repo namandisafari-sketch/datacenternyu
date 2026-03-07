@@ -505,6 +505,8 @@ export type Database = {
           admin_notes: string | null
           application_id: string
           created_at: string
+          filled_from_ip: string | null
+          filled_from_location: string | null
           id: string
           responses: Json
           reviewed_at: string | null
@@ -520,6 +522,8 @@ export type Database = {
           admin_notes?: string | null
           application_id: string
           created_at?: string
+          filled_from_ip?: string | null
+          filled_from_location?: string | null
           id?: string
           responses?: Json
           reviewed_at?: string | null
@@ -535,6 +539,8 @@ export type Database = {
           admin_notes?: string | null
           application_id?: string
           created_at?: string
+          filled_from_ip?: string | null
+          filled_from_location?: string | null
           id?: string
           responses?: Json
           reviewed_at?: string | null
