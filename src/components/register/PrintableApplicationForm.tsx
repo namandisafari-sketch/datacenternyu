@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { ApplicationForm } from "./types";
-import nyungaLogo from "@/assets/nyunga-foundation-logo.png";
+import nyungaLogo from "@/assets/nyunga-official-logo.png";
 
 interface PrintableApplicationFormProps {
   form: ApplicationForm;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +14,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { toast } from "sonner";
 import {
   Users, CheckCircle, XCircle, Search, Eye, AlertTriangle,
-  School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, PlusCircle, DollarSign, GraduationCap, ArrowRightLeft, Pencil,
+  School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, PlusCircle, DollarSign, GraduationCap, ArrowRightLeft, Pencil, Printer,
 } from "lucide-react";
 import ApplicationFullDetail, { FullApplication } from "./ApplicationFullDetail";
 import ApplicationEditForm from "./ApplicationEditForm";
+import PrintableApplicationForm from "@/components/register/PrintableApplicationForm";
+import { ApplicationForm } from "@/components/register/types";
 
 type Application = FullApplication;
 
@@ -98,6 +100,83 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
   const [reassignAppId, setReassignAppId] = useState<string | null>(null);
   const [reassignSchoolId, setReassignSchoolId] = useState("");
   const [editMode, setEditMode] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const mapAppToForm = useCallback((app: Application): ApplicationForm => {
+    const fd = (app.father_details || {}) as any;
+    const md = (app.mother_details || {}) as any;
+    const gd = (app.guardian_details || {}) as any;
+    const nk = (app.next_of_kin || {}) as any;
+    const nr = (app.nearby_relative || {}) as any;
+    const nn = (app.nearest_neighbor || {}) as any;
+    const ar = (app.academic_results || {}) as any;
+    const ps = (app.previous_schools || {}) as any;
+    const sg = Array.isArray(app.subject_grades) ? (app.subject_grades as any[]).map((s: any) => ({ name: s.name || "", grade: s.grade || "" })) : [];
+    const mkParent = (d: any) => ({ name: d?.name || "", occupation: d?.occupation || "", nin: d?.nin || "", residence: d?.residence || "", telephone: d?.telephone || "", religion: d?.religion || "", tribe: d?.tribe || "" });
+    return {
+      educationLevel: app.education_level as any,
+      studentName: app.student_name,
+      dateOfBirth: app.date_of_birth || "",
+      gender: app.gender || "",
+      religion: app.religion || "",
+      nationality: app.nationality || "",
+      tribe: app.tribe || "",
+      nin: app.nin || "",
+      classGrade: app.class_grade || "",
+      subjectCombination: app.subject_combination || "",
+      courseProgram: app.course_program || "",
+      currentSchool: app.current_school || "",
+      previousSchools: { primaryPle: ps?.primaryPle || "", secondaryUce: ps?.secondaryUce || "", secondaryUace: ps?.secondaryUace || "", universityInstitute: ps?.universityInstitute || "" },
+      academicResults: { pleYear: ar?.pleYear || "", pleIndex: ar?.pleIndex || "", pleAggregates: ar?.pleAggregates || "", pleGrade: ar?.pleGrade || "", pleEnglish: ar?.pleEnglish || "", pleMath: ar?.pleMath || "", pleSst: ar?.pleSst || "", pleScience: ar?.pleScience || "", uceYear: ar?.uceYear || "", uceIndex: ar?.uceIndex || "", uceGrade: ar?.uceGrade || "", uaceYear: ar?.uaceYear || "", uaceIndex: ar?.uaceIndex || "", uacePoints: ar?.uacePoints || "", uaceCombination: ar?.uaceCombination || "" },
+      subjectGrades: sg,
+      district: app.district || "",
+      village: app.village || "",
+      parish: app.parish || "",
+      subCounty: app.sub_county || "",
+      lciChairperson: app.lci_chairperson || "",
+      lciContact: app.lci_contact || "",
+      orphanStatus: app.orphan_status || "",
+      deceasedParent: app.deceased_parent || "",
+      physicalDefect: app.physical_defect || false,
+      physicalDefectDetails: app.physical_defect_details || "",
+      chronicDisease: app.chronic_disease || false,
+      chronicDiseaseDetails: app.chronic_disease_details || "",
+      fatherDetails: mkParent(fd),
+      motherDetails: mkParent(md),
+      whoPaysFees: app.who_pays_fees || "",
+      guardianDetails: { name: gd?.name || "", relationship: gd?.relationship || "", occupation: gd?.occupation || "", nin: gd?.nin || "", residence: gd?.residence || "", placeOfWork: gd?.placeOfWork || "", contact: gd?.contact || "" },
+      nextOfKin: { name: nk?.name || "", residence: nk?.residence || "", relationship: nk?.relationship || "", telephone: nk?.telephone || "" },
+      nearbyRelative: { name: nr?.name || "", address: nr?.address || "", contact: nr?.contact || "" },
+      nearestNeighbor: { name: nn?.name || "", contacts: nn?.contacts || "" },
+      previousFeesAmount: app.previous_fees_amount || 0,
+      affordableFeesAmount: app.affordable_fees_amount || 0,
+      parentName: app.parent_name,
+      parentPhone: app.parent_phone,
+      parentEmail: app.parent_email || "",
+      parentNin: "",
+      parentOccupation: "",
+      relationship: app.relationship || "",
+      personalStatement: "",
+      declarationConsent: app.declaration_consent || false,
+      declarationDate: app.declaration_date || "",
+      parentIdUrl: "",
+      birthCertificateUrl: "",
+      reportCardUrl: "",
+      proofOfNeedUrl: "",
+      transcriptUrl: "",
+      admissionLetterUrl: "",
+      schoolId: app.school_id || "",
+    } as ApplicationForm;
+  }, []);
+
+  const handlePrint = useCallback(() => {
+    if (!printRef.current) return;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) { toast.error("Please allow popups to print"); return; }
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Bursary Application Form</title><style>@page{size:A4;margin:0}body{margin:0;padding:0}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>${printRef.current.innerHTML}</body></html>`);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 500);
+  }, []);
 
   const sponsoredStudents = applications.filter((a) => a.status === "approved");
   const getSchool = (schoolId: string | null) => schools.find((s) => s.id === schoolId);
@@ -360,7 +439,10 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                     {selectedApp.student_name}
                     <Badge variant="outline" className="ml-2">{levelLabels[selectedApp.education_level]}</Badge>
                     {selectedApp.class_grade && <Badge variant="secondary" className="text-xs">Class {selectedApp.class_grade}</Badge>}
-                    <Button size="sm" variant="outline" className="ml-auto gap-1" onClick={() => setEditMode(true)}>
+                    <Button size="sm" variant="outline" className="ml-auto gap-1" onClick={handlePrint}>
+                      <Printer size={14} /> Print Form
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setEditMode(true)}>
                       <Pencil size={14} /> Edit
                     </Button>
                   </DialogTitle>
@@ -454,6 +536,18 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Hidden printable form */}
+      {selectedApp && (
+        <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
+          <PrintableApplicationForm
+            ref={printRef}
+            form={mapAppToForm(selectedApp)}
+            applicationId={selectedApp.registration_number || selectedApp.id.slice(0, 8).toUpperCase()}
+            passportPhotoUrl={selectedApp.passport_photo_url || undefined}
+          />
+        </div>
+      )}
     </div>
   );
 };
