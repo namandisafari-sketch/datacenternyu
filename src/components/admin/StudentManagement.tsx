@@ -439,7 +439,10 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                     {selectedApp.student_name}
                     <Badge variant="outline" className="ml-2">{levelLabels[selectedApp.education_level]}</Badge>
                     {selectedApp.class_grade && <Badge variant="secondary" className="text-xs">Class {selectedApp.class_grade}</Badge>}
-                    <Button size="sm" variant="outline" className="ml-auto gap-1" onClick={() => setEditMode(true)}>
+                    <Button size="sm" variant="outline" className="ml-auto gap-1" onClick={handlePrint}>
+                      <Printer size={14} /> Print Form
+                    </Button>
+                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setEditMode(true)}>
                       <Pencil size={14} /> Edit
                     </Button>
                   </DialogTitle>
