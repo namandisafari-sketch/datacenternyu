@@ -18,27 +18,7 @@ import {
 } from "lucide-react";
 import ApplicationFullDetail, { FullApplication } from "./ApplicationFullDetail";
 
-interface Application {
-  id: string;
-  user_id: string;
-  parent_name: string;
-  parent_phone: string;
-  parent_email: string | null;
-  relationship: string | null;
-  student_name: string;
-  education_level: string;
-  class_grade: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  current_school: string | null;
-  district: string | null;
-  reason: string | null;
-  school_id: string | null;
-  status: string;
-  admin_notes: string | null;
-  reviewed_at: string | null;
-  created_at: string;
-}
+type Application = FullApplication;
 
 interface SchoolRow {
   id: string;
