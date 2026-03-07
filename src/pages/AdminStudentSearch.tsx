@@ -17,26 +17,9 @@ import {
   Search, SearchX, GraduationCap, Eye, User, Phone, MapPin, BookOpen, Command,
 } from "lucide-react";
 import { toast } from "sonner";
+import ApplicationFullDetail, { FullApplication } from "@/components/admin/ApplicationFullDetail";
 
-interface Student {
-  id: string;
-  student_name: string;
-  parent_name: string;
-  parent_phone: string;
-  parent_email: string | null;
-  education_level: string;
-  class_grade: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  current_school: string | null;
-  district: string | null;
-  status: string;
-  school_id: string | null;
-  created_at: string;
-  passport_photo_url: string | null;
-  reason: string | null;
-  admin_notes: string | null;
-}
+type Student = FullApplication;
 
 const levelLabels: Record<string, string> = {
   nursery: "Nursery",
