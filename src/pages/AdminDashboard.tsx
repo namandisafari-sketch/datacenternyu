@@ -142,21 +142,21 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="p-6 bg-background min-h-full">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
+    <div className="p-3 sm:p-6 bg-background min-h-full">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
 
         <AdmissionSettings />
 
         {/* Stat Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
           {stats.map((s) => (
             <Card key={s.label}>
-              <CardContent className="py-5 flex items-center gap-3">
-                <s.icon size={26} className={s.color} />
-                <div>
-                  <p className="text-lg font-bold text-foreground">{s.value}</p>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
+              <CardContent className="py-3 sm:py-5 px-3 sm:px-4 flex items-center gap-2 sm:gap-3">
+                <s.icon size={22} className={`${s.color} shrink-0`} />
+                <div className="min-w-0">
+                  <p className="text-sm sm:text-lg font-bold text-foreground truncate">{s.value}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{s.label}</p>
                 </div>
               </CardContent>
             </Card>
@@ -164,68 +164,68 @@ const AdminDashboard = () => {
         </div>
 
         {/* Charts Row */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
           {/* Boys vs Girls Pie */}
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 px-3 sm:px-6">
               <CardTitle className="text-sm font-semibold text-foreground">Boys vs Girls</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
+            <CardContent className="px-3 sm:px-6">
+              <ResponsiveContainer width="100%" height={180}>
                 <PieChart>
-                  <Pie data={genderData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                  <Pie data={genderData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={4} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false} fontSize={11}>
                     <Cell fill={COLORS.boys} />
                     <Cell fill={COLORS.girls} />
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex justify-center gap-4 mt-2 text-xs">
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full" style={{ background: COLORS.boys }} />Boys ({boys})</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full" style={{ background: COLORS.girls }} />Girls ({girls})</span>
+              <div className="flex justify-center gap-3 mt-2 text-xs">
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS.boys }} />Boys ({boys})</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS.girls }} />Girls ({girls})</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Full vs Half Bursary Pie */}
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 px-3 sm:px-6">
               <CardTitle className="text-sm font-semibold text-foreground">Bursary Types</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
+            <CardContent className="px-3 sm:px-6">
+              <ResponsiveContainer width="100%" height={180}>
                 <PieChart>
-                  <Pie data={bursaryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                  <Pie data={bursaryData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={4} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false} fontSize={11}>
                     <Cell fill={COLORS.full} />
                     <Cell fill={COLORS.half} />
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex justify-center gap-4 mt-2 text-xs">
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full" style={{ background: COLORS.full }} />Full ({fullBursary})</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full" style={{ background: COLORS.half }} />Half ({halfBursary})</span>
+              <div className="flex justify-center gap-3 mt-2 text-xs">
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS.full }} />Full ({fullBursary})</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS.half }} />Half ({halfBursary})</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Spending Summary */}
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 px-3 sm:px-6">
               <CardTitle className="text-sm font-semibold text-foreground">Spending Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 px-3 sm:px-6">
               <div>
                 <p className="text-xs text-muted-foreground">Nyunga Covers (School Fees)</p>
-                <p className="text-2xl font-bold text-primary">{formatUGX(totalNyungaSpending)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-primary">{formatUGX(totalNyungaSpending)}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Recorded Expenses</p>
-                <p className="text-xl font-bold text-foreground">{formatUGX(totalExpenseSpent)}</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground">{formatUGX(totalExpenseSpent)}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Students Sponsored</p>
-                <p className="text-xl font-bold text-accent">{approved.length}</p>
+                <p className="text-lg sm:text-xl font-bold text-accent">{approved.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -234,16 +234,16 @@ const AdminDashboard = () => {
         {/* Yearly Bar Chart */}
         {yearData.length > 0 && (
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-foreground">Bursaries Granted by Year — Boys vs Girls</CardTitle>
+            <CardHeader className="pb-2 px-3 sm:px-6">
+              <CardTitle className="text-xs sm:text-sm font-semibold text-foreground">Bursaries Granted by Year — Boys vs Girls</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
+            <CardContent className="px-3 sm:px-6">
+              <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={yearData} barGap={4}>
-                  <XAxis dataKey="year" tick={{ fontSize: 12 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                  <XAxis dataKey="year" tick={{ fontSize: 11 }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={30} />
                   <Tooltip />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="boys" name="Boys" fill={COLORS.boys} radius={[4, 4, 0, 0]} />
                   <Bar dataKey="girls" name="Girls" fill={COLORS.girls} radius={[4, 4, 0, 0]} />
                 </BarChart>

@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import dataCentreBg from "@/assets/data-centre-bg.png";
 
 interface DashboardLayoutProps {
@@ -7,6 +10,19 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [dark, setDark] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("theme") === "dark" || 
+        (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
+  }, [dark]);
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full relative">
@@ -21,10 +37,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           }}
         />
         <AppSidebar />
-        <main className="flex-1 flex flex-col relative z-[1]">
-          <header className="h-14 border-b border-border flex items-center px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-            <SidebarTrigger className="mr-4" />
-            <h2 className="font-sans text-sm font-medium text-muted-foreground">Kabejja V1.00 — Data Management System</h2>
+        <main className="flex-1 flex flex-col relative z-[1] min-w-0">
+          <header className="h-14 border-b border-border flex items-center px-3 sm:px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10 gap-2">
+            <SidebarTrigger className="shrink-0" />
+            <h2 className="font-sans text-xs sm:text-sm font-medium text-muted-foreground truncate flex-1">
+              Kabejja V1.00 — Data Management System
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDark((d) => !d)}
+              className="shrink-0 h-8 w-8"
+              title={dark ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
           </header>
           <div className="flex-1 overflow-auto">
             {children}
