@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { PlusCircle, Trash2, GripVertical, FileText, Eye, Edit, ToggleLeft } from "lucide-react";
+import { PlusCircle, Trash2, GripVertical, FileText, Eye, Edit, ToggleLeft, MapPin } from "lucide-react";
 
 interface FormField {
   id: string;
@@ -41,6 +41,7 @@ interface Submission {
   submitted_at: string | null;
   admin_notes: string;
   created_at: string;
+  filled_from_location: string | null;
 }
 
 interface Application {
@@ -336,6 +337,11 @@ const LawyerFormsSection = () => {
                         <p className="text-xs text-muted-foreground">
                           {sub.submitted_at ? `Submitted ${new Date(sub.submitted_at).toLocaleDateString()}` : `Draft — ${new Date(sub.created_at).toLocaleDateString()}`}
                         </p>
+                        {sub.filled_from_location && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <MapPin size={12} className="text-primary" /> Filled from: {sub.filled_from_location}
+                          </p>
+                        )}
                       </div>
                       <Badge variant={sub.status === "approved" ? "default" : sub.status === "submitted" ? "secondary" : "outline"}>
                         {sub.status}
