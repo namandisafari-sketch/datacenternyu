@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Fingerprint, Mail } from "lucide-react";
+import dataCentreBg from "@/assets/data-centre-bg.png";
 
 const Auth = () => {
   const { signIn } = useAuth();
