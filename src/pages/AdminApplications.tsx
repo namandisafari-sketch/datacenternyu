@@ -16,6 +16,7 @@ import {
   Users, CheckCircle, XCircle, PlusCircle, Search,
   Eye, AlertTriangle, School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert,
 } from "lucide-react";
+import ApplicationFullDetail, { FullApplication } from "@/components/admin/ApplicationFullDetail";
 
 interface Application {
   id: string;
