@@ -326,7 +326,7 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
       </div>
 
       {/* Detail Dialog */}
-      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+      <Dialog open={detailOpen} onOpenChange={(open) => { setDetailOpen(open); if (!open) setEditMode(false); }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           {selectedApp && (() => {
             const school = getSchool(selectedApp.school_id);
@@ -335,6 +335,21 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
             const appReports = reportCards.filter((r) => r.application_id === selectedApp.id);
             const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
 
+            if (editMode) {
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="font-display text-xl">Edit: {selectedApp.student_name}</DialogTitle>
+                  </DialogHeader>
+                  <ApplicationEditForm
+                    app={selectedApp}
+                    onSaved={() => { setEditMode(false); setDetailOpen(false); onRefresh(); }}
+                    onCancel={() => setEditMode(false)}
+                  />
+                </>
+              );
+            }
+
             return (
               <>
                 <DialogHeader>
@@ -342,6 +357,9 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                     {selectedApp.student_name}
                     <Badge variant="outline" className="ml-2">{levelLabels[selectedApp.education_level]}</Badge>
                     {selectedApp.class_grade && <Badge variant="secondary" className="text-xs">Class {selectedApp.class_grade}</Badge>}
+                    <Button size="sm" variant="outline" className="ml-auto gap-1" onClick={() => setEditMode(true)}>
+                      <Pencil size={14} /> Edit
+                    </Button>
                   </DialogTitle>
                 </DialogHeader>
 
