@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Settings, Receipt, Building2, Save, Ticket, CalendarDays, Plus, X } from "lucide-react";
+import { Settings, Receipt, Building2, Save, Ticket, CalendarDays, Plus, X, Upload, Loader2, ImageIcon } from "lucide-react";
 import PaymentCodesSection from "@/components/admin/PaymentCodesSection";
 
 interface ReceiptConfig {
@@ -18,6 +18,7 @@ interface ReceiptConfig {
   orgPhone: string;
   orgEmail: string;
   logoText: string;
+  logoUrl: string;
   footerNote: string;
   signatureName: string;
   signatureTitle: string;
@@ -31,6 +32,7 @@ const defaultReceiptConfig: ReceiptConfig = {
   orgPhone: "+256 700 000000",
   orgEmail: "info@godswill.org",
   logoText: "GW",
+  logoUrl: "",
   footerNote: "This receipt confirms payment for application and legal documentation fees. Keep for your records.",
   signatureName: "Administrator",
   signatureTitle: "Program Director",
@@ -42,6 +44,7 @@ const AdminSettings = () => {
   const { user } = useAuth();
   const [receiptConfig, setReceiptConfig] = useState<ReceiptConfig>(defaultReceiptConfig);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [appointmentReqs, setAppointmentReqs] = useState<string[]>([]);
   const [newReq, setNewReq] = useState("");
   const [savingReqs, setSavingReqs] = useState(false);
@@ -96,6 +99,25 @@ const AdminSettings = () => {
 
   const formatUGX = (amount: number) =>
     new Intl.NumberFormat("en-UG", { style: "currency", currency: "UGX", maximumFractionDigits: 0 }).format(amount);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
+    if (!file.type.startsWith("image/")) { toast.error("Please upload an image file"); return; }
+    setUploadingLogo(true);
+    const ext = file.name.split(".").pop();
+    const path = `logo/org-logo-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("org-assets").upload(path, file, { upsert: true });
+    if (error) {
+      toast.error("Upload failed: " + error.message);
+    } else {
+      const { data: urlData } = supabase.storage.from("org-assets").getPublicUrl(path);
+      setReceiptConfig((prev) => ({ ...prev, logoUrl: urlData.publicUrl }));
+      toast.success("Logo uploaded");
+    }
+    setUploadingLogo(false);
+  };
 
   const addRequirement = () => {
     if (!newReq.trim()) return;
@@ -171,8 +193,32 @@ const AdminSettings = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Logo Initials</Label>
-                  <Input value={receiptConfig.logoText} onChange={(e) => updateField("logoText", e.target.value)} maxLength={4} />
+                  <Label>Organization Logo</Label>
+                  <div className="flex items-center gap-3">
+                    {receiptConfig.logoUrl ? (
+                      <img src={receiptConfig.logoUrl} alt="Logo" className="h-12 w-12 rounded-lg object-contain border border-border bg-muted" />
+                    ) : (
+                      <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center border border-border">
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 space-y-1">
+                      <Button type="button" variant="outline" size="sm" className="gap-2 relative overflow-hidden" disabled={uploadingLogo}>
+                        {uploadingLogo ? <><Loader2 size={14} className="animate-spin" /> Uploading...</> : <><Upload size={14} /> Upload Logo</>}
+                        <input type="file" accept="image/*" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                      </Button>
+                      {receiptConfig.logoUrl && (
+                        <Button type="button" variant="ghost" size="sm" className="text-xs text-destructive" onClick={() => setReceiptConfig((prev) => ({ ...prev, logoUrl: "" }))}>
+                          Remove
+                        </Button>
+                      )}
+                      <p className="text-xs text-muted-foreground">PNG or JPG, max 2MB</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Logo Initials (fallback)</Label>
+                  <Input value={receiptConfig.logoText} onChange={(e) => updateField("logoText", e.target.value)} maxLength={4} placeholder="Used when no logo image" />
                 </div>
                 <Separator />
                 <div className="grid grid-cols-2 gap-3">
@@ -215,9 +261,13 @@ const AdminSettings = () => {
                 <div className="border border-border rounded-lg p-6 bg-background text-sm space-y-4">
                   {/* Header */}
                   <div className="text-center space-y-1">
-                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg mx-auto">
-                      {receiptConfig.logoText}
-                    </div>
+                    {receiptConfig.logoUrl ? (
+                      <img src={receiptConfig.logoUrl} alt="Logo" className="h-12 w-12 rounded-full object-contain mx-auto" />
+                    ) : (
+                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg mx-auto">
+                        {receiptConfig.logoText}
+                      </div>
+                    )}
                     <h3 className="font-display text-lg font-bold text-foreground">{receiptConfig.orgName}</h3>
                     <p className="text-xs text-muted-foreground">{receiptConfig.orgAddress}</p>
                     <p className="text-xs text-muted-foreground">{receiptConfig.orgPhone} • {receiptConfig.orgEmail}</p>
