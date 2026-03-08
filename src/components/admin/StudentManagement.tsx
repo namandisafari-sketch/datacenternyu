@@ -545,6 +545,9 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
             form={mapAppToForm(selectedApp)}
             applicationId={selectedApp.registration_number || selectedApp.id.slice(0, 8).toUpperCase()}
             passportPhotoUrl={selectedApp.passport_photo_url || undefined}
+            parentPassportPhotoUrl={(selectedApp as any).parent_passport_photo_url || undefined}
+            studentSignatureUrl={(selectedApp as any).student_signature_url || undefined}
+            parentSignatureUrl={(selectedApp as any).parent_signature_url || undefined}
           />
         </div>
       )}
