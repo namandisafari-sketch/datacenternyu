@@ -209,6 +209,21 @@ const Register = () => {
 
     const { data: appData, error } = await supabase.from("applications").insert(insertData).select("id").single();
 
+    // Log backdate audit if backdated
+    if (!error && appData?.id && backdateValue) {
+      await supabase.from("audit_logs").insert({
+        user_id: user.id,
+        action: "backdate_application_create",
+        table_name: "applications",
+        record_id: appData.id,
+        details: {
+          backdated_to: new Date(backdateValue).toISOString(),
+          actual_created_at: new Date().toISOString(),
+          student_name: form.studentName || "",
+        },
+      } as any);
+    }
+
     setLoading(false);
     if (error) {
       toast.error("Failed to submit: " + error.message);

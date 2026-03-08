@@ -80,6 +80,23 @@ const ApplicationEditForm = ({ app, onSaved, onCancel }: Props) => {
     if (error) {
       toast.error("Failed to save: " + error.message);
     } else {
+      // Audit log if created_at was changed (backdated)
+      if (form.created_at !== app.created_at) {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser) {
+          await supabase.from("audit_logs").insert({
+            user_id: currentUser.id,
+            action: "backdate_application_edit",
+            table_name: "applications",
+            record_id: app.id,
+            details: {
+              original_date: app.created_at,
+              new_date: form.created_at,
+              student_name: form.student_name || "",
+            },
+          } as any);
+        }
+      }
       toast.success("Application updated successfully");
       onSaved();
     }
