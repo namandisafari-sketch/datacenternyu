@@ -111,13 +111,13 @@ export async function verifyFingerprint(
     throw new Error("No registered fingerprints found. Please register first.");
   }
 
-  const challenge = generateChallenge();
+  const challenge = generateChallenge() as unknown as BufferSource;
 
   const publicKeyOptions: PublicKeyCredentialRequestOptions = {
     challenge,
     rpId: window.location.hostname,
     allowCredentials: allowedCredentials.map((cred) => ({
-      id: base64urlToBuffer(cred.credentialId),
+      id: base64urlToBuffer(cred.credentialId) as unknown as BufferSource,
       type: "public-key" as const,
       transports: ["internal" as AuthenticatorTransport],
     })),
