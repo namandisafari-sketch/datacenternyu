@@ -47,6 +47,7 @@ const adminItems = [
   { title: "Payments Analytics", url: "/admin/payments-dashboard", icon: PieChart },
   { title: "Bursary Requests", url: "/admin/bursary-requests", icon: Link2 },
   { title: "Appointments", url: "/admin/appointments", icon: CalendarDays },
+  { title: "Attendance", url: "/admin/attendance", icon: Users },
   { title: "Security", url: "/admin/security", icon: ShieldCheck },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
