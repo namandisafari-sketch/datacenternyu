@@ -44,6 +44,7 @@ const AdminSettings = () => {
   const { user } = useAuth();
   const [receiptConfig, setReceiptConfig] = useState<ReceiptConfig>(defaultReceiptConfig);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [appointmentReqs, setAppointmentReqs] = useState<string[]>([]);
   const [newReq, setNewReq] = useState("");
   const [savingReqs, setSavingReqs] = useState(false);
