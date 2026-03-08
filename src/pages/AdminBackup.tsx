@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from "xlsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Download, Upload, Loader2, ShieldCheck, AlertTriangle, CheckCircle2, FileJson, FileSpreadsheet } from "lucide-react";
+import { Download, Upload, Loader2, ShieldCheck, AlertTriangle, CheckCircle2, FileJson, FileSpreadsheet, BarChart3, Database } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const ALL_TABLES = [
   "applications", "schools", "expenses", "parent_payments", "payment_codes",
@@ -20,11 +21,33 @@ const ALL_TABLES = [
   "school_users", "trusted_devices", "webauthn_credentials",
 ];
 
-// Shorten table names for Excel sheet name limit (31 chars)
+const TABLE_GROUPS: Record<string, string[]> = {
+  "Student & Applications": ["applications", "profiles", "user_roles", "schools", "school_users"],
+  "Finances": ["expenses", "parent_payments", "payment_codes", "accounting_transactions", "budget_allocations", "petty_cash"],
+  "Materials & Services": ["material_categories", "material_distributions", "bursary_request_links", "bursary_requests", "appointments"],
+  "Records & Compliance": ["student_claims", "report_cards", "lawyer_form_templates", "lawyer_form_submissions", "lost_id_reports"],
+  "Staff & Security": ["staff_profiles", "attendance_records", "audit_logs", "access_logs", "trusted_devices", "webauthn_credentials", "app_settings"],
+};
+
+const CHART_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--secondary))",
+  "hsl(var(--accent))",
+  "hsl(var(--muted))",
+  "#f59e0b",
+  "#10b981",
+  "#8b5cf6",
+  "#ef4444",
+  "#06b6d4",
+  "#ec4899",
+];
+
 const sheetName = (table: string): string => {
   const name = table.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   return name.length > 31 ? name.slice(0, 31) : name;
 };
+
+const formatTableName = (t: string) => t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 interface ImportResult {
   success: boolean;
@@ -52,6 +75,7 @@ const AdminBackup = () => {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [previewMeta, setPreviewMeta] = useState<BackupMetadata | null>(null);
   const [pendingBackupData, setPendingBackupData] = useState<any>(null);
+  const [exportMeta, setExportMeta] = useState<BackupMetadata | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleTable = (table: string) => {
@@ -63,6 +87,35 @@ const AdminBackup = () => {
   const selectAll = () => setSelectedTables(ALL_TABLES);
   const selectNone = () => setSelectedTables([]);
 
+  // Chart data derived from the last export or imported file preview
+  const activeMeta = exportMeta || previewMeta;
+
+  const barChartData = useMemo(() => {
+    if (!activeMeta?.row_counts) return [];
+    return Object.entries(activeMeta.row_counts)
+      .filter(([, count]) => count > 0)
+      .sort(([, a], [, b]) => b - a)
+      .map(([table, count]) => ({
+        name: formatTableName(table),
+        rows: count,
+      }));
+  }, [activeMeta]);
+
+  const pieChartData = useMemo(() => {
+    if (!activeMeta?.row_counts) return [];
+    return Object.entries(TABLE_GROUPS).map(([group, tables]) => ({
+      name: group,
+      value: tables.reduce((sum, t) => sum + (activeMeta.row_counts[t] || 0), 0),
+    })).filter((d) => d.value > 0);
+  }, [activeMeta]);
+
+  const topTables = useMemo(() => {
+    if (!activeMeta?.row_counts) return [];
+    return Object.entries(activeMeta.row_counts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5);
+  }, [activeMeta]);
+
   const handleExport = async () => {
     setExporting(true);
     try {
@@ -73,11 +126,11 @@ const AdminBackup = () => {
       if (res.error) throw new Error(res.error.message);
 
       const { metadata, data } = res.data;
+      setExportMeta(metadata);
 
       // Create Excel workbook
       const wb = XLSX.utils.book_new();
 
-      // Add metadata sheet
       const metaRows = [
         ["Kabejja Backup Report"],
         ["Exported At", metadata.exported_at],
@@ -91,12 +144,10 @@ const AdminBackup = () => {
       metaWs["!protect"] = { password: "", objects: true, scenarios: true } as any;
       XLSX.utils.book_append_sheet(wb, metaWs, "Summary");
 
-      // Add each table as a protected sheet
       for (const table of metadata.tables) {
         const rows = data[table] || [];
         if (rows.length === 0) continue;
 
-        // Flatten JSON columns to strings for readability
         const flatRows = rows.map((row: Record<string, unknown>) => {
           const flat: Record<string, unknown> = {};
           for (const [key, val] of Object.entries(row)) {
@@ -106,18 +157,12 @@ const AdminBackup = () => {
         });
 
         const ws = XLSX.utils.json_to_sheet(flatRows);
-        // Write-protect the sheet
         ws["!protect"] = { password: "", objects: true, scenarios: true } as any;
-        // Auto-size columns (rough estimate)
         const cols = Object.keys(flatRows[0] || {});
-        ws["!cols"] = cols.map((col) => ({
-          wch: Math.min(40, Math.max(col.length + 2, 12)),
-        }));
-
+        ws["!cols"] = cols.map((col) => ({ wch: Math.min(40, Math.max(col.length + 2, 12)) }));
         XLSX.utils.book_append_sheet(wb, ws, sheetName(table));
       }
 
-      // Write and download
       const wbOut = XLSX.write(wb, { bookType: "xlsx", type: "array" });
       const blob = new Blob([wbOut], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
       const url = URL.createObjectURL(blob);
@@ -129,7 +174,6 @@ const AdminBackup = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Also download JSON for restore purposes
       const jsonBlob = new Blob([JSON.stringify(res.data, null, 2)], { type: "application/json" });
       const jsonUrl = URL.createObjectURL(jsonBlob);
       const a2 = document.createElement("a");
@@ -167,6 +211,7 @@ const AdminBackup = () => {
         }
         setPreviewMeta(json.metadata);
         setPendingBackupData(json);
+        setExportMeta(null);
         setImportResult(null);
       } catch {
         toast.error("Could not parse JSON file");
@@ -216,7 +261,7 @@ const AdminBackup = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-xs text-muted-foreground">
-              Exports a <strong>write-protected Excel file</strong> (each table = 1 sheet) for viewing, plus a <strong>JSON file</strong> for restoring.
+              Exports a <strong>write-protected Excel file</strong> (each table = 1 sheet) plus a <strong>JSON file</strong> for restoring.
             </p>
 
             <div className="flex items-center justify-between">
@@ -322,6 +367,144 @@ const AdminBackup = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Data Visualization Section */}
+      {activeMeta && barChartData.length > 0 && (
+        <>
+          {/* Summary Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Card>
+              <CardContent className="py-3">
+                <p className="text-xs text-muted-foreground">Total Records</p>
+                <p className="text-2xl font-bold text-foreground">{activeMeta.total_rows.toLocaleString()}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="py-3">
+                <p className="text-xs text-muted-foreground">Tables</p>
+                <p className="text-2xl font-bold text-foreground">{activeMeta.tables.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="py-3">
+                <p className="text-xs text-muted-foreground">Largest Table</p>
+                <p className="text-sm font-bold text-foreground truncate">{topTables[0]?.[0] ? formatTableName(topTables[0][0]) : "—"}</p>
+                <p className="text-xs text-muted-foreground">{topTables[0]?.[1]?.toLocaleString() || 0} rows</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="py-3">
+                <p className="text-xs text-muted-foreground">Empty Tables</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {Object.values(activeMeta.row_counts).filter((c) => c === 0).length}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Bar Chart — Rows per Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  Records per Table
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={Math.max(300, barChartData.length * 28)}>
+                  <BarChart data={barChartData} layout="vertical" margin={{ left: 10, right: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-border" />
+                    <XAxis type="number" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={140}
+                      tick={{ fontSize: 10 }}
+                      className="fill-muted-foreground"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                      }}
+                      labelStyle={{ color: "hsl(var(--foreground))" }}
+                    />
+                    <Bar dataKey="rows" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Pie Chart — Data by Category */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Database className="h-5 w-5 text-primary" />
+                  Data Distribution by Category
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={340}>
+                  <PieChart>
+                    <Pie
+                      data={pieChartData}
+                      cx="50%"
+                      cy="45%"
+                      outerRadius={110}
+                      innerRadius={50}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      labelLine={{ stroke: "hsl(var(--muted-foreground))" }}
+                    >
+                      {pieChartData.map((_, index) => (
+                        <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                      }}
+                      formatter={(value: number) => [value.toLocaleString() + " rows", "Records"]}
+                    />
+                    <Legend wrapperStyle={{ fontSize: "11px" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {/* Top 5 tables list */}
+                <div className="mt-4 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">Top 5 Tables by Size</p>
+                  {topTables.map(([table, count], i) => {
+                    const pct = activeMeta.total_rows > 0 ? (count / activeMeta.total_rows) * 100 : 0;
+                    return (
+                      <div key={table} className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground w-4">{i + 1}.</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-center text-xs mb-0.5">
+                            <span className="font-medium truncate">{formatTableName(table)}</span>
+                            <span className="text-muted-foreground ml-2">{count.toLocaleString()}</span>
+                          </div>
+                          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full transition-all"
+                              style={{ width: `${Math.max(pct, 2)}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
 
       {/* Import Results */}
       {importResult && (
