@@ -114,12 +114,6 @@ const WebAuthnRegistrationSection = ({ userId, userName }: { userId: string; use
         Hardware Fingerprint (for biometric attendance)
       </Label>
       <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
-        {isInIframe && (
-          <div className="flex items-center gap-2 text-xs text-amber-600">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-            <span>Fingerprint registration requires the <a href={window.location.href} target="_blank" rel="noopener noreferrer" className="underline font-medium text-primary">published URL</a> (blocked in preview)</span>
-          </div>
-        )}
         {credentials.length > 0 && (
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-sm text-green-600">
