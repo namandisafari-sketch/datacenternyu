@@ -1019,6 +1019,93 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_profiles: {
+        Row: {
+          access_level: string | null
+          created_at: string
+          date_joined: string | null
+          date_of_birth: string | null
+          department: string | null
+          district: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          employment_status: string | null
+          full_name: string
+          gender: string | null
+          id: string
+          id_card_generated: boolean | null
+          id_card_generated_at: string | null
+          nin: string | null
+          parish: string | null
+          phone: string | null
+          photo_url: string | null
+          role_title: string | null
+          staff_number: string | null
+          sub_county: string | null
+          updated_at: string
+          user_id: string
+          village: string | null
+        }
+        Insert: {
+          access_level?: string | null
+          created_at?: string
+          date_joined?: string | null
+          date_of_birth?: string | null
+          department?: string | null
+          district?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          employment_status?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          id_card_generated?: boolean | null
+          id_card_generated_at?: string | null
+          nin?: string | null
+          parish?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          role_title?: string | null
+          staff_number?: string | null
+          sub_county?: string | null
+          updated_at?: string
+          user_id: string
+          village?: string | null
+        }
+        Update: {
+          access_level?: string | null
+          created_at?: string
+          date_joined?: string | null
+          date_of_birth?: string | null
+          department?: string | null
+          district?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          employment_status?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          id_card_generated?: boolean | null
+          id_card_generated_at?: string | null
+          nin?: string | null
+          parish?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          role_title?: string | null
+          staff_number?: string | null
+          sub_county?: string | null
+          updated_at?: string
+          user_id?: string
+          village?: string | null
+        }
+        Relationships: []
+      }
       student_claims: {
         Row: {
           action_taken: string | null
