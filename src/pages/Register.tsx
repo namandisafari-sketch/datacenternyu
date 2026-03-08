@@ -18,13 +18,14 @@ import StepParentGuardian from "@/components/register/StepParentGuardian";
 import StepQualificationDeclaration from "@/components/register/StepQualificationDeclaration";
 import StepLawyerForm from "@/components/register/StepLawyerForm";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 const stepLabels = [
   "Student Particulars",
   "Results, Location & Health",
   "Parent / Guardian",
   "Qualification & Declaration",
+  "Legal Forms",
 ];
 
 const Register = () => {
