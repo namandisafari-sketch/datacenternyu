@@ -405,6 +405,25 @@ const AdminStaff = () => {
                   <Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} />
                 </div>
               </div>
+              {/* Thumbprint Registration */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <Fingerprint className="w-4 h-4 text-primary" />
+                  Thumbprint Registration (for attendance)
+                </Label>
+                <div className="flex gap-6 justify-center py-2 px-4 rounded-lg border border-dashed border-border bg-muted/30">
+                  <ThumbprintCapture
+                    label="Left Thumb"
+                    existingUrl={form.left_thumb_url && !form.left_thumb_url.startsWith("data:") ? form.left_thumb_url : undefined}
+                    onCapture={(url) => updateField("left_thumb_url", url)}
+                  />
+                  <ThumbprintCapture
+                    label="Right Thumb"
+                    existingUrl={form.right_thumb_url && !form.right_thumb_url.startsWith("data:") ? form.right_thumb_url : undefined}
+                    onCapture={(url) => updateField("right_thumb_url", url)}
+                  />
+                </div>
+              </div>
             </TabsContent>
 
             {/* Employment */}
