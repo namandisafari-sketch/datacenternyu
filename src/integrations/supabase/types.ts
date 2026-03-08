@@ -138,6 +138,7 @@ export type Database = {
           report_card_url: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          right_thumb_url: string | null
           school_id: string | null
           school_type: string | null
           status: Database["public"]["Enums"]["application_status"]
@@ -219,6 +220,7 @@ export type Database = {
           report_card_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          right_thumb_url?: string | null
           school_id?: string | null
           school_type?: string | null
           status?: Database["public"]["Enums"]["application_status"]
@@ -300,6 +302,7 @@ export type Database = {
           report_card_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          right_thumb_url?: string | null
           school_id?: string | null
           school_type?: string | null
           status?: Database["public"]["Enums"]["application_status"]
