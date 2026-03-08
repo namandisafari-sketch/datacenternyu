@@ -41,37 +41,22 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
           style={{
             cursor: "default",
             marginBottom: 28,
-            width: 72,
-            height: 72,
+            width: 64,
+            height: 64,
           }}
         >
-          <svg width="72" height="72" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
-            {/* Document body */}
-            <rect x="6" y="2" width="24" height="44" fill="#3C4043" />
-            <rect x="30" y="14" width="12" height="32" fill="#3C4043" />
-            {/* Folded corner */}
-            <polygon points="30,2 42,14 30,14" fill="#292A2D" />
-            {/* Outline */}
-            <path d="M6 2H30L42 14V46H6V2Z" fill="none" stroke="#5F6368" strokeWidth="1" />
-            <line x1="30" y1="2" x2="30" y2="14" stroke="#5F6368" strokeWidth="1" />
-            <line x1="30" y1="14" x2="42" y2="14" stroke="#5F6368" strokeWidth="1" />
-            {/* Pixel eyes - 2x2 blocks */}
-            <rect x="16" y="24" width="2" height="2" fill="#9AA0A6" />
-            <rect x="18" y="24" width="2" height="2" fill="#9AA0A6" />
-            <rect x="16" y="26" width="2" height="2" fill="#9AA0A6" />
-            <rect x="18" y="26" width="2" height="2" fill="#9AA0A6" />
-            <rect x="28" y="24" width="2" height="2" fill="#9AA0A6" />
-            <rect x="30" y="24" width="2" height="2" fill="#9AA0A6" />
-            <rect x="28" y="26" width="2" height="2" fill="#9AA0A6" />
-            <rect x="30" y="26" width="2" height="2" fill="#9AA0A6" />
-            {/* Pixel frown - stepped pixels */}
-            <rect x="18" y="36" width="2" height="2" fill="#9AA0A6" />
-            <rect x="20" y="34" width="2" height="2" fill="#9AA0A6" />
-            <rect x="22" y="34" width="2" height="2" fill="#9AA0A6" />
-            <rect x="24" y="34" width="2" height="2" fill="#9AA0A6" />
-            <rect x="26" y="34" width="2" height="2" fill="#9AA0A6" />
-            <rect x="28" y="36" width="2" height="2" fill="#9AA0A6" />
-          </svg>
+          <img
+            src="/icons/error-icon.ico"
+            alt=""
+            width={64}
+            height={64}
+            style={{
+              imageRendering: "pixelated",
+              pointerEvents: "none",
+              display: "block",
+            }}
+            draggable={false}
+          />
         </div>
 
         <h1
