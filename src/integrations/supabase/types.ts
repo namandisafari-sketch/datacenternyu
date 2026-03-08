@@ -394,6 +394,69 @@ export type Database = {
           },
         ]
       }
+      attendance_records: {
+        Row: {
+          check_in_accuracy: number | null
+          check_in_at: string | null
+          check_in_distance: number | null
+          check_in_lat: number | null
+          check_in_lng: number | null
+          check_out_accuracy: number | null
+          check_out_at: string | null
+          check_out_distance: number | null
+          check_out_lat: number | null
+          check_out_lng: number | null
+          created_at: string
+          date: string
+          device_fingerprint: string | null
+          hours_worked: number | null
+          id: string
+          notes: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          check_in_accuracy?: number | null
+          check_in_at?: string | null
+          check_in_distance?: number | null
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_out_accuracy?: number | null
+          check_out_at?: string | null
+          check_out_distance?: number | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          created_at?: string
+          date?: string
+          device_fingerprint?: string | null
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          check_in_accuracy?: number | null
+          check_in_at?: string | null
+          check_in_distance?: number | null
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_out_accuracy?: number | null
+          check_out_at?: string | null
+          check_out_distance?: number | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          created_at?: string
+          date?: string
+          device_fingerprint?: string | null
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bursary_request_links: {
         Row: {
           created_at: string
