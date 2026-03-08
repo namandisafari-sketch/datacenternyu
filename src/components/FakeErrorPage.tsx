@@ -41,15 +41,15 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
           style={{
             cursor: "default",
             marginBottom: 28,
-            width: 72,
-            height: 72,
+            width: 144,
+            height: 144,
           }}
         >
           <img
             src="/icons/error-icon.ico"
             alt=""
-            width={72}
-            height={72}
+            width={144}
+            height={144}
             style={{
               imageRendering: "pixelated",
               pointerEvents: "none",
