@@ -42,6 +42,9 @@ const Register = () => {
   const [codeVerified, setCodeVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
+  // Backdate
+  const [backdateValue, setBackdateValue] = useState("");
+
   // Admission lock
   const [admissionLocked, setAdmissionLocked] = useState(false);
   const [checkingLock, setCheckingLock] = useState(true);
