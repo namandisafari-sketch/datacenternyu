@@ -177,7 +177,40 @@ const BiometricAttendance = () => {
 
   return (
     <div className="space-y-6">
-      {/* Device Registration Info */}
+      {/* Iframe Warning */}
+      {isInIframe && (
+        <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+          <CardContent className="flex items-center gap-3 py-4">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+            <div>
+              <p className="font-semibold text-amber-700 dark:text-amber-400">Preview Mode — Fingerprint Limited</p>
+              <p className="text-sm text-muted-foreground">
+                Fingerprint may be blocked in preview iframes.{" "}
+                <a href={window.location.href} target="_blank" rel="noopener noreferrer" className="text-primary underline font-medium">
+                  Open in a new tab
+                </a>{" "}
+                or use your <strong>published URL</strong>.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Biometric Not Available */}
+      {!isInIframe && biometricAvailable === false && (
+        <Card className="border-destructive bg-destructive/5">
+          <CardContent className="flex items-center gap-3 py-4">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+            <div>
+              <p className="font-semibold text-destructive">Fingerprint Scanner Not Available</p>
+              <p className="text-sm text-muted-foreground">
+                Your device doesn't have a compatible fingerprint scanner, or it's not set up.
+                Please configure Windows Hello or macOS Touch ID first.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Fingerprint Registration */}
