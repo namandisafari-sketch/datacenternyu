@@ -394,6 +394,34 @@ const Register = () => {
           </div>
         </div>
 
+        {/* Backdate option (staff use) */}
+        <Card className="border-dashed border-muted-foreground/30">
+          <CardContent className="py-3 flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <CalendarClock size={16} />
+              <span className="font-medium">Backdate Application</span>
+            </div>
+            <Input
+              type="date"
+              value={backdateValue}
+              onChange={(e) => setBackdateValue(e.target.value)}
+              max={new Date().toISOString().split("T")[0]}
+              className="w-auto"
+              placeholder="Leave blank for today"
+            />
+            {backdateValue && (
+              <Badge variant="secondary" className="text-xs">
+                Will be recorded as: {new Date(backdateValue).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+              </Badge>
+            )}
+            {backdateValue && (
+              <Button variant="ghost" size="sm" onClick={() => setBackdateValue("")} className="text-xs h-7">
+                Clear
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Step content */}
         <div className="space-y-6">
           {step === 1 && <StepStudentParticulars form={form} update={update} userId={user?.id || ""} />}
