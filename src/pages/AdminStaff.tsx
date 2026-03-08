@@ -183,6 +183,8 @@ const AdminStaff = () => {
       emergency_contact_name: s.emergency_contact_name || "",
       emergency_contact_phone: s.emergency_contact_phone || "",
       emergency_contact_relationship: s.emergency_contact_relationship || "",
+      left_thumb_url: s.left_thumb_url || "",
+      right_thumb_url: s.right_thumb_url || "",
     });
     setEditingId(s.id);
     setShowForm(true);
