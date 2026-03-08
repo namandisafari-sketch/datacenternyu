@@ -86,11 +86,13 @@ Deno.serve(async (req) => {
       const batchSize = 500;
       for (let i = 0; i < rows.length; i += batchSize) {
         const batch = rows.slice(i, i + batchSize);
-        const { error } = await adminClient.from(table).upsert(batch, { onConflict: "id", ignoreDuplicates: false });
+        const { data: inserted, error } = await adminClient.from(table).upsert(batch, { onConflict: "id", ignoreDuplicates: true }).select("id");
         if (error) {
           results[table].errors.push(`Batch ${Math.floor(i / batchSize) + 1}: ${error.message}`);
         } else {
-          results[table].inserted += batch.length;
+          const insertedCount = inserted?.length || 0;
+          results[table].inserted += insertedCount;
+          results[table].skipped += batch.length - insertedCount;
         }
       }
     }
