@@ -1037,10 +1037,12 @@ export type Database = {
           id: string
           id_card_generated: boolean | null
           id_card_generated_at: string | null
+          left_thumb_url: string | null
           nin: string | null
           parish: string | null
           phone: string | null
           photo_url: string | null
+          right_thumb_url: string | null
           role_title: string | null
           staff_number: string | null
           sub_county: string | null
@@ -1065,10 +1067,12 @@ export type Database = {
           id?: string
           id_card_generated?: boolean | null
           id_card_generated_at?: string | null
+          left_thumb_url?: string | null
           nin?: string | null
           parish?: string | null
           phone?: string | null
           photo_url?: string | null
+          right_thumb_url?: string | null
           role_title?: string | null
           staff_number?: string | null
           sub_county?: string | null
@@ -1093,10 +1097,12 @@ export type Database = {
           id?: string
           id_card_generated?: boolean | null
           id_card_generated_at?: string | null
+          left_thumb_url?: string | null
           nin?: string | null
           parish?: string | null
           phone?: string | null
           photo_url?: string | null
+          right_thumb_url?: string | null
           role_title?: string | null
           staff_number?: string | null
           sub_county?: string | null
