@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Settings, Receipt, Building2, Save, Ticket, CalendarDays, Plus, X } from "lucide-react";
+import { Settings, Receipt, Building2, Save, Ticket, CalendarDays, Plus, X, Upload, Loader2, ImageIcon } from "lucide-react";
 import PaymentCodesSection from "@/components/admin/PaymentCodesSection";
 
 interface ReceiptConfig {
