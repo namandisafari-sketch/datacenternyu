@@ -110,7 +110,18 @@ const Auth = () => {
           <CardDescription>Data Management System</CardDescription>
         </CardHeader>
         <CardContent>
-          {authMethod === "passkey" ? (
+          {deviceBlocked ? (
+            <div className="text-center space-y-4 py-4">
+              <ShieldAlert className="mx-auto text-destructive" size={48} />
+              <h3 className="font-semibold text-lg text-destructive">Unrecognized Device</h3>
+              <p className="text-sm text-muted-foreground">
+                This device is not authorized to access the system. Contact your administrator to approve this device.
+              </p>
+              <Button variant="outline" onClick={() => setDeviceBlocked(false)} className="w-full">
+                Try Again
+              </Button>
+            </div>
+          ) : authMethod === "passkey" ? (
             <div className="space-y-4">
               <Button
                 onClick={handlePasskeyLogin}
