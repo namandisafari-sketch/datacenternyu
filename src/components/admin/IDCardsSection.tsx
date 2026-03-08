@@ -338,7 +338,7 @@ const IDCardsSection = ({ applications: initialApplications, schools }: IDCardsS
       {/* ID Card Preview */}
       {selectedApp && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h3 className="font-semibold text-foreground">ID Card Preview</h3>
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleSaveFront} className="gap-2">
@@ -352,6 +352,17 @@ const IDCardsSection = ({ applications: initialApplications, schools }: IDCardsS
               </Button>
             </div>
           </div>
+
+          {/* Thumbprint Capture */}
+          <div className="p-4 rounded-lg border border-border bg-muted/30">
+            <p className="text-sm font-medium text-foreground mb-2">Capture Right Thumbprint</p>
+            <ThumbprintCapture
+              label="Right Thumb"
+              existingUrl={selectedApp.right_thumb_url || undefined}
+              onCapture={handleThumbprintCapture}
+            />
+          </div>
+
           <div ref={printRef} className="card-container">
             <StudentIDCard
               application={selectedApp}
