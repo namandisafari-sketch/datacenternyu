@@ -25,6 +25,7 @@ interface Application {
   school_id: string | null;
   status: string;
   created_at: string;
+  right_thumb_url?: string | null;
 }
 
 interface SchoolRow {
