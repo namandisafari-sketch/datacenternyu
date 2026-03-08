@@ -260,17 +260,19 @@ const AdminSettings = () => {
               <CardContent>
                 <div className="border border-border rounded-lg p-6 bg-background text-sm space-y-4">
                   {/* Header */}
-                  <div className="text-center space-y-1">
+                  <div className="flex items-center gap-3">
                     {receiptConfig.logoUrl ? (
-                      <img src={receiptConfig.logoUrl} alt="Logo" className="h-12 w-12 rounded-full object-contain mx-auto" />
+                      <img src={receiptConfig.logoUrl} alt="Logo" className="h-14 w-14 rounded-lg object-contain flex-shrink-0" />
                     ) : (
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg mx-auto">
+                      <div className="flex-shrink-0 h-14 w-14 rounded-lg bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center">
                         {receiptConfig.logoText}
                       </div>
                     )}
-                    <h3 className="font-display text-lg font-bold text-foreground">{receiptConfig.orgName}</h3>
-                    <p className="text-xs text-muted-foreground">{receiptConfig.orgAddress}</p>
-                    <p className="text-xs text-muted-foreground">{receiptConfig.orgPhone} • {receiptConfig.orgEmail}</p>
+                    <div className="min-w-0">
+                      <h3 className="font-display text-lg font-bold text-foreground leading-tight">{receiptConfig.orgName}</h3>
+                      <p className="text-xs text-muted-foreground">{receiptConfig.orgAddress}</p>
+                      <p className="text-xs text-muted-foreground">{receiptConfig.orgPhone} • {receiptConfig.orgEmail}</p>
+                    </div>
                   </div>
 
                   <Separator />
