@@ -140,9 +140,25 @@ const AdminAttendance = () => {
           Attendance
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
-          GPS-verified check-in/out — you must be at the office
+          Track staff attendance with biometric or GPS verification
         </p>
       </div>
+
+      <Tabs defaultValue="biometric" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="biometric" className="gap-1.5">
+            <Fingerprint className="h-4 w-4" /> Biometric
+          </TabsTrigger>
+          <TabsTrigger value="gps" className="gap-1.5">
+            <MapPin className="h-4 w-4" /> GPS Check-in
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="biometric" className="mt-4">
+          <BiometricAttendance />
+        </TabsContent>
+
+        <TabsContent value="gps" className="mt-4 space-y-6">
 
       {/* My Today's Status */}
       <Card>
