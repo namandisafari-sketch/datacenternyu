@@ -16,10 +16,12 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
     }
   }, [clickCount, onUnlock]);
 
+  const hostname = window.location.hostname;
+
   return (
     <div
       style={{
-        fontFamily: "'Segoe UI', 'Roboto', 'Arial', sans-serif",
+        fontFamily: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
         backgroundColor: "#292a2d",
         color: "#9aa0a6",
         minHeight: "100vh",
@@ -27,47 +29,51 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
         flexDirection: "column",
         alignItems: "flex-start",
         justifyContent: "flex-start",
-        padding: "120px 0 40px 0",
+        paddingTop: "calc(100vh * 0.18)",
         userSelect: "none",
+        WebkitUserSelect: "none",
       }}
     >
-      <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 40px", width: "100%" }}>
-        {/* Chrome-style error icon - monitor with page */}
+      <div style={{ maxWidth: 540, marginLeft: "auto", marginRight: "auto", padding: "0 32px", width: "100%" }}>
+        {/* Chrome's exact error icon: document with folded corner */}
         <div
           onClick={handleIconClick}
           style={{
             cursor: "default",
-            marginBottom: 30,
-            width: 56,
-            height: 56,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            marginBottom: 28,
+            width: 48,
+            height: 48,
           }}
         >
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            {/* Monitor outline */}
-            <rect x="4" y="6" width="40" height="28" rx="2" fill="none" stroke="#636466" strokeWidth="2" />
-            {/* Screen inner */}
-            <rect x="7" y="9" width="34" height="22" fill="#35363a" />
-            {/* Stand */}
-            <line x1="18" y1="34" x2="18" y2="40" stroke="#636466" strokeWidth="2" />
-            <line x1="30" y1="34" x2="30" y2="40" stroke="#636466" strokeWidth="2" />
-            <line x1="14" y1="40" x2="34" y2="40" stroke="#636466" strokeWidth="2" />
-            {/* Page/document icon on screen */}
-            <rect x="17" y="13" width="14" height="16" rx="1" fill="none" stroke="#636466" strokeWidth="1.5" />
-            <polyline points="25,13 25,17 29,17" fill="none" stroke="#636466" strokeWidth="1.5" />
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Outer page shape */}
+            <path
+              d="M8 4h22l12 12v28H8V4z"
+              fill="none"
+              stroke="#636466"
+              strokeWidth="2"
+            />
+            {/* Folded corner */}
+            <path
+              d="M30 4v12h12"
+              fill="none"
+              stroke="#636466"
+              strokeWidth="2"
+            />
+            {/* Lines on page */}
+            <line x1="14" y1="22" x2="34" y2="22" stroke="#636466" strokeWidth="1.5" />
+            <line x1="14" y1="28" x2="34" y2="28" stroke="#636466" strokeWidth="1.5" />
+            <line x1="14" y1="34" x2="26" y2="34" stroke="#636466" strokeWidth="1.5" />
           </svg>
         </div>
 
         <h1
           style={{
             fontSize: "1.3em",
-            fontWeight: 400,
+            fontWeight: "normal",
             color: "#e8eaed",
-            marginBottom: 12,
-            letterSpacing: "-0.01em",
-            lineHeight: 1.3,
+            margin: "0 0 8px 0",
+            lineHeight: 1.4,
           }}
         >
           This site can't be reached
@@ -75,33 +81,31 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
 
         <p
           style={{
-            fontSize: "0.85em",
+            fontSize: "0.9em",
             color: "#9aa0a6",
-            marginBottom: 28,
+            margin: "0 0 24px 0",
             lineHeight: 1.6,
           }}
         >
-          <strong style={{ color: "#e8eaed", fontWeight: 500 }}>
-            {window.location.hostname}
+          <strong style={{ color: "#e8eaed", fontWeight: 600 }}>
+            {hostname}
           </strong>{" "}
           refused to connect.
         </p>
 
         <div
           style={{
-            fontSize: "0.85em",
+            fontSize: "0.9em",
             color: "#9aa0a6",
-            marginBottom: 16,
+            margin: "0 0 8px 0",
             lineHeight: 1.8,
           }}
         >
-          <p style={{ marginBottom: 6 }}>Try:</p>
+          <p style={{ margin: "0 0 4px 0" }}>Try:</p>
           <ul style={{ paddingLeft: 28, margin: 0, listStyleType: "disc" }}>
-            <li style={{ marginBottom: 2 }}>Checking the connection</li>
+            <li style={{ marginBottom: 1 }}>Checking the connection</li>
             <li>
-              <span
-                style={{ color: "#8ab4f8", cursor: "default" }}
-              >
+              <span style={{ color: "#8ab4f8" }}>
                 Checking the proxy and the firewall
               </span>
             </li>
@@ -110,29 +114,29 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
 
         <p
           style={{
-            fontSize: "0.75em",
+            fontSize: "0.8em",
             color: "#9aa0a6",
             fontFamily: "monospace",
-            marginBottom: 32,
-            letterSpacing: "0.02em",
+            margin: "16px 0 28px 0",
           }}
         >
           ERR_CONNECTION_REFUSED
         </p>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <button
             onClick={() => window.location.reload()}
             style={{
-              padding: "8px 28px",
+              padding: "8px 24px",
               fontSize: "0.85em",
               fontWeight: 500,
+              fontFamily: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
               borderRadius: 4,
               border: "none",
               backgroundColor: "#8ab4f8",
               color: "#202124",
               cursor: "pointer",
-              letterSpacing: "0.01em",
+              outline: "none",
             }}
           >
             Reload
@@ -141,14 +145,16 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
           <button
             onClick={() => setShowDetails(!showDetails)}
             style={{
-              padding: "8px 20px",
+              padding: "8px 16px",
               fontSize: "0.85em",
               fontWeight: 500,
+              fontFamily: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
               borderRadius: 4,
               border: "1px solid #5f6368",
               backgroundColor: "transparent",
               color: "#8ab4f8",
               cursor: "pointer",
+              outline: "none",
             }}
           >
             Details
@@ -158,15 +164,15 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
         {showDetails && (
           <div
             style={{
-              marginTop: 20,
+              marginTop: 16,
               fontSize: "0.8em",
               color: "#9aa0a6",
               lineHeight: 1.7,
               borderTop: "1px solid #3c4043",
-              paddingTop: 16,
+              paddingTop: 12,
             }}
           >
-            <p>{window.location.hostname}'s server IP address could not be found.</p>
+            <p style={{ margin: 0 }}>{hostname}'s server IP address could not be found.</p>
           </div>
         )}
       </div>
