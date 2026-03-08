@@ -19,6 +19,8 @@ import {
   CalendarDays,
   Link2,
   Camera,
+  Package,
+  Calculator,
 } from "lucide-react";
 import {
   Sidebar,
@@ -48,6 +50,8 @@ const adminItems = [
   { title: "Bursary Requests", url: "/admin/bursary-requests", icon: Link2 },
   { title: "Appointments", url: "/admin/appointments", icon: CalendarDays },
   { title: "Staff", url: "/admin/staff", icon: Users },
+  { title: "Materials", url: "/admin/materials", icon: Package },
+  { title: "Accounting", url: "/admin/accounting", icon: Calculator },
   { title: "Attendance", url: "/admin/attendance", icon: CalendarDays },
   { title: "Security", url: "/admin/security", icon: ShieldCheck },
   { title: "Settings", url: "/admin/settings", icon: Settings },
