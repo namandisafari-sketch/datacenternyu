@@ -88,7 +88,7 @@ const AdminBackup = () => {
         ...Object.entries(metadata.row_counts as Record<string, number>).map(([t, c]) => [t, c]),
       ];
       const metaWs = XLSX.utils.aoa_to_sheet(metaRows);
-      metaWs["!protect"] = { password: "", sheet: true, objects: true, scenarios: true };
+      metaWs["!protect"] = { password: "", objects: true, scenarios: true } as any;
       XLSX.utils.book_append_sheet(wb, metaWs, "Summary");
 
       // Add each table as a protected sheet
