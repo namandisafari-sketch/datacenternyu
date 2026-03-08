@@ -94,6 +94,17 @@ const StepParentGuardian = ({ form, update, userId }: Props) => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Parent Passport Photo */}
+          <div className="space-y-2 pt-2 border-t border-border">
+            <Label className="font-medium">Parent/Guardian Passport Photo</Label>
+            <p className="text-xs text-muted-foreground">Capture or upload a passport-size photo of the parent or guardian</p>
+            <PassportPhotoCapture
+              userId={userId}
+              value={form.parentPassportPhotoUrl}
+              onChange={(url) => update("parentPassportPhotoUrl", url)}
+            />
+          </div>
         </CardContent>
       </Card>
 

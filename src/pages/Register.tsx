@@ -385,7 +385,7 @@ const Register = () => {
         <div className="space-y-6">
           {step === 1 && <StepStudentParticulars form={form} update={update} userId={user?.id || ""} />}
           {step === 2 && <StepResultsLocationHealth form={form} update={update} />}
-          {step === 3 && <StepParentGuardian form={form} update={update} />}
+          {step === 3 && <StepParentGuardian form={form} update={update} userId={user?.id || ""} />}
           {step === 4 && (
             <StepQualificationDeclaration
               form={form}
