@@ -91,9 +91,7 @@ export async function registerFingerprint(
   // @ts-ignore - hints is a newer WebAuthn spec property
   createOptions.publicKey.hints = ["client-device"];
 
-  const credential = (await navigator.credentials.create({
-    publicKey: publicKeyOptions,
-  })) as PublicKeyCredential;
+  const credential = (await navigator.credentials.create(createOptions)) as PublicKeyCredential;
 
   if (!credential) {
     throw new Error("Fingerprint registration was cancelled or failed");
