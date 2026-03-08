@@ -41,8 +41,8 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
           style={{
             cursor: "default",
             marginBottom: 28,
-            width: 72,
-            height: 72,
+            width: 144,
+            height: 144,
           }}
         >
           <img
