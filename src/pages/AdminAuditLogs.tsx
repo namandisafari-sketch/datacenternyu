@@ -46,7 +46,7 @@ const AdminAuditLogs = () => {
 
     if (data) {
       // Enrich with user emails
-      const userIds = [...new Set(data.map((l: any) => l.user_id))];
+      const userIds = [...new Set(data.map((l: any) => l.user_id))] as string[];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, email, full_name")
