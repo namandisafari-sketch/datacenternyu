@@ -35,7 +35,7 @@ const defaultReceiptConfig: ReceiptConfig = {
   signatureName: "Administrator",
   signatureTitle: "Program Director",
   applicationFormFee: 50000,
-  lawyerFormFee: 100000,
+  lawyerFormFee: 200000,
 };
 
 const AdminSettings = () => {
