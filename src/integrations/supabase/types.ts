@@ -50,6 +50,56 @@ export type Database = {
         }
         Relationships: []
       }
+      accounting_transactions: {
+        Row: {
+          amount: number
+          application_id: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          notes: string | null
+          recorded_by: string | null
+          reference_number: string | null
+          transaction_date: string
+          type: string
+        }
+        Insert: {
+          amount?: number
+          application_id?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          reference_number?: string | null
+          transaction_date?: string
+          type?: string
+        }
+        Update: {
+          amount?: number
+          application_id?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          reference_number?: string | null
+          transaction_date?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_transactions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           id: string
@@ -460,6 +510,45 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_allocations: {
+        Row: {
+          allocated_amount: number
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          spent_amount: number
+          term: string | null
+          updated_at: string
+          year: string | null
+        }
+        Insert: {
+          allocated_amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          spent_amount?: number
+          term?: string | null
+          updated_at?: string
+          year?: string | null
+        }
+        Update: {
+          allocated_amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          spent_amount?: number
+          term?: string | null
+          updated_at?: string
+          year?: string | null
+        }
+        Relationships: []
+      }
       bursary_request_links: {
         Row: {
           created_at: string
@@ -751,6 +840,90 @@ export type Database = {
           },
         ]
       }
+      material_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      material_distributions: {
+        Row: {
+          application_id: string
+          category_id: string
+          created_at: string
+          distributed_at: string
+          distributed_by: string | null
+          id: string
+          item_name: string
+          notes: string | null
+          quantity: number
+          term: string | null
+          total_cost: number
+          unit_cost: number
+          year: string | null
+        }
+        Insert: {
+          application_id: string
+          category_id: string
+          created_at?: string
+          distributed_at?: string
+          distributed_by?: string | null
+          id?: string
+          item_name: string
+          notes?: string | null
+          quantity?: number
+          term?: string | null
+          total_cost?: number
+          unit_cost?: number
+          year?: string | null
+        }
+        Update: {
+          application_id?: string
+          category_id?: string
+          created_at?: string
+          distributed_at?: string
+          distributed_by?: string | null
+          id?: string
+          item_name?: string
+          notes?: string | null
+          quantity?: number
+          term?: string | null
+          total_cost?: number
+          unit_cost?: number
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_distributions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_distributions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "material_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_payments: {
         Row: {
           amount: number
@@ -851,6 +1024,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      petty_cash: {
+        Row: {
+          amount: number
+          authorized_by: string | null
+          created_at: string
+          description: string
+          id: string
+          notes: string | null
+          receipt_url: string | null
+          recorded_by: string | null
+          transaction_date: string
+          type: string
+        }
+        Insert: {
+          amount?: number
+          authorized_by?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          receipt_url?: string | null
+          recorded_by?: string | null
+          transaction_date?: string
+          type?: string
+        }
+        Update: {
+          amount?: number
+          authorized_by?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          receipt_url?: string | null
+          recorded_by?: string | null
+          transaction_date?: string
+          type?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
