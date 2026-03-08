@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.attendance]
 verify_jwt = false
+
+[functions.backup-export]
+verify_jwt = false
+
+[functions.backup-import]
+verify_jwt = false
