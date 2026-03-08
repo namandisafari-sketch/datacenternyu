@@ -137,6 +137,38 @@ const IDCardsSection = ({ applications: initialApplications, schools }: IDCardsS
     }
   }, [schools]);
 
+  const handleThumbprintCapture = async (dataUrl: string) => {
+    if (!selectedId) return;
+    try {
+      // Upload to storage
+      const fileName = `thumbprints/${selectedId}_right_thumb_${Date.now()}.png`;
+      const base64 = dataUrl.split(",")[1];
+      const byteArray = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const { error: uploadError } = await supabase.storage
+        .from("application-documents")
+        .upload(fileName, byteArray, { contentType: "image/png", upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("application-documents").getPublicUrl(fileName);
+      const publicUrl = urlData.publicUrl;
+
+      // Update application record
+      const { error: updateError } = await supabase
+        .from("applications")
+        .update({ right_thumb_url: publicUrl } as any)
+        .eq("id", selectedId);
+      if (updateError) throw updateError;
+
+      // Update local state
+      setApplications((prev) =>
+        prev.map((a) => (a.id === selectedId ? { ...a, right_thumb_url: publicUrl } : a))
+      );
+      toast.success("Thumbprint saved to student record!");
+    } catch (err: any) {
+      toast.error("Failed to save thumbprint: " + (err.message || "Unknown error"));
+    }
+  };
+
   const handleBatchDownload = async () => {
     if (approved.length === 0) {
       toast.error("No approved students to download.");
