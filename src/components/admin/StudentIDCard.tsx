@@ -11,6 +11,10 @@ interface StudentIDCardProps {
     education_level: string;
     class_grade: string | null;
     registration_number: string | null;
+    village?: string | null;
+    parish?: string | null;
+    sub_county?: string | null;
+    district?: string | null;
   };
   schoolName: string;
   sponsorshipNumber: string;
@@ -89,28 +93,54 @@ const StudentIDCard = ({ application, schoolName, sponsorshipNumber, side = "bot
     </div>
   );
 
+  const mrzName = application.student_name.toUpperCase().replace(/\s+/g, "<");
+  const mrzLine1 = `IDUGA${sponsorshipNumber.replace(/-/g, "")}${application.registration_number || "000000"}<<<<<<`;
+  const mrzLine2 = `${application.date_of_birth ? application.date_of_birth.replace(/-/g, "").slice(2) : "000000"}${application.education_level === "primary" ? "P" : "S"}UGA${new Date().getFullYear().toString().slice(2)}<<<<<<<<<`;
+  const mrzLine3 = `${mrzName}${"<".repeat(Math.max(0, 36 - mrzName.length))}`;
+
   const backCard = (
     <div
       data-card-side="back"
-      style={{ width: CARD_W, height: CARD_H }}
-      className="rounded-xl border-2 border-primary bg-card shadow-lg overflow-hidden print:shadow-none flex flex-col shrink-0"
+      style={{ width: CARD_W, height: CARD_H, fontFamily: "'Source Sans 3', sans-serif" }}
+      className="rounded-xl border-2 border-primary overflow-hidden print:shadow-none flex flex-col shrink-0"
     >
-      <div className="bg-primary w-full px-4 py-2.5 text-center">
-        <p className="text-primary-foreground text-xs font-semibold tracking-wide">SCAN IF FOUND — REPORT LOST ID</p>
+      {/* Top section: Thumbprint + QR */}
+      <div className="flex-1 flex" style={{ background: "linear-gradient(180deg, hsl(var(--card)) 0%, hsl(220 20% 95%) 100%)" }}>
+        {/* Left: Right Thumb */}
+        <div className="flex flex-col items-center justify-start pt-3 pl-4 pr-2" style={{ width: "40%" }}>
+          <p className="text-[9px] font-bold text-foreground tracking-wider mb-1.5 self-start">RIGHT THUMB</p>
+          <div className="w-[80px] h-[95px] bg-muted/60 rounded border border-border flex items-center justify-center overflow-hidden">
+            <span className="text-muted-foreground text-3xl">👆</span>
+          </div>
+          {/* Location details */}
+          <div className="mt-2.5 w-full space-y-0.5 text-[8.5px]">
+            <BackRow label="VILLAGE" value={application.village || "—"} />
+            <BackRow label="PARISH" value={application.parish || "—"} />
+            <BackRow label="S.COUNTY" value={application.sub_county || "—"} />
+            <BackRow label="DISTRICT" value={application.district || "—"} />
+          </div>
+        </div>
+        {/* Right: QR Code */}
+        <div className="flex-1 flex items-center justify-center p-3">
+          <QRCodeSVG
+            value={qrUrl}
+            size={140}
+            level="H"
+            includeMargin={false}
+            bgColor="transparent"
+            fgColor="hsl(215, 58%, 26%)"
+          />
+        </div>
       </div>
-      <div className="flex-1 flex items-center justify-center p-4">
-        <QRCodeSVG
-          value={qrUrl}
-          size={170}
-          level="H"
-          includeMargin={false}
-          bgColor="hsl(0, 0%, 100%)"
-          fgColor="hsl(215, 58%, 26%)"
-        />
-      </div>
-      <div className="px-4 pb-3 text-center">
-        <p className="text-[11px] text-muted-foreground leading-tight">If you find this card, please scan the QR code or visit</p>
-        <p className="text-[11px] text-primary font-medium break-all leading-tight">{BASE_URL}/lost-id</p>
+
+      {/* MRZ Zone */}
+      <div
+        className="px-3 py-2 border-t border-border"
+        style={{ background: "hsl(220 15% 93%)", fontFamily: "'OCR B', 'Courier New', monospace" }}
+      >
+        <p className="text-[9.5px] tracking-[0.18em] text-foreground leading-snug truncate">{mrzLine1}</p>
+        <p className="text-[9.5px] tracking-[0.18em] text-foreground leading-snug truncate">{mrzLine2}</p>
+        <p className="text-[9.5px] tracking-[0.18em] text-foreground leading-snug truncate">{mrzLine3}</p>
       </div>
     </div>
   );
@@ -130,6 +160,13 @@ const Row = ({ label, value }: { label: string; value: string }) => (
   <div className="flex gap-1.5">
     <span className="text-muted-foreground shrink-0">{label}:</span>
     <span className="font-semibold text-foreground truncate">{value}</span>
+  </div>
+);
+
+const BackRow = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex gap-1">
+    <span className="text-muted-foreground shrink-0 font-semibold">{label} :</span>
+    <span className="font-bold text-foreground truncate uppercase">{value}</span>
   </div>
 );
 
