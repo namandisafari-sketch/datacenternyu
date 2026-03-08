@@ -57,7 +57,7 @@ const checkbox = (checked: boolean) => (
 );
 
 const PrintableApplicationForm = forwardRef<HTMLDivElement, PrintableApplicationFormProps>(
-  ({ form, applicationId, passportPhotoUrl }, ref) => {
+  ({ form, applicationId, passportPhotoUrl, parentPassportPhotoUrl, studentSignatureUrl, parentSignatureUrl }, ref) => {
     const pageStyle: React.CSSProperties = {
       width: "210mm",
       minHeight: "297mm",
