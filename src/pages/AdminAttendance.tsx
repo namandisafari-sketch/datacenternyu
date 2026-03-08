@@ -7,12 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
   MapPin, LogIn, LogOut, Clock, Loader2, Navigation,
-  CheckCircle, AlertTriangle, Calendar,
+  CheckCircle, AlertTriangle, Calendar, Fingerprint,
 } from "lucide-react";
+import BiometricAttendance from "@/components/admin/BiometricAttendance";
 
 const AdminAttendance = () => {
   const { user, isAdmin } = useAuth();
