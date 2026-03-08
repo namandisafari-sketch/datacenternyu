@@ -100,21 +100,62 @@ const AdminSettings = () => {
   const formatUGX = (amount: number) =>
     new Intl.NumberFormat("en-UG", { style: "currency", currency: "UGX", maximumFractionDigits: 0 }).format(amount);
 
+  const compressImage = (file: File, maxSizeKB: number = 500, maxDim: number = 512): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+        let quality = 0.9;
+        const tryCompress = () => {
+          canvas.toBlob((blob) => {
+            if (!blob) return reject(new Error("Compression failed"));
+            if (blob.size > maxSizeKB * 1024 && quality > 0.1) {
+              quality -= 0.1;
+              tryCompress();
+            } else {
+              resolve(blob);
+            }
+          }, "image/jpeg", quality);
+        };
+        tryCompress();
+      };
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
     if (!file.type.startsWith("image/")) { toast.error("Please upload an image file"); return; }
     setUploadingLogo(true);
-    const ext = file.name.split(".").pop();
-    const path = `logo/org-logo-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("org-assets").upload(path, file, { upsert: true });
-    if (error) {
-      toast.error("Upload failed: " + error.message);
-    } else {
-      const { data: urlData } = supabase.storage.from("org-assets").getPublicUrl(path);
-      setReceiptConfig((prev) => ({ ...prev, logoUrl: urlData.publicUrl }));
-      toast.success("Logo uploaded");
+    try {
+      let uploadFile: Blob | File = file;
+      if (file.size > 500 * 1024) {
+        toast.info("Compressing logo...");
+        uploadFile = await compressImage(file);
+      }
+      const path = `logo/org-logo-${Date.now()}.jpg`;
+      const { error } = await supabase.storage.from("org-assets").upload(path, uploadFile, { upsert: true, contentType: "image/jpeg" });
+      if (error) {
+        toast.error("Upload failed: " + error.message);
+      } else {
+        const { data: urlData } = supabase.storage.from("org-assets").getPublicUrl(path);
+        setReceiptConfig((prev) => ({ ...prev, logoUrl: urlData.publicUrl }));
+        toast.success("Logo uploaded");
+      }
+    } catch (err: any) {
+      toast.error("Compression failed: " + err.message);
     }
     setUploadingLogo(false);
   };
