@@ -45,17 +45,32 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
             height: 48,
           }}
         >
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
             {/* Document body */}
-            <path d="M6 2H30L42 14V46H6V2Z" fill="#3C4043" stroke="#5F6368" strokeWidth="1.5" />
+            <rect x="6" y="2" width="24" height="44" fill="#3C4043" />
+            <rect x="30" y="14" width="12" height="32" fill="#3C4043" />
             {/* Folded corner */}
-            <path d="M30 2V14H42" fill="#292A2D" stroke="#5F6368" strokeWidth="1.5" />
-            {/* Sad face - left eye */}
-            <rect x="16" y="22" width="4" height="4" fill="#9AA0A6" />
-            {/* Sad face - right eye */}
-            <rect x="28" y="22" width="4" height="4" fill="#9AA0A6" />
-            {/* Sad face - frown */}
-            <path d="M18 36C20 32 28 32 30 36" stroke="#9AA0A6" strokeWidth="2" fill="none" strokeLinecap="round" />
+            <polygon points="30,2 42,14 30,14" fill="#292A2D" />
+            {/* Outline */}
+            <path d="M6 2H30L42 14V46H6V2Z" fill="none" stroke="#5F6368" strokeWidth="1" />
+            <line x1="30" y1="2" x2="30" y2="14" stroke="#5F6368" strokeWidth="1" />
+            <line x1="30" y1="14" x2="42" y2="14" stroke="#5F6368" strokeWidth="1" />
+            {/* Pixel eyes - 2x2 blocks */}
+            <rect x="16" y="24" width="2" height="2" fill="#9AA0A6" />
+            <rect x="18" y="24" width="2" height="2" fill="#9AA0A6" />
+            <rect x="16" y="26" width="2" height="2" fill="#9AA0A6" />
+            <rect x="18" y="26" width="2" height="2" fill="#9AA0A6" />
+            <rect x="28" y="24" width="2" height="2" fill="#9AA0A6" />
+            <rect x="30" y="24" width="2" height="2" fill="#9AA0A6" />
+            <rect x="28" y="26" width="2" height="2" fill="#9AA0A6" />
+            <rect x="30" y="26" width="2" height="2" fill="#9AA0A6" />
+            {/* Pixel frown - stepped pixels */}
+            <rect x="18" y="36" width="2" height="2" fill="#9AA0A6" />
+            <rect x="20" y="34" width="2" height="2" fill="#9AA0A6" />
+            <rect x="22" y="34" width="2" height="2" fill="#9AA0A6" />
+            <rect x="24" y="34" width="2" height="2" fill="#9AA0A6" />
+            <rect x="26" y="34" width="2" height="2" fill="#9AA0A6" />
+            <rect x="28" y="36" width="2" height="2" fill="#9AA0A6" />
           </svg>
         </div>
 
