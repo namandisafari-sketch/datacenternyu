@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { CheckCircle, ArrowRight, ArrowLeft, Lock, Ticket, Printer } from "lucide-react";
+import { CheckCircle, ArrowRight, ArrowLeft, Lock, Ticket, Printer, CalendarClock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import PrintableApplicationForm from "@/components/register/PrintableApplicationForm";
 
 import { ApplicationForm, SchoolRow, initialForm, EducationLevel } from "@/components/register/types";
@@ -41,6 +42,9 @@ const Register = () => {
   const [paymentCode, setPaymentCode] = useState("");
   const [codeVerified, setCodeVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);
+
+  // Backdate
+  const [backdateValue, setBackdateValue] = useState("");
 
   // Admission lock
   const [admissionLocked, setAdmissionLocked] = useState(false);
@@ -136,7 +140,7 @@ const Register = () => {
     const parentName = form.fatherDetails.name || form.motherDetails.name || form.guardianDetails.name || "";
     const parentPhone = form.fatherDetails.telephone || form.motherDetails.telephone || form.guardianDetails.contact || "";
 
-    const { data: appData, error } = await supabase.from("applications").insert({
+    const insertData: any = {
       user_id: user.id,
       student_name: form.studentName,
       date_of_birth: form.dateOfBirth || null,
@@ -189,7 +193,14 @@ const Register = () => {
       student_signature_url: form.studentSignatureUrl,
       parent_signature_url: form.parentSignatureUrl,
       vulnerability_indicators: form.orphanStatus === "yes" ? ["orphan_" + (form.deceasedParent || "single")] : [],
-    } as any).select("id").single();
+    };
+
+    // If a backdate is set, override created_at
+    if (backdateValue) {
+      insertData.created_at = new Date(backdateValue).toISOString();
+    }
+
+    const { data: appData, error } = await supabase.from("applications").insert(insertData).select("id").single();
 
     setLoading(false);
     if (error) {
@@ -383,6 +394,34 @@ const Register = () => {
             ))}
           </div>
         </div>
+
+        {/* Backdate option (staff use) */}
+        <Card className="border-dashed border-muted-foreground/30">
+          <CardContent className="py-3 flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <CalendarClock size={16} />
+              <span className="font-medium">Backdate Application</span>
+            </div>
+            <Input
+              type="date"
+              value={backdateValue}
+              onChange={(e) => setBackdateValue(e.target.value)}
+              max={new Date().toISOString().split("T")[0]}
+              className="w-auto"
+              placeholder="Leave blank for today"
+            />
+            {backdateValue && (
+              <Badge variant="secondary" className="text-xs">
+                Will be recorded as: {new Date(backdateValue).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+              </Badge>
+            )}
+            {backdateValue && (
+              <Button variant="ghost" size="sm" onClick={() => setBackdateValue("")} className="text-xs h-7">
+                Clear
+              </Button>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Step content */}
         <div className="space-y-6">
