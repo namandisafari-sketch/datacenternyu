@@ -15,6 +15,7 @@ interface StudentIDCardProps {
     parish?: string | null;
     sub_county?: string | null;
     district?: string | null;
+    right_thumb_url?: string | null;
   };
   schoolName: string;
   sponsorshipNumber: string;
