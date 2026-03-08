@@ -56,6 +56,7 @@ const adminItems = [
   { title: "Accounting", url: "/admin/accounting", icon: Calculator },
   { title: "Attendance", url: "/admin/attendance", icon: CalendarDays },
   { title: "Audit Logs", url: "/admin/audit-logs", icon: ClipboardList },
+  { title: "Backup", url: "/admin/backup", icon: HardDrive },
   { title: "Security", url: "/admin/security", icon: ShieldCheck },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
