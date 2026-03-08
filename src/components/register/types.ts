@@ -114,6 +114,9 @@ export interface ApplicationForm {
   affordableFeesAmount: number;
   declarationConsent: boolean;
   declarationDate: string;
+  studentSignatureUrl: string;
+  parentSignatureUrl: string;
+  parentPassportPhotoUrl: string;
 
   // Legacy fields kept for compatibility
   schoolId: string;
