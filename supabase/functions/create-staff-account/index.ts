@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     }
 
     const { email, password, full_name, role, modules } = await req.json();
-    if (!email || !password || !full_name) {
+    if (!email || !password || !full_name || !role) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -52,11 +52,11 @@ Deno.serve(async (req) => {
     const userId = newUser.user.id;
 
     // The handle_new_user trigger creates profile and assigns 'parent' role.
-    // Update to the requested role if it's admin
-    const targetRole = role === "admin" ? "admin" : "parent"; // 'parent' acts as 'staff' in this system
-    if (targetRole !== "parent") {
-      await adminClient.from("user_roles").update({ role: targetRole }).eq("user_id", userId);
-    }
+    // Update to the actual requested role
+    const validRoles = ["admin", "accountant", "secretary", "data_entrant", "staff"];
+    const targetRole = validRoles.includes(role) ? role : "staff";
+    
+    await adminClient.from("user_roles").update({ role: targetRole }).eq("user_id", userId);
 
     // Set module permissions if provided
     if (modules && Array.isArray(modules) && modules.length > 0) {

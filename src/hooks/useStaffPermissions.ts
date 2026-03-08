@@ -29,6 +29,38 @@ export const ALL_MODULES = [
 
 export type ModuleKey = typeof ALL_MODULES[number]["key"];
 
+// System roles with display labels
+export const SYSTEM_ROLES = [
+  { value: "admin", label: "Admin", description: "Full system access" },
+  { value: "accountant", label: "Accountant", description: "Financial modules access" },
+  { value: "secretary", label: "Secretary", description: "Applications, appointments & records" },
+  { value: "data_entrant", label: "Data Entrant", description: "Data entry & student records" },
+  { value: "staff", label: "Regular Staff", description: "Basic access only" },
+] as const;
+
+// Default module presets per role
+export const ROLE_MODULE_PRESETS: Record<string, string[]> = {
+  admin: ALL_MODULES.map((m) => m.key),
+  accountant: [
+    "dashboard", "payments", "payment-history", "payments-dashboard",
+    "accounting", "photocopying", "receipts", "materials",
+  ],
+  secretary: [
+    "dashboard", "applications", "students", "student-search", "schools",
+    "appointments", "bursary-requests", "receipts", "id-cards",
+  ],
+  data_entrant: [
+    "dashboard", "applications", "students", "student-search",
+    "schools", "id-cards",
+  ],
+  staff: ["dashboard", "photocopying", "attendance"],
+};
+
+export function getRoleLabel(role: string): string {
+  const found = SYSTEM_ROLES.find((r) => r.value === role);
+  return found?.label || role;
+}
+
 export function useStaffPermissions() {
   const { user, isAdmin } = useAuth();
 
