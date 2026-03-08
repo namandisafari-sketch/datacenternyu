@@ -81,12 +81,17 @@ export async function registerFingerprint(
       requireResidentKey: false,
     },
     timeout: 60000,
-    attestation: "none",
+    attestation: "direct",
   };
 
-  const credential = (await navigator.credentials.create({
+  // Use hints to prefer client-device (Windows Hello/Touch ID) over cloud passkey providers
+  const createOptions: CredentialCreationOptions = {
     publicKey: publicKeyOptions,
-  })) as PublicKeyCredential;
+  };
+  // @ts-ignore - hints is a newer WebAuthn spec property
+  createOptions.publicKey.hints = ["client-device"];
+
+  const credential = (await navigator.credentials.create(createOptions)) as PublicKeyCredential;
 
   if (!credential) {
     throw new Error("Fingerprint registration was cancelled or failed");
