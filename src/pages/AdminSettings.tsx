@@ -18,6 +18,7 @@ interface ReceiptConfig {
   orgPhone: string;
   orgEmail: string;
   logoText: string;
+  logoUrl: string;
   footerNote: string;
   signatureName: string;
   signatureTitle: string;
@@ -31,6 +32,7 @@ const defaultReceiptConfig: ReceiptConfig = {
   orgPhone: "+256 700 000000",
   orgEmail: "info@godswill.org",
   logoText: "GW",
+  logoUrl: "",
   footerNote: "This receipt confirms payment for application and legal documentation fees. Keep for your records.",
   signatureName: "Administrator",
   signatureTitle: "Program Director",
