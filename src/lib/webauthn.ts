@@ -75,9 +75,10 @@ export async function registerFingerprint(
       { alg: -257, type: "public-key" },  // RS256
     ],
     authenticatorSelection: {
-      authenticatorAttachment: "platform", // Forces built-in (fingerprint/face)
+      authenticatorAttachment: "platform",
       userVerification: "required",
-      residentKey: "preferred",
+      residentKey: "discouraged",
+      requireResidentKey: false,
     },
     timeout: 60000,
     attestation: "none",
