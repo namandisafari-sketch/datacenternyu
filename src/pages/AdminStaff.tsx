@@ -456,6 +456,18 @@ const AdminStaff = () => {
             </TabsContent>
           </Tabs>
 
+          {/* Validation warnings */}
+          {!editingId && !form.user_id && (
+            <p className="text-sm text-destructive flex items-center gap-1 mt-2">
+              ⚠️ Please select a System User on the <strong>Personal</strong> tab first
+            </p>
+          )}
+          {!form.full_name && form.user_id && (
+            <p className="text-sm text-destructive flex items-center gap-1 mt-2">
+              ⚠️ Full Name is required
+            </p>
+          )}
+
           <div className="flex justify-end gap-3 mt-4 pt-4 border-t">
             <Button variant="outline" onClick={resetForm}>Cancel</Button>
             <Button
