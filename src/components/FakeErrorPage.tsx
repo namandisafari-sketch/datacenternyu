@@ -41,23 +41,30 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
           style={{
             cursor: "default",
             marginBottom: 28,
-            width: 80,
-            height: 80,
+            width: 72,
+            height: 72,
           }}
         >
-          <img
-            src="/icons/error-icon.png"
-            alt=""
-            width={80}
-            height={80}
-            style={{
-              imageRendering: "pixelated",
-              pointerEvents: "none",
-              display: "block",
-              background: "transparent",
-            }}
-            draggable={false}
-          />
+          <svg width="72" height="72" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
+            {/* Document outline */}
+            <rect x="8" y="4" width="22" height="40" fill="none" stroke="#6B6E72" strokeWidth="3" />
+            {/* Folded corner */}
+            <rect x="26" y="4" width="10" height="10" fill="#292A2D" />
+            <polyline points="26,4 36,14" fill="none" stroke="#6B6E72" strokeWidth="3" />
+            <line x1="36" y1="14" x2="36" y2="14" stroke="#6B6E72" strokeWidth="3" />
+            <rect x="30" y="4" width="6" height="3" fill="#292A2D" />
+            <rect x="26" y="4" width="3" height="10" fill="#292A2D" />
+            <line x1="26" y1="14" x2="36" y2="14" stroke="#6B6E72" strokeWidth="3" />
+            <line x1="36" y1="14" x2="36" y2="44" stroke="#6B6E72" strokeWidth="3" />
+            {/* Left eye */}
+            <rect x="15" y="20" width="4" height="5" fill="#6B6E72" />
+            {/* Right eye */}
+            <rect x="25" y="20" width="4" height="5" fill="#6B6E72" />
+            {/* Frown */}
+            <rect x="17" y="34" width="3" height="3" fill="#6B6E72" />
+            <rect x="20" y="32" width="4" height="3" fill="#6B6E72" />
+            <rect x="24" y="34" width="3" height="3" fill="#6B6E72" />
+          </svg>
         </div>
 
         <h1
