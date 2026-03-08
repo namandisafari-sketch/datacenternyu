@@ -34,8 +34,8 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
         WebkitUserSelect: "none",
       }}
     >
-      <div style={{ maxWidth: 540, marginLeft: "auto", marginRight: "auto", padding: "0 32px", width: "100%" }}>
-        {/* Chrome's exact error icon: document with folded corner */}
+      <div style={{ maxWidth: 600, marginLeft: "auto", marginRight: "auto", padding: "0 32px", width: "100%" }}>
+        {/* Chrome error icon */}
         <div
           onClick={handleIconClick}
           style={{
@@ -46,21 +46,8 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
           }}
         >
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Outer page shape */}
-            <path
-              d="M8 4h22l12 12v28H8V4z"
-              fill="none"
-              stroke="#636466"
-              strokeWidth="2"
-            />
-            {/* Folded corner */}
-            <path
-              d="M30 4v12h12"
-              fill="none"
-              stroke="#636466"
-              strokeWidth="2"
-            />
-            {/* Lines on page */}
+            <path d="M8 4h22l12 12v28H8V4z" fill="none" stroke="#636466" strokeWidth="2" />
+            <path d="M30 4v12h12" fill="none" stroke="#636466" strokeWidth="2" />
             <line x1="14" y1="22" x2="34" y2="22" stroke="#636466" strokeWidth="1.5" />
             <line x1="14" y1="28" x2="34" y2="28" stroke="#636466" strokeWidth="1.5" />
             <line x1="14" y1="34" x2="26" y2="34" stroke="#636466" strokeWidth="1.5" />
@@ -76,7 +63,7 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
             lineHeight: 1.4,
           }}
         >
-          This site can't be reached
+          This site can&rsquo;t be reached
         </h1>
 
         <p
@@ -87,9 +74,7 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
             lineHeight: 1.6,
           }}
         >
-          <strong style={{ color: "#e8eaed", fontWeight: 600 }}>
-            {hostname}
-          </strong>{" "}
+          <strong style={{ color: "#e8eaed", fontWeight: 600 }}>{hostname}</strong>{" "}
           refused to connect.
         </p>
 
@@ -105,7 +90,10 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
           <ul style={{ paddingLeft: 28, margin: 0, listStyleType: "disc" }}>
             <li style={{ marginBottom: 1 }}>Checking the connection</li>
             <li>
-              <span style={{ color: "#8ab4f8" }}>
+              <span
+                onClick={() => setShowDetails(true)}
+                style={{ color: "#8ab4f8", cursor: "pointer" }}
+              >
                 Checking the proxy and the firewall
               </span>
             </li>
@@ -157,22 +145,39 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
               outline: "none",
             }}
           >
-            Details
+            {showDetails ? "Hide details" : "Details"}
           </button>
         </div>
 
         {showDetails && (
           <div
             style={{
-              marginTop: 16,
-              fontSize: "0.8em",
+              marginTop: 24,
+              fontSize: "0.85em",
               color: "#9aa0a6",
               lineHeight: 1.7,
-              borderTop: "1px solid #3c4043",
-              paddingTop: 12,
             }}
           >
-            <p style={{ margin: 0 }}>{hostname}'s server IP address could not be found.</p>
+            <p style={{ margin: "0 0 6px 0", fontWeight: 700, color: "#e8eaed" }}>
+              Check your Internet connection
+            </p>
+            <p style={{ margin: "0 0 20px 0" }}>
+              Check any cables and reboot any routers, modems, or other network devices you may be using.
+            </p>
+
+            <p style={{ margin: "0 0 6px 0", fontWeight: 700, color: "#e8eaed" }}>
+              Allow Chrome to access the network in your firewall or antivirus settings.
+            </p>
+            <p style={{ margin: "0 0 20px 0" }}>
+              If it is already listed as a program allowed to access the network, try removing it from the list and adding it again.
+            </p>
+
+            <p style={{ margin: "0 0 6px 0", fontWeight: 700, color: "#e8eaed" }}>
+              If you use a proxy server...
+            </p>
+            <p style={{ margin: 0 }}>
+              Go to the Chrome menu &gt; Settings &gt; System &gt; Open your computer's proxy settings &gt; Network &amp; internet &gt; Proxy and deselect "Automatically detect settings".
+            </p>
           </div>
         )}
       </div>
