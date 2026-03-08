@@ -101,19 +101,23 @@ const StudentIDCard = ({ application, schoolName, sponsorshipNumber, side = "bot
   const backCard = (
     <div
       data-card-side="back"
-      style={{ width: CARD_W, height: CARD_H, fontFamily: "'Source Sans 3', sans-serif" }}
-      className="rounded-xl border-2 border-primary overflow-hidden print:shadow-none flex flex-col shrink-0"
+      style={{ width: CARD_W, height: CARD_H }}
+      className="rounded-xl border-2 border-primary bg-card shadow-lg overflow-hidden print:shadow-none flex flex-col shrink-0"
     >
-      {/* Top section: Thumbprint + QR */}
-      <div className="flex-1 flex" style={{ background: "linear-gradient(180deg, hsl(var(--card)) 0%, hsl(220 20% 95%) 100%)" }}>
-        {/* Left: Right Thumb */}
-        <div className="flex flex-col items-center justify-start pt-3 pl-4 pr-2" style={{ width: "40%" }}>
-          <p className="text-[9px] font-bold text-foreground tracking-wider mb-1.5 self-start">RIGHT THUMB</p>
-          <div className="w-[80px] h-[95px] bg-muted/60 rounded border border-border flex items-center justify-center overflow-hidden">
-            <span className="text-muted-foreground text-3xl">👆</span>
+      {/* Header */}
+      <div className="bg-primary px-5 py-2.5 text-center">
+        <p className="text-primary-foreground text-xs font-semibold tracking-wide">SCAN IF FOUND — REPORT LOST ID</p>
+      </div>
+
+      {/* Body: Thumbprint + Location | QR */}
+      <div className="flex-1 flex">
+        {/* Left: Right Thumb + Location */}
+        <div className="flex flex-col items-start pt-3 pl-4 pr-2" style={{ width: "42%" }}>
+          <p className="text-[9px] font-bold text-foreground tracking-wider mb-1.5">RIGHT THUMB</p>
+          <div className="w-[75px] h-[88px] bg-muted rounded border border-border flex items-center justify-center overflow-hidden">
+            <span className="text-muted-foreground text-2xl">👆</span>
           </div>
-          {/* Location details */}
-          <div className="mt-2.5 w-full space-y-0.5 text-[8.5px]">
+          <div className="mt-2 w-full space-y-0.5 text-[8px]">
             <BackRow label="VILLAGE" value={application.village || "—"} />
             <BackRow label="PARISH" value={application.parish || "—"} />
             <BackRow label="S.COUNTY" value={application.sub_county || "—"} />
@@ -124,10 +128,10 @@ const StudentIDCard = ({ application, schoolName, sponsorshipNumber, side = "bot
         <div className="flex-1 flex items-center justify-center p-3">
           <QRCodeSVG
             value={qrUrl}
-            size={140}
+            size={130}
             level="H"
             includeMargin={false}
-            bgColor="transparent"
+            bgColor="hsl(0, 0%, 100%)"
             fgColor="hsl(215, 58%, 26%)"
           />
         </div>
@@ -135,13 +139,16 @@ const StudentIDCard = ({ application, schoolName, sponsorshipNumber, side = "bot
 
       {/* MRZ Zone */}
       <div
-        className="px-3 py-2 border-t border-border"
-        style={{ background: "hsl(220 15% 93%)", fontFamily: "'OCR B', 'Courier New', monospace" }}
+        className="px-3 py-1.5 border-t border-border bg-muted/50"
+        style={{ fontFamily: "'OCR B', 'Courier New', monospace" }}
       >
-        <p className="text-[9.5px] tracking-[0.18em] text-foreground leading-snug truncate">{mrzLine1}</p>
-        <p className="text-[9.5px] tracking-[0.18em] text-foreground leading-snug truncate">{mrzLine2}</p>
-        <p className="text-[9.5px] tracking-[0.18em] text-foreground leading-snug truncate">{mrzLine3}</p>
+        <p className="text-[8.5px] tracking-[0.16em] text-foreground leading-snug truncate">{mrzLine1}</p>
+        <p className="text-[8.5px] tracking-[0.16em] text-foreground leading-snug truncate">{mrzLine2}</p>
+        <p className="text-[8.5px] tracking-[0.16em] text-foreground leading-snug truncate">{mrzLine3}</p>
       </div>
+
+      {/* Footer stripe */}
+      <div className="bg-secondary h-2" />
     </div>
   );
 
