@@ -6,6 +6,9 @@ interface PrintableApplicationFormProps {
   form: ApplicationForm;
   applicationId?: string;
   passportPhotoUrl?: string;
+  parentPassportPhotoUrl?: string;
+  studentSignatureUrl?: string;
+  parentSignatureUrl?: string;
 }
 
 const dotLine = (width = "100%") => (
