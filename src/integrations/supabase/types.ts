@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_logs: {
+        Row: {
+          created_at: string
+          device_fingerprint: string | null
+          email: string
+          failure_reason: string | null
+          id: string
+          ip_address: string | null
+          success: boolean
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint?: string | null
+          email?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint?: string | null
+          email?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           id: string
@@ -979,6 +1015,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trusted_devices: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          device_fingerprint: string
+          device_name: string | null
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          device_fingerprint: string
+          device_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          device_fingerprint?: string
+          device_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       uganda_locations: {
         Row: {

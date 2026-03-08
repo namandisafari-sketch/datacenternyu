@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 
 interface AuthContextType {
   user: User | null;
@@ -9,7 +10,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isSchool: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -57,6 +58,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Auto-logout after 15 minutes of inactivity
+  useSessionTimeout(!!user);
+
   const signUp = async (email: string, password: string, fullName: string) => {
     const { error } = await supabase.auth.signUp({
       email,
@@ -70,8 +74,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    return { data, error };
   };
 
   const signOut = async () => {

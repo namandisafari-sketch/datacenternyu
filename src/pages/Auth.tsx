@@ -6,9 +6,26 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Fingerprint, Mail } from "lucide-react";
+import { Fingerprint, Mail, ShieldAlert } from "lucide-react";
 import dataCentreBg from "@/assets/data-centre-bg.png";
 import FakeErrorPage from "@/components/FakeErrorPage";
+import { generateDeviceFingerprint } from "@/hooks/useDeviceFingerprint";
+import { supabase } from "@/integrations/supabase/client";
+
+const logAccess = async (params: {
+  email: string;
+  user_id?: string;
+  success: boolean;
+  failure_reason?: string;
+  device_fingerprint: string;
+}): Promise<{ device_trusted: boolean } | null> => {
+  try {
+    const { data } = await supabase.functions.invoke("log-access", { body: params });
+    return data as { device_trusted: boolean };
+  } catch {
+    return null;
+  }
+};
 
 const Auth = () => {
   const { signIn } = useAuth();
@@ -17,6 +34,7 @@ const Auth = () => {
   const [unlocked, setUnlocked] = useState(false);
   const [authMethod, setAuthMethod] = useState<"passkey" | "email">("passkey");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [deviceBlocked, setDeviceBlocked] = useState(false);
 
   const handlePasskeyLogin = async () => {
     if (!window.PublicKeyCredential) {
@@ -31,14 +49,43 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await signIn(loginForm.email, loginForm.password);
-    setLoading(false);
+    setDeviceBlocked(false);
+
+    const fingerprint = await generateDeviceFingerprint();
+    const { error, data } = await signIn(loginForm.email, loginForm.password);
+
     if (error) {
+      await logAccess({
+        email: loginForm.email,
+        success: false,
+        failure_reason: error.message,
+        device_fingerprint: fingerprint,
+      });
+      setLoading(false);
       toast.error(error.message);
-    } else {
-      toast.success("Welcome back!");
-      navigate("/dashboard");
+      return;
     }
+
+    // Log successful access and check device trust
+    const userId = data?.user?.id;
+    const result = await logAccess({
+      email: loginForm.email,
+      user_id: userId,
+      success: true,
+      device_fingerprint: fingerprint,
+    });
+
+    if (result && !(result as any)?.device_trusted) {
+      // Untrusted device — sign out immediately
+      await supabase.auth.signOut();
+      setDeviceBlocked(true);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+    toast.success("Welcome back!");
+    navigate("/dashboard");
   };
 
   if (!unlocked) {
@@ -63,7 +110,18 @@ const Auth = () => {
           <CardDescription>Data Management System</CardDescription>
         </CardHeader>
         <CardContent>
-          {authMethod === "passkey" ? (
+          {deviceBlocked ? (
+            <div className="text-center space-y-4 py-4">
+              <ShieldAlert className="mx-auto text-destructive" size={48} />
+              <h3 className="font-semibold text-lg text-destructive">Unrecognized Device</h3>
+              <p className="text-sm text-muted-foreground">
+                This device is not authorized to access the system. Contact your administrator to approve this device.
+              </p>
+              <Button variant="outline" onClick={() => setDeviceBlocked(false)} className="w-full">
+                Try Again
+              </Button>
+            </div>
+          ) : authMethod === "passkey" ? (
             <div className="space-y-4">
               <Button
                 onClick={handlePasskeyLogin}
