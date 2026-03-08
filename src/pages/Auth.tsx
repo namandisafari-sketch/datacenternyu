@@ -37,9 +37,19 @@ const Auth = () => {
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [deviceBlocked, setDeviceBlocked] = useState(false);
 
+  const isInIframe = (() => {
+    try { return window.self !== window.top; } catch { return true; }
+  })();
+
   const handlePasskeyLogin = async () => {
     if (!isWebAuthnSupported()) {
       toast.error("Passkeys are not supported on this device. Please use email sign-in.");
+      setAuthMethod("email");
+      return;
+    }
+
+    if (isInIframe) {
+      toast.error("Passkey sign-in is blocked in preview mode. Please use the published URL or email sign-in.");
       setAuthMethod("email");
       return;
     }
