@@ -23,8 +23,15 @@ const BiometricAttendance = () => {
   const queryClient = useQueryClient();
   const [biometricAvailable, setBiometricAvailable] = useState<boolean | null>(null);
   const [verifying, setVerifying] = useState(false);
+  const [isInIframe, setIsInIframe] = useState(false);
 
   useEffect(() => {
+    // Detect if running inside an iframe (e.g. Lovable preview)
+    try {
+      setIsInIframe(window.self !== window.top);
+    } catch {
+      setIsInIframe(true);
+    }
     isPlatformAuthenticatorAvailable().then(setBiometricAvailable);
   }, []);
 
@@ -172,8 +179,32 @@ const BiometricAttendance = () => {
 
   return (
     <div className="space-y-6">
-      {/* Status Banner */}
-      {biometricAvailable === false && (
+      {/* Iframe Warning */}
+      {isInIframe && (
+        <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+          <CardContent className="flex items-center gap-3 py-4">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+            <div>
+              <p className="font-semibold text-amber-700 dark:text-amber-400">Preview Mode — Fingerprint Disabled</p>
+              <p className="text-sm text-muted-foreground">
+                WebAuthn (fingerprint) is blocked in preview iframes for security.{" "}
+                <a
+                  href={window.location.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline font-medium"
+                >
+                  Open in a new tab
+                </a>{" "}
+                or use your <strong>published URL</strong> to register and use fingerprint attendance.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Biometric Not Available */}
+      {!isInIframe && biometricAvailable === false && (
         <Card className="border-destructive bg-destructive/5">
           <CardContent className="flex items-center gap-3 py-4">
             <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
