@@ -185,11 +185,16 @@ const Auth = () => {
             <div className="space-y-4">
               <Button
                 onClick={handlePasskeyLogin}
+                disabled={loading}
                 className="w-full h-14 bg-primary text-primary-foreground text-base gap-3"
                 size="lg"
               >
-                <Fingerprint size={24} />
-                Sign in with Passkey
+                {loading ? (
+                  <Loader2 size={24} className="animate-spin" />
+                ) : (
+                  <Fingerprint size={24} />
+                )}
+                {loading ? "Verifying..." : "Sign in with Passkey"}
               </Button>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
