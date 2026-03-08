@@ -134,7 +134,7 @@ const AdminPaymentsDashboard = () => {
     return <div className="text-center py-8 text-muted-foreground">Loading analytics...</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 w-full space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">

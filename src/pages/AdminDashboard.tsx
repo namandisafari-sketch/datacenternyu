@@ -143,7 +143,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="p-3 sm:p-6 bg-background min-h-full">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+      <div className="w-full space-y-4 sm:space-y-6">
         <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
 
         <AdmissionSettings />

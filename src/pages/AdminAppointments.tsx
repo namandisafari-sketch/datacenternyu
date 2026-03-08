@@ -79,7 +79,7 @@ const AdminAppointments = () => {
   const todayCount = appointments.filter((a) => a.appointment_date === new Date().toISOString().split("T")[0]).length;
 
   return (
-    <div className="p-3 sm:p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-3 sm:p-6 w-full space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">

@@ -59,7 +59,7 @@ const AdminStudentSearch = () => {
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-muted-foreground">Loading...</div>;
 
   return (
-    <div className="p-3 sm:p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-3 sm:p-6 w-full space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
           <Search className="h-5 w-5 sm:h-6 sm:w-6 text-primary" /> Student Search

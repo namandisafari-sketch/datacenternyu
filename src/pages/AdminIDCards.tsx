@@ -26,7 +26,7 @@ const AdminIDCards = () => {
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-muted-foreground">Loading...</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 w-full space-y-6">
       <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
         <CreditCard className="h-6 w-6 text-primary" /> ID Cards
       </h1>
