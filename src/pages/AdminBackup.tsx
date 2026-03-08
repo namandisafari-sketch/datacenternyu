@@ -107,7 +107,7 @@ const AdminBackup = () => {
 
         const ws = XLSX.utils.json_to_sheet(flatRows);
         // Write-protect the sheet
-        ws["!protect"] = { password: "", sheet: true, objects: true, scenarios: true };
+        ws["!protect"] = { password: "", objects: true, scenarios: true } as any;
         // Auto-size columns (rough estimate)
         const cols = Object.keys(flatRows[0] || {});
         ws["!cols"] = cols.map((col) => ({
