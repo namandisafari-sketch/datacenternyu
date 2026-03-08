@@ -30,6 +30,7 @@ const ApplicationEditForm = ({ app, onSaved, onCancel }: Props) => {
     const { error } = await supabase
       .from("applications")
       .update({
+        created_at: form.created_at,
         student_name: form.student_name,
         date_of_birth: form.date_of_birth,
         gender: form.gender,
