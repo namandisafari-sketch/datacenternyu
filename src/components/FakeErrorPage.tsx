@@ -46,11 +46,16 @@ const FakeErrorPage = ({ onUnlock }: FakeErrorPageProps) => {
           }}
         >
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 4h22l12 12v28H8V4z" fill="none" stroke="#636466" strokeWidth="2" />
-            <path d="M30 4v12h12" fill="none" stroke="#636466" strokeWidth="2" />
-            <line x1="14" y1="22" x2="34" y2="22" stroke="#636466" strokeWidth="1.5" />
-            <line x1="14" y1="28" x2="34" y2="28" stroke="#636466" strokeWidth="1.5" />
-            <line x1="14" y1="34" x2="26" y2="34" stroke="#636466" strokeWidth="1.5" />
+            {/* Document body */}
+            <path d="M6 2H30L42 14V46H6V2Z" fill="#3C4043" stroke="#5F6368" strokeWidth="1.5" />
+            {/* Folded corner */}
+            <path d="M30 2V14H42" fill="#292A2D" stroke="#5F6368" strokeWidth="1.5" />
+            {/* Sad face - left eye */}
+            <rect x="16" y="22" width="4" height="4" fill="#9AA0A6" />
+            {/* Sad face - right eye */}
+            <rect x="28" y="22" width="4" height="4" fill="#9AA0A6" />
+            {/* Sad face - frown */}
+            <path d="M18 36C20 32 28 32 30 36" stroke="#9AA0A6" strokeWidth="2" fill="none" strokeLinecap="round" />
           </svg>
         </div>
 
