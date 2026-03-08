@@ -21,19 +21,7 @@ import {
 const BiometricAttendance = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [biometricAvailable, setBiometricAvailable] = useState<boolean | null>(null);
   const [verifying, setVerifying] = useState(false);
-  const [isInIframe, setIsInIframe] = useState(false);
-
-  useEffect(() => {
-    // Detect if running inside an iframe (e.g. Lovable preview)
-    try {
-      setIsInIframe(window.self !== window.top);
-    } catch {
-      setIsInIframe(true);
-    }
-    isPlatformAuthenticatorAvailable().then(setBiometricAvailable);
-  }, []);
 
   // Get current user's staff profile
   const { data: staffProfile } = useQuery({
