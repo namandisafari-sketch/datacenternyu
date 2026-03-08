@@ -238,6 +238,29 @@ const Register = () => {
           } as any);
         }
       }
+      // Save lawyer form submissions
+      if (appData?.id) {
+        const { data: templates } = await supabase
+          .from("lawyer_form_templates")
+          .select("id")
+          .eq("is_active", true);
+
+        if (templates && templates.length > 0) {
+          for (const tmpl of templates) {
+            const templateResponses = lawyerResponses[tmpl.id] || {};
+            await supabase.from("lawyer_form_submissions").insert({
+              template_id: tmpl.id,
+              application_id: appData.id,
+              user_id: user.id,
+              responses: templateResponses as any,
+              signed_document_url: lawyerSignatureUrl,
+              status: "submitted",
+              submitted_at: new Date().toISOString(),
+            } as any);
+          }
+        }
+      }
+
       setSubmittedAppId(appData?.id || "");
       setSubmitted(true);
       toast.success("Application submitted successfully!");
