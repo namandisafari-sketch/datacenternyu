@@ -11,6 +11,10 @@ interface StudentIDCardProps {
     education_level: string;
     class_grade: string | null;
     registration_number: string | null;
+    village?: string | null;
+    parish?: string | null;
+    sub_county?: string | null;
+    district?: string | null;
   };
   schoolName: string;
   sponsorshipNumber: string;
