@@ -15,9 +15,10 @@ import { format } from "date-fns";
 import { toPng } from "html-to-image";
 import LocationSelector from "@/components/register/LocationSelector";
 import StaffIDCard from "@/components/admin/StaffIDCard";
+import ThumbprintCapture from "@/components/admin/ThumbprintCapture";
 import {
   Users, Plus, Search, Edit, CreditCard, Loader2, Trash2, Download, Eye,
-  UserCircle, Briefcase, MapPin, Phone,
+  UserCircle, Briefcase, MapPin, Phone, Fingerprint,
 } from "lucide-react";
 
 interface StaffForm {
@@ -41,6 +42,8 @@ interface StaffForm {
   emergency_contact_name: string;
   emergency_contact_phone: string;
   emergency_contact_relationship: string;
+  left_thumb_url: string;
+  right_thumb_url: string;
 }
 
 const emptyForm: StaffForm = {
@@ -49,6 +52,7 @@ const emptyForm: StaffForm = {
   employment_status: "active", access_level: "standard",
   district: "", sub_county: "", parish: "", village: "",
   emergency_contact_name: "", emergency_contact_phone: "", emergency_contact_relationship: "",
+  left_thumb_url: "", right_thumb_url: "",
 };
 
 const departments = ["Administration", "Finance", "IT", "Operations", "Legal", "Field", "Other"];
@@ -100,6 +104,17 @@ const AdminStaff = () => {
     return data.publicUrl;
   };
 
+  // Upload thumb data URL as image
+  const uploadThumb = async (dataUrl: string, userId: string, side: string): Promise<string> => {
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const path = `staff-thumbs/${userId}-${side}-${Date.now()}.png`;
+    const { error } = await supabase.storage.from("application-documents").upload(path, blob, { upsert: true, contentType: "image/png" });
+    if (error) throw error;
+    const { data } = supabase.storage.from("application-documents").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
   // Save mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -108,7 +123,18 @@ const AdminStaff = () => {
         photoUrl = await uploadPhoto(photoFile, form.user_id);
       }
 
-      const payload = { ...form, photo_url: photoUrl };
+      let leftThumbUrl = form.left_thumb_url;
+      let rightThumbUrl = form.right_thumb_url;
+
+      // Upload thumbs if they're data URLs (newly captured)
+      if (leftThumbUrl && leftThumbUrl.startsWith("data:")) {
+        leftThumbUrl = await uploadThumb(leftThumbUrl, form.user_id, "left");
+      }
+      if (rightThumbUrl && rightThumbUrl.startsWith("data:")) {
+        rightThumbUrl = await uploadThumb(rightThumbUrl, form.user_id, "right");
+      }
+
+      const payload = { ...form, photo_url: photoUrl, left_thumb_url: leftThumbUrl, right_thumb_url: rightThumbUrl };
 
       if (editingId) {
         const { error } = await supabase.from("staff_profiles").update(payload).eq("id", editingId);
@@ -157,6 +183,8 @@ const AdminStaff = () => {
       emergency_contact_name: s.emergency_contact_name || "",
       emergency_contact_phone: s.emergency_contact_phone || "",
       emergency_contact_relationship: s.emergency_contact_relationship || "",
+      left_thumb_url: s.left_thumb_url || "",
+      right_thumb_url: s.right_thumb_url || "",
     });
     setEditingId(s.id);
     setShowForm(true);
@@ -375,6 +403,25 @@ const AdminStaff = () => {
                     </div>
                   )}
                   <Input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} />
+                </div>
+              </div>
+              {/* Thumbprint Registration */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <Fingerprint className="w-4 h-4 text-primary" />
+                  Thumbprint Registration (for attendance)
+                </Label>
+                <div className="flex gap-6 justify-center py-2 px-4 rounded-lg border border-dashed border-border bg-muted/30">
+                  <ThumbprintCapture
+                    label="Left Thumb"
+                    existingUrl={form.left_thumb_url && !form.left_thumb_url.startsWith("data:") ? form.left_thumb_url : undefined}
+                    onCapture={(url) => updateField("left_thumb_url", url)}
+                  />
+                  <ThumbprintCapture
+                    label="Right Thumb"
+                    existingUrl={form.right_thumb_url && !form.right_thumb_url.startsWith("data:") ? form.right_thumb_url : undefined}
+                    onCapture={(url) => updateField("right_thumb_url", url)}
+                  />
                 </div>
               </div>
             </TabsContent>
