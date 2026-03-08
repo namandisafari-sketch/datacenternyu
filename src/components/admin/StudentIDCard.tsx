@@ -159,4 +159,11 @@ const Row = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
+const BackRow = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex gap-1">
+    <span className="text-muted-foreground shrink-0 font-semibold">{label} :</span>
+    <span className="font-bold text-foreground truncate uppercase">{value}</span>
+  </div>
+);
+
 export default StudentIDCard;
