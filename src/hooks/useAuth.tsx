@@ -39,11 +39,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    let mounted = true;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      
+      // If token refresh failed, clear session gracefully instead of looping
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
+        setIsSchool(false);
+        setUserRole(null);
+        setLoading(false);
+        return;
+      }
+
+      if (event === 'SIGNED_OUT') {
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
+        setIsSchool(false);
+        setUserRole(null);
+        setLoading(false);
+        return;
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setTimeout(() => checkRoles(session.user.id), 0);
+        setTimeout(() => {
+          if (mounted) checkRoles(session.user.id);
+        }, 0);
       } else {
         setIsAdmin(false);
         setIsSchool(false);
@@ -52,16 +79,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkRoles(session.user.id);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!mounted) return;
+      
+      // If session retrieval fails (e.g. 429), clear state and stop loading
+      if (error || !session) {
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
+        setIsSchool(false);
+        setUserRole(null);
+        setLoading(false);
+        return;
       }
+
+      setSession(session);
+      setUser(session.user);
+      checkRoles(session.user.id);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Auto-logout after 15 minutes of inactivity
