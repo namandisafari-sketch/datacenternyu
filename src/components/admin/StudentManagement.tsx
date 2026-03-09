@@ -14,11 +14,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { toast } from "sonner";
 import {
   Users, CheckCircle, XCircle, Search, Eye, AlertTriangle,
-  School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, PlusCircle, DollarSign, GraduationCap, ArrowRightLeft, Pencil, Printer,
+  School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, PlusCircle, DollarSign, GraduationCap, ArrowRightLeft, Pencil, Printer, Scale,
 } from "lucide-react";
 import ApplicationFullDetail, { FullApplication } from "./ApplicationFullDetail";
 import ApplicationEditForm from "./ApplicationEditForm";
 import PrintableApplicationForm from "@/components/register/PrintableApplicationForm";
+import LawyerFormsTab from "./LawyerFormsTab";
 import { ApplicationForm } from "@/components/register/types";
 
 type Application = FullApplication;
@@ -72,6 +73,8 @@ interface StudentManagementProps {
   expenses: Expense[];
   claims: Claim[];
   reportCards: ReportCard[];
+  lawyerSubmissions: any[];
+  lawyerTemplates: any[];
   userId: string;
   formatUGX: (n: number) => string;
   onRefresh: () => void;
@@ -90,7 +93,7 @@ const claimTypes = [
   { value: "general", label: "General Report" },
 ];
 
-const StudentManagement = ({ applications, schools, expenses, claims, reportCards, userId, formatUGX, onRefresh }: StudentManagementProps) => {
+const StudentManagement = ({ applications, schools, expenses, claims, reportCards, lawyerSubmissions, lawyerTemplates, userId, formatUGX, onRefresh }: StudentManagementProps) => {
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
@@ -415,6 +418,7 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
             const appExpenses = expenses.filter((e) => e.application_id === selectedApp.id);
             const appClaims = claims.filter((c) => c.application_id === selectedApp.id);
             const appReports = reportCards.filter((r) => r.application_id === selectedApp.id);
+            const appLawyerSubs = lawyerSubmissions.filter((s: any) => s.application_id === selectedApp.id);
             const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
 
             if (editMode) {
@@ -449,11 +453,12 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                 </DialogHeader>
 
                 <Tabs defaultValue="info" className="mt-4">
-                  <TabsList className="w-full">
+                  <TabsList className="w-full flex-wrap">
                     <TabsTrigger value="info" className="flex-1">Info</TabsTrigger>
                     <TabsTrigger value="expenses" className="flex-1">Expenses ({appExpenses.length})</TabsTrigger>
                     <TabsTrigger value="reports" className="flex-1">Reports ({appReports.length})</TabsTrigger>
                     <TabsTrigger value="claims" className="flex-1">Claims ({appClaims.length})</TabsTrigger>
+                    <TabsTrigger value="legal" className="flex-1 gap-1"><Scale size={12} /> Legal ({appLawyerSubs.length})</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="info" className="mt-4">
@@ -529,6 +534,16 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                     ) : (
                       <p className="text-sm text-muted-foreground py-4 text-center">No claims filed.</p>
                     )}
+                  </TabsContent>
+
+                  <TabsContent value="legal" className="mt-4">
+                    <LawyerFormsTab
+                      applicationId={selectedApp.id}
+                      userId={selectedApp.user_id}
+                      submissions={appLawyerSubs}
+                      templates={lawyerTemplates}
+                      onRefresh={onRefresh}
+                    />
                   </TabsContent>
                 </Tabs>
               </>

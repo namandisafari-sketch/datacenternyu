@@ -60,21 +60,27 @@ const AdminStudents = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [reportCards, setReportCards] = useState<ReportCard[]>([]);
+  const [lawyerSubmissions, setLawyerSubmissions] = useState<any[]>([]);
+  const [lawyerTemplates, setLawyerTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
-    const [appsRes, expsRes, schoolsRes, claimsRes, reportsRes] = await Promise.all([
+    const [appsRes, expsRes, schoolsRes, claimsRes, reportsRes, subsRes, tplRes] = await Promise.all([
       supabase.from("applications").select("*").order("created_at", { ascending: false }),
       supabase.from("expenses").select("*").order("created_at", { ascending: false }),
       supabase.from("schools").select("*"),
       supabase.from("student_claims").select("*").order("created_at", { ascending: false }),
       supabase.from("report_cards").select("*").order("created_at", { ascending: false }),
+      supabase.from("lawyer_form_submissions").select("*").order("created_at", { ascending: false }),
+      supabase.from("lawyer_form_templates").select("*"),
     ]);
     setApplications((appsRes.data as unknown as Application[]) || []);
     setExpenses((expsRes.data as unknown as Expense[]) || []);
     setSchools((schoolsRes.data as unknown as SchoolRow[]) || []);
     setClaims((claimsRes.data as unknown as Claim[]) || []);
     setReportCards((reportsRes.data as unknown as ReportCard[]) || []);
+    setLawyerSubmissions((subsRes.data as any[]) || []);
+    setLawyerTemplates((tplRes.data as any[]) || []);
     setLoading(false);
   };
 
@@ -95,6 +101,8 @@ const AdminStudents = () => {
         expenses={expenses}
         claims={claims}
         reportCards={reportCards}
+        lawyerSubmissions={lawyerSubmissions}
+        lawyerTemplates={lawyerTemplates}
         userId={user!.id}
         formatUGX={formatUGX}
         onRefresh={fetchData}
