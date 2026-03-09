@@ -43,14 +43,19 @@ Deno.serve(async (req) => {
     // If login was successful, check/register trusted device
     let device_trusted = true;
     if (success && user_id && device_fingerprint) {
-      const { data: existing } = await supabase
+      // Look up existing device record
+      const { data: existing, error: lookupError } = await supabase
         .from("trusted_devices")
         .select("id, is_active")
         .eq("user_id", user_id)
         .eq("device_fingerprint", device_fingerprint)
         .maybeSingle();
 
-      if (!existing) {
+      if (lookupError) {
+        console.error("Device lookup error:", lookupError.message);
+        // On lookup error, default to trusted to avoid lockout
+        device_trusted = true;
+      } else if (!existing) {
         // Check if user has ANY trusted devices
         const { count } = await supabase
           .from("trusted_devices")
@@ -59,13 +64,17 @@ Deno.serve(async (req) => {
 
         if (count === 0) {
           // First device — auto-trust it
-          await supabase.from("trusted_devices").insert({
-            user_id,
-            device_fingerprint,
-            device_name: user_agent.substring(0, 100),
-            is_active: true,
-            approved_by: user_id,
-          });
+          await supabase.from("trusted_devices").upsert(
+            {
+              user_id,
+              device_fingerprint,
+              device_name: user_agent.substring(0, 100),
+              is_active: true,
+              approved_by: user_id,
+              last_used_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,device_fingerprint" }
+          );
           device_trusted = true;
         } else {
           // New unrecognized device — register as inactive
@@ -81,14 +90,13 @@ Deno.serve(async (req) => {
           device_trusted = false;
         }
       } else {
+        // Device exists — respect its current approval status
         device_trusted = existing.is_active;
-        if (existing.is_active) {
-          // Update last_used_at
-          await supabase
-            .from("trusted_devices")
-            .update({ last_used_at: new Date().toISOString() })
-            .eq("id", existing.id);
-        }
+        // Always update last_used_at timestamp
+        await supabase
+          .from("trusted_devices")
+          .update({ last_used_at: new Date().toISOString() })
+          .eq("id", existing.id);
       }
     }
 
