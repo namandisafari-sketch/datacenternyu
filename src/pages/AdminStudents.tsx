@@ -101,6 +101,8 @@ const AdminStudents = () => {
         expenses={expenses}
         claims={claims}
         reportCards={reportCards}
+        lawyerSubmissions={lawyerSubmissions}
+        lawyerTemplates={lawyerTemplates}
         userId={user!.id}
         formatUGX={formatUGX}
         onRefresh={fetchData}
