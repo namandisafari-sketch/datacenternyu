@@ -411,6 +411,7 @@ const AdminApplications = () => {
             const appExpenses = expenses.filter((e) => e.application_id === selectedApp.id);
             const appClaims = claims.filter((c) => c.application_id === selectedApp.id);
             const appReports = reportCards.filter((r) => r.application_id === selectedApp.id);
+            const appLawyerForms = lawyerSubmissions.filter((l) => l.application_id === selectedApp.id);
             const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
 
             if (editMode) {
