@@ -20,7 +20,7 @@ import ApplicationFullDetail, { FullApplication } from "@/components/admin/Appli
 import ApplicationEditForm from "@/components/admin/ApplicationEditForm";
 import ApplicantInsights from "@/components/admin/ApplicantInsights";
 import { Pencil } from "lucide-react";
-import lawyerStampImg from "@/assets/lawyer-stamp.png";
+import LawyerFormsTab from "@/components/admin/LawyerFormsTab";
 
 type Application = FullApplication;
 
