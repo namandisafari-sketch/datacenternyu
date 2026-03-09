@@ -93,7 +93,7 @@ const claimTypes = [
   { value: "general", label: "General Report" },
 ];
 
-const StudentManagement = ({ applications, schools, expenses, claims, reportCards, userId, formatUGX, onRefresh }: StudentManagementProps) => {
+const StudentManagement = ({ applications, schools, expenses, claims, reportCards, lawyerSubmissions, lawyerTemplates, userId, formatUGX, onRefresh }: StudentManagementProps) => {
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
