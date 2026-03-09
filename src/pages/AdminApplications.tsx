@@ -108,6 +108,8 @@ const AdminApplications = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [reportCards, setReportCards] = useState<ReportCard[]>([]);
+  const [lawyerSubmissions, setLawyerSubmissions] = useState<LawyerFormSubmission[]>([]);
+  const [lawyerTemplates, setLawyerTemplates] = useState<LawyerFormTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
