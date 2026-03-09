@@ -56,10 +56,8 @@ const LawyerFormsTab = ({ applicationId, userId, submissions, templates, onRefre
   const [signatureUrl, setSignatureUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Templates not yet submitted for this application
-  const availableTemplates = templates.filter(
-    (t) => t.is_active && !submissions.some((s) => s.template_id === t.id)
-  );
+  // All active templates available for (re)submission by admin
+  const availableTemplates = templates.filter((t) => t.is_active);
 
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
 
