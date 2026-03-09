@@ -132,7 +132,7 @@ const Register = () => {
       case 2: return !!(form.district);
       case 3: return true;
       case 4: return form.declarationConsent;
-      case 5: return !!lawyerSignatureUrl;
+      case 5: return true;
       default: return true;
     }
   };
