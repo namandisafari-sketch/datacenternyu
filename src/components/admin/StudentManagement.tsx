@@ -73,6 +73,8 @@ interface StudentManagementProps {
   expenses: Expense[];
   claims: Claim[];
   reportCards: ReportCard[];
+  lawyerSubmissions: any[];
+  lawyerTemplates: any[];
   userId: string;
   formatUGX: (n: number) => string;
   onRefresh: () => void;
