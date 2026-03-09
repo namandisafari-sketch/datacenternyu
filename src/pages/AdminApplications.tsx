@@ -454,6 +454,66 @@ const AdminApplications = () => {
                     <ApplicationFullDetail app={selectedApp} schoolName={school?.name} />
                   </TabsContent>
 
+                  <TabsContent value="legal" className="mt-4">
+                    {appLawyerForms.length > 0 ? (
+                      <div className="space-y-4">
+                        {appLawyerForms.map((sub) => {
+                          const tpl = lawyerTemplates.find((t) => t.id === sub.template_id);
+                          const formResponses = (sub.responses || {}) as Record<string, any>;
+                          const fields = (tpl?.fields || []) as Array<{ id: string; label: string; type: string }>;
+                          return (
+                            <Card key={sub.id}>
+                              <CardContent className="py-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                                    <FileText size={16} className="text-primary" />
+                                    {tpl?.title || "Legal Form"}
+                                  </h4>
+                                  <Badge variant={sub.status === "submitted" ? "default" : "outline"}>{sub.status}</Badge>
+                                </div>
+                                {tpl?.description && <p className="text-xs text-muted-foreground">{tpl.description}</p>}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                  {fields.map((field) => (
+                                    <div key={field.id} className="text-sm">
+                                      <span className="text-muted-foreground">{field.label}:</span>{" "}
+                                      <span className="font-medium">
+                                        {field.type === "checkbox" ? (formResponses[field.id] ? "Yes" : "No") : (formResponses[field.id] || "—")}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                                {sub.signed_document_url && (
+                                  <div className="mt-2">
+                                    <p className="text-xs text-muted-foreground mb-1">Signature:</p>
+                                    <img src={sub.signed_document_url} alt="Signature" className="h-16 border rounded bg-background p-1" />
+                                  </div>
+                                )}
+                                <div className="mt-3 pt-3 border-t border-border">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Stamp size={16} className="text-primary" />
+                                    <p className="text-xs font-semibold text-foreground">Certified by Advocate</p>
+                                  </div>
+                                  <div className="flex items-center gap-4 flex-wrap">
+                                    <div className="bg-background border border-border rounded-lg p-2 inline-block">
+                                      <img src={lawyerStampImg} alt="Advocate Official Stamp" className="h-16 object-contain opacity-90" style={{ transform: "rotate(-5deg)" }} />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground space-y-0.5">
+                                      <p><span className="font-medium text-foreground">Advocate:</span> Lubwama Ezra Tonny</p>
+                                      <p><span className="font-medium text-foreground">Email:</span> ezratonny85@gmail.com</p>
+                                      <p><span className="font-medium text-foreground">Submitted:</span> {sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString("en-UG", { day: "numeric", month: "long", year: "numeric" }) : new Date(sub.created_at).toLocaleDateString("en-UG", { day: "numeric", month: "long", year: "numeric" })}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground py-4 text-center">No legal forms submitted for this application.</p>
+                    )}
+                  </TabsContent>
+
                   <TabsContent value="expenses" className="mt-4">
                     {appExpenses.length > 0 ? (
                       <div className="space-y-3">
