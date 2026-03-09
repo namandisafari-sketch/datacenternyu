@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import {
   Users, CheckCircle, XCircle, PlusCircle, Search,
-  Eye, AlertTriangle, School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, Stamp,
+  Eye, AlertTriangle, School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert,
 } from "lucide-react";
 import ApplicationFullDetail, { FullApplication } from "@/components/admin/ApplicationFullDetail";
 import ApplicationEditForm from "@/components/admin/ApplicationEditForm";
