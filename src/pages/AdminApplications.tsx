@@ -14,12 +14,13 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import {
   Users, CheckCircle, XCircle, PlusCircle, Search,
-  Eye, AlertTriangle, School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert,
+  Eye, AlertTriangle, School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, Stamp,
 } from "lucide-react";
 import ApplicationFullDetail, { FullApplication } from "@/components/admin/ApplicationFullDetail";
 import ApplicationEditForm from "@/components/admin/ApplicationEditForm";
 import ApplicantInsights from "@/components/admin/ApplicantInsights";
 import { Pencil } from "lucide-react";
+import lawyerStampImg from "@/assets/lawyer-stamp.png";
 
 type Application = FullApplication;
 
@@ -66,6 +67,24 @@ interface ReportCard {
   created_at: string;
 }
 
+interface LawyerFormSubmission {
+  id: string;
+  application_id: string;
+  template_id: string;
+  responses: Record<string, any>;
+  status: string;
+  submitted_at: string | null;
+  signed_document_url: string | null;
+  created_at: string;
+}
+
+interface LawyerFormTemplate {
+  id: string;
+  title: string;
+  description: string | null;
+  fields: any[];
+}
+
 const formatUGX = (amount: number) =>
   new Intl.NumberFormat("en-UG", { style: "currency", currency: "UGX", maximumFractionDigits: 0 }).format(amount);
 
@@ -89,6 +108,8 @@ const AdminApplications = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [reportCards, setReportCards] = useState<ReportCard[]>([]);
+  const [lawyerSubmissions, setLawyerSubmissions] = useState<LawyerFormSubmission[]>([]);
+  const [lawyerTemplates, setLawyerTemplates] = useState<LawyerFormTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -102,18 +123,22 @@ const AdminApplications = () => {
   const [claimDialogOpen, setClaimDialogOpen] = useState(false);
 
   const fetchData = async () => {
-    const [appsRes, expsRes, schoolsRes, claimsRes, reportsRes] = await Promise.all([
+    const [appsRes, expsRes, schoolsRes, claimsRes, reportsRes, lawyerSubsRes, lawyerTplRes] = await Promise.all([
       supabase.from("applications").select("*").order("created_at", { ascending: false }),
       supabase.from("expenses").select("*").order("created_at", { ascending: false }),
       supabase.from("schools").select("*"),
       supabase.from("student_claims").select("*").order("created_at", { ascending: false }),
       supabase.from("report_cards").select("*").order("created_at", { ascending: false }),
+      supabase.from("lawyer_form_submissions").select("*").order("created_at", { ascending: false }),
+      supabase.from("lawyer_form_templates").select("*"),
     ]);
     setApplications((appsRes.data as unknown as Application[]) || []);
     setExpenses((expsRes.data as unknown as Expense[]) || []);
     setSchools((schoolsRes.data as unknown as SchoolRow[]) || []);
     setClaims((claimsRes.data as unknown as Claim[]) || []);
     setReportCards((reportsRes.data as unknown as ReportCard[]) || []);
+    setLawyerSubmissions((lawyerSubsRes.data as unknown as LawyerFormSubmission[]) || []);
+    setLawyerTemplates((lawyerTplRes.data as unknown as LawyerFormTemplate[]) || []);
     setLoading(false);
   };
 
@@ -386,6 +411,7 @@ const AdminApplications = () => {
             const appExpenses = expenses.filter((e) => e.application_id === selectedApp.id);
             const appClaims = claims.filter((c) => c.application_id === selectedApp.id);
             const appReports = reportCards.filter((r) => r.application_id === selectedApp.id);
+            const appLawyerForms = lawyerSubmissions.filter((l) => l.application_id === selectedApp.id);
             const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
 
             if (editMode) {
@@ -416,8 +442,9 @@ const AdminApplications = () => {
                 </DialogHeader>
 
                 <Tabs defaultValue="info" className="mt-4">
-                  <TabsList className="w-full">
+                  <TabsList className="w-full flex-wrap h-auto gap-1">
                     <TabsTrigger value="info" className="flex-1">Info</TabsTrigger>
+                    <TabsTrigger value="legal" className="flex-1">Legal Forms ({appLawyerForms.length})</TabsTrigger>
                     <TabsTrigger value="expenses" className="flex-1">Expenses ({appExpenses.length})</TabsTrigger>
                     <TabsTrigger value="reports" className="flex-1">Reports ({appReports.length})</TabsTrigger>
                     <TabsTrigger value="claims" className="flex-1">Claims ({appClaims.length})</TabsTrigger>
@@ -425,6 +452,66 @@ const AdminApplications = () => {
 
                   <TabsContent value="info" className="mt-4">
                     <ApplicationFullDetail app={selectedApp} schoolName={school?.name} />
+                  </TabsContent>
+
+                  <TabsContent value="legal" className="mt-4">
+                    {appLawyerForms.length > 0 ? (
+                      <div className="space-y-4">
+                        {appLawyerForms.map((sub) => {
+                          const tpl = lawyerTemplates.find((t) => t.id === sub.template_id);
+                          const formResponses = (sub.responses || {}) as Record<string, any>;
+                          const fields = (tpl?.fields || []) as Array<{ id: string; label: string; type: string }>;
+                          return (
+                            <Card key={sub.id}>
+                              <CardContent className="py-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                                    <FileText size={16} className="text-primary" />
+                                    {tpl?.title || "Legal Form"}
+                                  </h4>
+                                  <Badge variant={sub.status === "submitted" ? "default" : "outline"}>{sub.status}</Badge>
+                                </div>
+                                {tpl?.description && <p className="text-xs text-muted-foreground">{tpl.description}</p>}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                  {fields.map((field) => (
+                                    <div key={field.id} className="text-sm">
+                                      <span className="text-muted-foreground">{field.label}:</span>{" "}
+                                      <span className="font-medium">
+                                        {field.type === "checkbox" ? (formResponses[field.id] ? "Yes" : "No") : (formResponses[field.id] || "—")}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                                {sub.signed_document_url && (
+                                  <div className="mt-2">
+                                    <p className="text-xs text-muted-foreground mb-1">Signature:</p>
+                                    <img src={sub.signed_document_url} alt="Signature" className="h-16 border rounded bg-background p-1" />
+                                  </div>
+                                )}
+                                <div className="mt-3 pt-3 border-t border-border">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Stamp size={16} className="text-primary" />
+                                    <p className="text-xs font-semibold text-foreground">Certified by Advocate</p>
+                                  </div>
+                                  <div className="flex items-center gap-4 flex-wrap">
+                                    <div className="bg-background border border-border rounded-lg p-2 inline-block">
+                                      <img src={lawyerStampImg} alt="Advocate Official Stamp" className="h-16 object-contain opacity-90" style={{ transform: "rotate(-5deg)" }} />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground space-y-0.5">
+                                      <p><span className="font-medium text-foreground">Advocate:</span> Lubwama Ezra Tonny</p>
+                                      <p><span className="font-medium text-foreground">Email:</span> ezratonny85@gmail.com</p>
+                                      <p><span className="font-medium text-foreground">Submitted:</span> {sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString("en-UG", { day: "numeric", month: "long", year: "numeric" }) : new Date(sub.created_at).toLocaleDateString("en-UG", { day: "numeric", month: "long", year: "numeric" })}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground py-4 text-center">No legal forms submitted for this application.</p>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="expenses" className="mt-4">
