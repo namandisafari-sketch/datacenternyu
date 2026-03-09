@@ -178,13 +178,12 @@ const LawyerFormsTab = ({ applicationId, userId, submissions, templates, onRefre
           {submissions.length === 0 && (
             <p className="text-sm text-muted-foreground">No legal forms submitted for this application.</p>
           )}
-          {availableTemplates.length > 0 && (
+          {availableTemplates.length > 0 ? (
             <Button variant="outline" className="gap-2" onClick={() => setShowNewForm(true)}>
-              <PlusCircle size={16} /> Fill & Sign Legal Form
+              <PlusCircle size={16} /> {submissions.length > 0 ? "Re-submit / Add Legal Form" : "Fill & Sign Legal Form"}
             </Button>
-          )}
-          {availableTemplates.length === 0 && submissions.length > 0 && (
-            <p className="text-xs text-muted-foreground">All available legal forms have been completed.</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">No form templates available. Create templates in the Lawyer Forms admin section first.</p>
           )}
         </div>
       ) : (
