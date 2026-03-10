@@ -313,6 +313,17 @@ const LawyerFormsTab = ({ applicationId, userId, submissions, templates, onRefre
               </Select>
             </div>
 
+            {/* Application Number - manual entry */}
+            <div className="space-y-1">
+              <Label className="text-sm">Application Number</Label>
+              <Input
+                value={manualAppNumber}
+                onChange={(e) => setManualAppNumber(e.target.value)}
+                placeholder="e.g. NYF-2026-0001"
+              />
+              <p className="text-xs text-muted-foreground">Enter the application/registration number to appear on the form</p>
+            </div>
+
             {/* Form fields */}
             {selectedTemplate && (
               <>
