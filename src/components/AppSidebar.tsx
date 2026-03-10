@@ -63,6 +63,7 @@ const allAdminItems = [
   { title: "Materials", url: "/admin/materials", icon: Package, moduleKey: "materials" },
   { title: "Accounting", url: "/admin/accounting", icon: Calculator, moduleKey: "accounting" },
   { title: "Photocopying", url: "/admin/photocopying", icon: Printer, moduleKey: "photocopying" },
+  { title: "Scanner Inbox", url: "/admin/scanner-inbox", icon: ScanLine, moduleKey: "scanner-inbox" },
   { title: "Attendance", url: "/admin/attendance", icon: CalendarDays, moduleKey: "attendance" },
   { title: "Audit Logs", url: "/admin/audit-logs", icon: ClipboardList, moduleKey: "audit-logs" },
   { title: "Backup", url: "/admin/backup", icon: HardDrive, moduleKey: "backup" },

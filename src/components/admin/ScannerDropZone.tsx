@@ -65,7 +65,7 @@ const ScannerDropZone = ({ onMerged, applicationId }: ScannerDropZoneProps) => {
       const outer = swapped ? buffers[1] : buffers[0];
       const inner = swapped ? buffers[0] : buffers[1];
       const res = await mergeBooklet(outer, inner);
-      const blob = new Blob([res.pdfBytes], { type: "application/pdf" });
+      const blob = new Blob([res.pdfBytes.buffer as ArrayBuffer], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       setResult(res);
       setBlobUrl(url);
