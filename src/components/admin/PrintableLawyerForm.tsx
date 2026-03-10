@@ -37,6 +37,7 @@ export const generateEnglishDocumentHTML = (r: Record<string, any>, signatureUrl
   return `
 <div style="font-family:'Times New Roman',serif;color:#000;background:#fff;padding:40px 50px;max-width:210mm;margin:0 auto;font-size:12px;line-height:1.6">
   <div style="text-align:center;margin-bottom:10px">
+    ${r.application_number ? `<p style="text-align:right;font-size:11px;margin:0 0 6px 0"><strong>Application No:</strong> ${r.application_number}</p>` : ""}
     <p style="font-weight:bold;font-size:14px;margin:4px 0">THE REPUBLIC OF UGANDA</p>
     <p style="font-weight:bold;font-size:13px;margin:4px 0">IN THE MATTER OF THE CONTRACTS ACT CAP 284</p>
     <p style="font-weight:bold;font-size:13px;margin:4px 0">IN THE MATTER OF A MEMORANDUM OF UNDERSTANDING</p>
