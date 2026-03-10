@@ -170,7 +170,7 @@ const ScannerDropZone = ({ onMerged, applicationId }: ScannerDropZoneProps) => {
               : "Drop 2 scanned A3 PDFs here (File A & File B)"}
           </p>
           <p className="text-xs text-muted-foreground/70 text-center">
-            File A: Right half = Page 1, Left half = Page 4 &nbsp;|&nbsp; File B: Left half = Page 2, Right half = Page 3
+            File A (lower#): Left = Page 1, Right = Page 4 &nbsp;|&nbsp; File B (higher#): Left = Page 2, Right = Page 3
           </p>
           <input
             ref={inputRef}

@@ -78,8 +78,8 @@ export interface MergeResult {
 /**
  * Merge two scanned files into correct 4-page reading order.
  *
- * File A (outer): Right half = Page 1, Left half = Page 4
- * File B (inner): Left half = Page 2, Right half = Page 3
+ * File A (first/lower#): Left half = Page 1, Right half = Page 4
+ * File B (second/higher#): Left half = Page 2, Right half = Page 3
  */
 export async function mergeBooklet(
   fileABytes: Uint8Array,
@@ -90,8 +90,8 @@ export async function mergeBooklet(
 
   const merged = await PDFDocument.create();
 
-  // Page 1 = File A Right half
-  const [p1] = await merged.copyPages(fileA.right, [0]);
+  // Page 1 = File A Left half
+  const [p1] = await merged.copyPages(fileA.left, [0]);
   merged.addPage(p1);
 
   // Page 2 = File B Left half
@@ -102,8 +102,8 @@ export async function mergeBooklet(
   const [p3] = await merged.copyPages(fileB.right, [0]);
   merged.addPage(p3);
 
-  // Page 4 = File A Left half
-  const [p4] = await merged.copyPages(fileA.left, [0]);
+  // Page 4 = File A Right half
+  const [p4] = await merged.copyPages(fileA.right, [0]);
   merged.addPage(p4);
 
   const pdfBytes = await merged.save();
