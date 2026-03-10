@@ -144,7 +144,7 @@ export const generateEnglishDocumentHTML = (r: Record<string, any>, signatureUrl
     <p style="font-weight:bold">ALL IN THE PRESENCE OF</p>
     <div style="display:flex;justify-content:center;align-items:center;gap:20px;margin-top:10px">
       <div>
-        <p>..........................................................</p>
+        <p><img src="${lawyerSignatureImg}" alt="Advocate Signature" style="height:50px;"/></p>
         <p style="font-weight:bold">ADVOCATE</p>
         <p>CONTACT..0703022565</p>
         <p>DATE..${dateStr}</p>
