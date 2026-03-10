@@ -24,6 +24,7 @@ import {
   ClipboardList,
   HardDrive,
   Printer,
+  ScanLine,
 } from "lucide-react";
 import {
   Sidebar,
