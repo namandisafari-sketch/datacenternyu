@@ -57,6 +57,7 @@ const LawyerFormsTab = ({ applicationId, userId, submissions, templates, onRefre
   const [signatureUrl, setSignatureUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitBoth, setSubmitBoth] = useState(true);
+  const [manualAppNumber, setManualAppNumber] = useState("");
   const printRef = useRef<HTMLDivElement>(null);
 
   // All active templates available for (re)submission by admin
