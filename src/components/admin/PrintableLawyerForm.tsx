@@ -1,5 +1,6 @@
 
 import lawyerStampImg from "@/assets/lawyer-stamp.png";
+import lawyerSignatureImg from "@/assets/lawyer-signature.png";
 import nyungaLogo from "@/assets/nyunga-official-logo.png";
 
 interface FormField {
@@ -36,6 +37,7 @@ export const generateEnglishDocumentHTML = (r: Record<string, any>, signatureUrl
   return `
 <div style="font-family:'Times New Roman',serif;color:#000;background:#fff;padding:40px 50px;max-width:210mm;margin:0 auto;font-size:12px;line-height:1.6">
   <div style="text-align:center;margin-bottom:10px">
+    ${r.application_number ? `<p style="text-align:right;font-size:11px;margin:0 0 6px 0"><strong>Application No:</strong> ${r.application_number}</p>` : ""}
     <p style="font-weight:bold;font-size:14px;margin:4px 0">THE REPUBLIC OF UGANDA</p>
     <p style="font-weight:bold;font-size:13px;margin:4px 0">IN THE MATTER OF THE CONTRACTS ACT CAP 284</p>
     <p style="font-weight:bold;font-size:13px;margin:4px 0">IN THE MATTER OF A MEMORANDUM OF UNDERSTANDING</p>
@@ -143,7 +145,7 @@ export const generateEnglishDocumentHTML = (r: Record<string, any>, signatureUrl
     <p style="font-weight:bold">ALL IN THE PRESENCE OF</p>
     <div style="display:flex;justify-content:center;align-items:center;gap:20px;margin-top:10px">
       <div>
-        <p>..........................................................</p>
+        <p><img src="${lawyerSignatureImg}" alt="Advocate Signature" style="height:50px;"/></p>
         <p style="font-weight:bold">ADVOCATE</p>
         <p>CONTACT..0703022565</p>
         <p>DATE..${dateStr}</p>
@@ -164,6 +166,7 @@ export const generateLugandaDocumentHTML = (r: Record<string, any>, signatureUrl
   const dateStr = new Date(submittedAt).toLocaleDateString("en-UG", { day: "numeric", month: "long", year: "numeric" });
   return `
 <div style="font-family:'Times New Roman',serif;color:#000;background:#fff;padding:40px 50px;max-width:210mm;margin:0 auto;font-size:12px;line-height:1.6">
+  ${r.application_number ? `<p style="text-align:right;font-size:11px;margin:0 0 6px 0"><strong>Application No:</strong> ${r.application_number}</p>` : ""}
   <p style="font-weight:bold;font-size:13px;text-decoration:underline;text-align:center;margin-bottom:4px">ENTEESEGANYA N'OKUKKAANYA EBITUUKIDDWAKO WAKATI W'ESSOMERO LYA: ${blank(r.essomero, 200)}</p>
   <p style="text-align:center;font-size:12px">${blank(r.essomero, 300)} <strong>NYUNGA FOUNDATION, N'OMUZADDE WA</strong></p>
   <p style="text-align:center;font-size:12px">${blank(r.omuzadde_erinnya, 300)} <strong>AGENDA MU</strong> ${blank(r.agenda, 60)} <strong>OMWAKA</strong>${blank(r.omwaka, 80)}</p>
@@ -236,8 +239,8 @@ export const generateLugandaDocumentHTML = (r: Record<string, any>, signatureUrl
 
   <div style="margin-top:12px">
     <p><strong>(v) &nbsp;&nbsp;Munnamateeka alambise enteekateeka eno era avunanyizibwa okugirondoola okukakasa nti enteekebwa mu nkola buli muntu okutuukiriza obuvunanyizibwa bwe.</strong></p>
-    <p>&nbsp;&nbsp;&nbsp;Erinnya: <strong>LUBWAMA EZRA TONNY</strong>&nbsp;&nbsp;Omukono.................</p>
-    <p>&nbsp;&nbsp;&nbsp;Essimu: 0703022565&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ennaku z'Omwezi: ${dateStr}</p>
+     <p>&nbsp;&nbsp;&nbsp;Erinnya: <strong>LUBWAMA EZRA TONNY</strong>&nbsp;&nbsp;Omukono <img src="${lawyerSignatureImg}" alt="Advocate Signature" style="height:40px;vertical-align:middle;"/></p>
+     <p>&nbsp;&nbsp;&nbsp;Essimu: 0703022565&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ennaku z'Omwezi: ${dateStr}</p>
   </div>
 
   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px">

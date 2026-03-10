@@ -57,6 +57,7 @@ const LawyerFormsTab = ({ applicationId, userId, submissions, templates, onRefre
   const [signatureUrl, setSignatureUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitBoth, setSubmitBoth] = useState(true);
+  const [manualAppNumber, setManualAppNumber] = useState("");
   const printRef = useRef<HTMLDivElement>(null);
 
   // All active templates available for (re)submission by admin
@@ -181,7 +182,7 @@ const LawyerFormsTab = ({ applicationId, userId, submissions, templates, onRefre
       application_id: applicationId,
       template_id: tId,
       user_id: userId,
-      responses: tId === selectedTemplateId ? responses : {},
+      responses: { ...(tId === selectedTemplateId ? responses : {}), application_number: manualAppNumber },
       signed_document_url: signatureUrl || null,
       status: "submitted",
       submitted_at: new Date().toISOString(),
@@ -204,6 +205,7 @@ const LawyerFormsTab = ({ applicationId, userId, submissions, templates, onRefre
       setSelectedTemplateId("");
       setResponses({});
       setSignatureUrl("");
+      setManualAppNumber("");
       onRefresh();
     }
   };
@@ -310,6 +312,17 @@ const LawyerFormsTab = ({ applicationId, userId, submissions, templates, onRefre
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Application Number - manual entry */}
+            <div className="space-y-1">
+              <Label className="text-sm">Application Number</Label>
+              <Input
+                value={manualAppNumber}
+                onChange={(e) => setManualAppNumber(e.target.value)}
+                placeholder="e.g. NYF-2026-0001"
+              />
+              <p className="text-xs text-muted-foreground">Enter the application/registration number to appear on the form</p>
             </div>
 
             {/* Form fields */}
