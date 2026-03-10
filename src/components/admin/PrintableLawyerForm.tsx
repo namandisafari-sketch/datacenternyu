@@ -1,5 +1,6 @@
 
 import lawyerStampImg from "@/assets/lawyer-stamp.png";
+import lawyerSignatureImg from "@/assets/lawyer-signature.png";
 import nyungaLogo from "@/assets/nyunga-official-logo.png";
 
 interface FormField {
