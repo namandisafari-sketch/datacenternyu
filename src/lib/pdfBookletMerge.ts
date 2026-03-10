@@ -1,47 +1,73 @@
 import { PDFDocument } from "pdf-lib";
 
 /**
- * Booklet reorder: Scanner produces two files for one application booklet.
- * File A (Outer): Physical pages 1 & 4
- * File B (Inner): Physical pages 2 & 3
- * Goal: Merge into correct reading order → Page 1, Page 2, Page 3, Page 4
+ * Booklet reorder for A3 landscape scans.
+ *
+ * File A (first scan):  Right half → Page 1,  Left half → Page 4
+ * File B (second scan): Left half  → Page 2,  Right half → Page 3
+ *
+ * Final output: Page 1, Page 2, Page 3, Page 4
  *
  * Each file may be:
- *   - A 2-page PDF (extract by index)
+ *   - A 2-page PDF (extract by index — page 0 = left, page 1 = right)
  *   - A single wide A3 landscape page (split down the middle)
  */
 
-async function extractTwoPages(pdfBytes: Uint8Array): Promise<PDFDocument> {
-  const srcDoc = await PDFDocument.load(pdfBytes);
-  const pageCount = srcDoc.getPageCount();
+interface SplitPages {
+  left: PDFDocument;
+  right: PDFDocument;
+}
 
-  if (pageCount >= 2) {
-    // Already has 2+ pages — return as-is (we'll copy pages by index)
-    return srcDoc;
-  }
-
-  // Single page — split down the middle (A3 landscape → two A4 pages)
+/** Split a single-page A3 landscape into left-half and right-half PDFs */
+async function splitA3Page(srcDoc: PDFDocument): Promise<SplitPages> {
   const srcPage = srcDoc.getPage(0);
   const { width, height } = srcPage.getSize();
   const halfWidth = width / 2;
 
-  const splitDoc = await PDFDocument.create();
-
-  // Left half → first page
-  const [leftEmbed] = await splitDoc.embedPages([srcPage], [
+  // Left half
+  const leftDoc = await PDFDocument.create();
+  const [leftEmbed] = await leftDoc.embedPages([srcPage], [
     { left: 0, bottom: 0, right: halfWidth, top: height },
   ]);
-  const leftPage = splitDoc.addPage([halfWidth, height]);
+  const leftPage = leftDoc.addPage([halfWidth, height]);
   leftPage.drawPage(leftEmbed, { x: 0, y: 0, width: halfWidth, height });
 
-  // Right half → second page
-  const [rightEmbed] = await splitDoc.embedPages([srcPage], [
+  // Right half
+  const rightDoc = await PDFDocument.create();
+  const [rightEmbed] = await rightDoc.embedPages([srcPage], [
     { left: halfWidth, bottom: 0, right: width, top: height },
   ]);
-  const rightPage = splitDoc.addPage([halfWidth, height]);
+  const rightPage = rightDoc.addPage([halfWidth, height]);
   rightPage.drawPage(rightEmbed, { x: 0, y: 0, width: halfWidth, height });
 
-  return splitDoc;
+  return { left: leftDoc, right: rightDoc };
+}
+
+/** For a 2-page PDF, wrap each page as its own PDFDocument */
+async function splitTwoPagePdf(srcDoc: PDFDocument): Promise<SplitPages> {
+  const leftDoc = await PDFDocument.create();
+  const [p0] = await leftDoc.copyPages(srcDoc, [0]);
+  leftDoc.addPage(p0);
+
+  const rightDoc = await PDFDocument.create();
+  const [p1] = await rightDoc.copyPages(srcDoc, [1]);
+  rightDoc.addPage(p1);
+
+  return { left: leftDoc, right: rightDoc };
+}
+
+/** Get left/right halves from any input file */
+async function getHalves(pdfBytes: Uint8Array): Promise<SplitPages> {
+  const srcDoc = await PDFDocument.load(pdfBytes);
+  const pageCount = srcDoc.getPageCount();
+
+  if (pageCount >= 2) {
+    // 2-page PDF: index 0 = left, index 1 = right
+    return splitTwoPagePdf(srcDoc);
+  }
+
+  // Single page — A3 landscape split
+  return splitA3Page(srcDoc);
 }
 
 export interface MergeResult {
@@ -50,31 +76,34 @@ export interface MergeResult {
 }
 
 /**
- * Merge outer (pages 1&4) and inner (pages 2&3) into correct 4-page order.
+ * Merge two scanned files into correct 4-page reading order.
+ *
+ * File A (outer): Right half = Page 1, Left half = Page 4
+ * File B (inner): Left half = Page 2, Right half = Page 3
  */
 export async function mergeBooklet(
-  outerBytes: Uint8Array,
-  innerBytes: Uint8Array
+  fileABytes: Uint8Array,
+  fileBBytes: Uint8Array
 ): Promise<MergeResult> {
-  const outerDoc = await extractTwoPages(outerBytes);
-  const innerDoc = await extractTwoPages(innerBytes);
+  const fileA = await getHalves(fileABytes);
+  const fileB = await getHalves(fileBBytes);
 
   const merged = await PDFDocument.create();
 
-  // Page 1 from outer (index 0)
-  const [p1] = await merged.copyPages(outerDoc, [0]);
+  // Page 1 = File A Right half
+  const [p1] = await merged.copyPages(fileA.right, [0]);
   merged.addPage(p1);
 
-  // Page 2 from inner (index 0)
-  const [p2] = await merged.copyPages(innerDoc, [0]);
+  // Page 2 = File B Left half
+  const [p2] = await merged.copyPages(fileB.left, [0]);
   merged.addPage(p2);
 
-  // Page 3 from inner (index 1)
-  const [p3] = await merged.copyPages(innerDoc, [1]);
+  // Page 3 = File B Right half
+  const [p3] = await merged.copyPages(fileB.right, [0]);
   merged.addPage(p3);
 
-  // Page 4 from outer (index 1)
-  const [p4] = await merged.copyPages(outerDoc, [1]);
+  // Page 4 = File A Left half
+  const [p4] = await merged.copyPages(fileA.left, [0]);
   merged.addPage(p4);
 
   const pdfBytes = await merged.save();

@@ -80,7 +80,7 @@ const AdminScannerInbox = () => {
   const selectedApp = applications.find((a) => a.id === selectedAppId);
 
   // When a merge completes, show the PDF
-  const handleMerged = (_result: MergeResult, blobUrl: string) => {
+  const handleMerged = (_result: MergeResult, blobUrl: string, _fileName: string) => {
     setPdfUrl(blobUrl);
   };
 
