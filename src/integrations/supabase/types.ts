@@ -1613,6 +1613,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      link_scanned_documents_to_applications: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "school" | "parent"
