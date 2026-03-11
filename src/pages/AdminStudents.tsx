@@ -90,6 +90,7 @@ const AdminStudents = () => {
     setSchools((schoolsRes.data as unknown as SchoolRow[]) || []);
     setClaims((claimsRes.data as unknown as Claim[]) || []);
     setReportCards((reportsRes.data as unknown as ReportCard[]) || []);
+    setScannedDocuments((scannedRes.data as unknown as ScannedDocument[]) || []);
     setLawyerSubmissions((subsRes.data as any[]) || []);
     setLawyerTemplates((tplRes.data as any[]) || []);
     setLoading(false);
