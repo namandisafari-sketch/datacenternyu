@@ -71,16 +71,9 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
           ? { data: new Uint8Array(await (await fetch(pdfUrl)).arrayBuffer()) }
           : { url: pdfUrl };
 
+        setUseNativePreview(false);
         loadTask = getDocument(source);
-        let doc: PDFDocumentProxy;
-
-        try {
-          doc = await loadTask.promise;
-        } catch {
-          loadTask?.destroy();
-          loadTask = getDocument({ ...source, disableWorker: true } as any);
-          doc = await loadTask.promise;
-        }
+        const doc = await loadTask.promise;
 
         if (cancelled) {
           await doc.destroy();
@@ -97,6 +90,7 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
           setError("Failed to load PDF preview");
           setPdfDoc(null);
           setTotalPages(0);
+          setUseNativePreview(true);
         }
       } finally {
         if (!cancelled) setLoading(false);
