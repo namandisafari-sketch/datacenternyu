@@ -358,6 +358,7 @@ export type Database = {
       attendance_records: {
         Row: {
           check_in_at: string
+          check_in_distance: number | null
           check_out_at: string | null
           created_at: string
           hours_worked: number | null
@@ -367,6 +368,7 @@ export type Database = {
         }
         Insert: {
           check_in_at?: string
+          check_in_distance?: number | null
           check_out_at?: string | null
           created_at?: string
           hours_worked?: number | null
@@ -376,6 +378,7 @@ export type Database = {
         }
         Update: {
           check_in_at?: string
+          check_in_distance?: number | null
           check_out_at?: string | null
           created_at?: string
           hours_worked?: number | null
@@ -929,35 +932,53 @@ export type Database = {
       }
       photocopy_shifts: {
         Row: {
+          closed_at: string | null
+          closing_cash: number | null
           created_at: string
+          discrepancy: number | null
           end_time: string | null
+          expected_cash: number | null
           id: string
           notes: string | null
+          opening_cash: number | null
           shift_date: string
           staff_id: string
           start_time: string | null
+          status: string
           total_revenue: number | null
           total_transactions: number | null
         }
         Insert: {
+          closed_at?: string | null
+          closing_cash?: number | null
           created_at?: string
+          discrepancy?: number | null
           end_time?: string | null
+          expected_cash?: number | null
           id?: string
           notes?: string | null
+          opening_cash?: number | null
           shift_date?: string
           staff_id: string
           start_time?: string | null
+          status?: string
           total_revenue?: number | null
           total_transactions?: number | null
         }
         Update: {
+          closed_at?: string | null
+          closing_cash?: number | null
           created_at?: string
+          discrepancy?: number | null
           end_time?: string | null
+          expected_cash?: number | null
           id?: string
           notes?: string | null
+          opening_cash?: number | null
           shift_date?: string
           staff_id?: string
           start_time?: string | null
+          status?: string
           total_revenue?: number | null
           total_transactions?: number | null
         }
