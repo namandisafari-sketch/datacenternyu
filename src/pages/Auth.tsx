@@ -121,10 +121,14 @@ const Auth = () => {
     setLoading(true);
     setDeviceBlocked(false);
 
+    // Block auto-redirect while we check device trust
+    sessionStorage.setItem("device_check_pending", "1");
+
     const fingerprint = await generateDeviceFingerprint();
     const { error, data } = await signIn(loginForm.email, loginForm.password);
 
     if (error) {
+      sessionStorage.removeItem("device_check_pending");
       await logAccess({
         email: loginForm.email,
         success: false,
@@ -145,6 +149,8 @@ const Auth = () => {
       device_fingerprint: fingerprint,
     });
 
+    sessionStorage.removeItem("device_check_pending");
+
     if (result && !(result as any)?.device_trusted) {
       // Untrusted device — sign out immediately
       await supabase.auth.signOut();
@@ -155,7 +161,7 @@ const Auth = () => {
 
     setLoading(false);
     toast.success("Welcome back!");
-    navigate("/dashboard");
+    navigate("/admin");
   };
 
   const handleUnlock = () => {
