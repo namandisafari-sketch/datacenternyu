@@ -17,6 +17,9 @@ interface ScannedDoc {
   created_at: string;
 }
 
+const normalizeApplicationNumber = (value: string | null | undefined) =>
+  (value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
 const LinkedScannedDocuments = ({ applicationId, registrationNumber }: Props) => {
   const [docs, setDocs] = useState<ScannedDoc[]>([]);
   const [loading, setLoading] = useState(true);
