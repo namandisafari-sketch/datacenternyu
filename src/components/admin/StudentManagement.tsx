@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { toast } from "sonner";
 import {
   Users, CheckCircle, XCircle, Search, Eye, AlertTriangle,
-  School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, PlusCircle, DollarSign, GraduationCap, ArrowRightLeft, Pencil, Printer, Scale,
+  School, User, Phone, Mail, MapPin, BookOpen, FileText, ShieldAlert, PlusCircle, DollarSign, GraduationCap, ArrowRightLeft, Pencil, Printer, Scale, ExternalLink,
 } from "lucide-react";
 import ApplicationFullDetail, { FullApplication } from "./ApplicationFullDetail";
 import ApplicationEditForm from "./ApplicationEditForm";
@@ -67,12 +67,22 @@ interface ReportCard {
   created_at: string;
 }
 
+interface ScannedDocument {
+  id: string;
+  application_id: string | null;
+  application_number: string;
+  original_filename: string;
+  storage_path: string;
+  created_at: string;
+}
+
 interface StudentManagementProps {
   applications: Application[];
   schools: SchoolRow[];
   expenses: Expense[];
   claims: Claim[];
   reportCards: ReportCard[];
+  scannedDocuments: ScannedDocument[];
   lawyerSubmissions: any[];
   lawyerTemplates: any[];
   userId: string;
@@ -93,7 +103,7 @@ const claimTypes = [
   { value: "general", label: "General Report" },
 ];
 
-const StudentManagement = ({ applications, schools, expenses, claims, reportCards, lawyerSubmissions, lawyerTemplates, userId, formatUGX, onRefresh }: StudentManagementProps) => {
+const StudentManagement = ({ applications, schools, expenses, claims, reportCards, scannedDocuments, lawyerSubmissions, lawyerTemplates, userId, formatUGX, onRefresh }: StudentManagementProps) => {
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
@@ -184,16 +194,93 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
   const sponsoredStudents = applications.filter((a) => a.status === "approved");
   const getSchool = (schoolId: string | null) => schools.find((s) => s.id === schoolId);
 
-  const filtered = sponsoredStudents.filter((a) => {
-    const q = search.trim().toLowerCase();
+  const normalizeApplicationNumber = (value: string | null | undefined) =>
+    (value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const docsByApplicationId = useMemo(() => {
+    const map = new Map<string, ScannedDocument[]>();
+    scannedDocuments.forEach((doc) => {
+      if (!doc.application_id) return;
+      const existing = map.get(doc.application_id) || [];
+      existing.push(doc);
+      map.set(doc.application_id, existing);
+    });
+    return map;
+  }, [scannedDocuments]);
+
+  const docsByNumber = useMemo(() => {
+    const map = new Map<string, ScannedDocument[]>();
+    scannedDocuments.forEach((doc) => {
+      const key = normalizeApplicationNumber(doc.application_number);
+      if (!key) return;
+      const existing = map.get(key) || [];
+      existing.push(doc);
+      map.set(key, existing);
+    });
+    return map;
+  }, [scannedDocuments]);
+
+  const getDocsForApp = useCallback((app: Application) => {
+    const merged = new Map<string, ScannedDocument>();
+    (docsByApplicationId.get(app.id) || []).forEach((doc) => merged.set(doc.id, doc));
+
+    const regKey = normalizeApplicationNumber(app.registration_number);
+    if (regKey) {
+      (docsByNumber.get(regKey) || []).forEach((doc) => merged.set(doc.id, doc));
+    }
+
+    return Array.from(merged.values()).sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [docsByApplicationId, docsByNumber]);
+
+  const searchQuery = search.trim().toLowerCase();
+  const visibleApplications = searchQuery ? applications : sponsoredStudents;
+
+  const filtered = visibleApplications.filter((a) => {
+    const appDocs = getDocsForApp(a);
     const matchesSearch =
-      !q ||
-      a.student_name.toLowerCase().includes(q) ||
-      a.parent_name.toLowerCase().includes(q) ||
-      (a.registration_number && a.registration_number.toLowerCase().includes(q));
+      !searchQuery ||
+      a.student_name.toLowerCase().includes(searchQuery) ||
+      a.parent_name.toLowerCase().includes(searchQuery) ||
+      (a.registration_number && a.registration_number.toLowerCase().includes(searchQuery)) ||
+      appDocs.some((doc) => doc.application_number.toLowerCase().includes(searchQuery));
+
     const matchesLevel = levelFilter === "all" || a.education_level === levelFilter;
     return matchesSearch && matchesLevel;
   });
+
+  const unmatchedScannedDocuments = useMemo(() => {
+    if (!searchQuery) return [] as ScannedDocument[];
+
+    return scannedDocuments.filter((doc) => {
+      if (!doc.application_number.toLowerCase().includes(searchQuery)) return false;
+
+      if (doc.application_id && applications.some((app) => app.id === doc.application_id)) {
+        return false;
+      }
+
+      const normalizedDocNumber = normalizeApplicationNumber(doc.application_number);
+      const hasRegisteredApp = applications.some(
+        (app) => normalizeApplicationNumber(app.registration_number) === normalizedDocNumber
+      );
+
+      return !hasRegisteredApp;
+    });
+  }, [applications, scannedDocuments, searchQuery]);
+
+  const openScannedDocument = useCallback(async (storagePath: string) => {
+    const { data, error } = await supabase.storage
+      .from("scanned-documents")
+      .createSignedUrl(storagePath, 3600);
+
+    if (error || !data?.signedUrl) {
+      toast.error("Failed to open scanned PDF");
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  }, []);
 
   const updateNotes = async (appId: string) => {
     const { error } = await supabase.from("applications").update({ admin_notes: editNotesValue } as any).eq("id", appId);
@@ -316,7 +403,7 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
 
       {/* Student card grid */}
       {filtered.length === 0 ? (
-        <Card><CardContent className="py-8 text-center text-muted-foreground">No sponsored students found.</CardContent></Card>
+        <Card><CardContent className="py-8 text-center text-muted-foreground">No matching student records found.</CardContent></Card>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((app) => {
@@ -324,8 +411,10 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
             const appExpenses = expenses.filter((e) => e.application_id === app.id);
             const appClaims = claims.filter((c) => c.application_id === app.id);
             const appReports = reportCards.filter((r) => r.application_id === app.id);
+            const appDocs = getDocsForApp(app);
             const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
             const openClaimsCount = appClaims.filter((c) => c.status === "open").length;
+            const displayApplicationNumber = app.registration_number || appDocs[0]?.application_number || null;
 
             return (
               <Card key={app.id} className="hover:shadow-md transition-shadow">
@@ -337,6 +426,9 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                       <div className="flex flex-wrap gap-1 mt-1">
                         <Badge variant="outline" className="text-[10px]">{levelLabels[app.education_level] || app.education_level}</Badge>
                         {app.class_grade && <Badge variant="secondary" className="text-[10px]">Class {app.class_grade}</Badge>}
+                        <Badge variant="outline" className="text-[10px] capitalize">{app.status.replace("_", " ")}</Badge>
+                        {displayApplicationNumber && <Badge variant="secondary" className="text-[10px] font-mono">#{displayApplicationNumber}</Badge>}
+                        {appDocs.length > 0 && <Badge variant="secondary" className="text-[10px]">PDF {appDocs.length}</Badge>}
                       </div>
                     </div>
                     {openClaimsCount > 0 && (
@@ -366,6 +458,18 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                     <Button size="sm" variant="ghost" className="gap-1 text-xs flex-1" onClick={() => { setSelectedApp(app); setDetailOpen(true); }}>
                       <Eye size={12} /> Details
                     </Button>
+
+                    {appDocs[0] && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1 text-xs"
+                        onClick={() => openScannedDocument(appDocs[0].storage_path)}
+                      >
+                        <ExternalLink size={12} /> PDF
+                      </Button>
+                    )}
+
                     <Popover open={reassignAppId === app.id} onOpenChange={(open) => { setReassignAppId(open ? app.id : null); setReassignSchoolId(""); }}>
                       <PopoverTrigger asChild>
                         <Button size="sm" variant="outline" className="gap-1 text-xs">
@@ -385,6 +489,7 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                         <Button size="sm" className="w-full" disabled={!reassignSchoolId} onClick={reassignSchool}>Confirm</Button>
                       </PopoverContent>
                     </Popover>
+
                     <Button size="sm" variant="destructive" className="gap-1 text-xs" onClick={() => stopSponsorship(app.id)}>
                       <XCircle size={12} /> Stop
                     </Button>
@@ -413,6 +518,27 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
             );
           })}
         </div>
+      )}
+
+      {searchQuery && unmatchedScannedDocuments.length > 0 && (
+        <Card>
+          <CardContent className="py-4 space-y-3">
+            <p className="text-sm font-semibold text-foreground">Matching scanned PDFs without saved student details</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {unmatchedScannedDocuments.slice(0, 12).map((doc) => (
+                <div key={doc.id} className="rounded-md border border-border bg-muted/20 px-3 py-2 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs font-mono font-semibold text-foreground truncate">#{doc.application_number}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{doc.original_filename}</p>
+                  </div>
+                  <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => openScannedDocument(doc.storage_path)}>
+                    <ExternalLink size={12} /> PDF
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Detail Dialog */}

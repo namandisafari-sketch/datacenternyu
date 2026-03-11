@@ -50,6 +50,15 @@ interface ReportCard {
   created_at: string;
 }
 
+interface ScannedDocument {
+  id: string;
+  application_id: string | null;
+  application_number: string;
+  original_filename: string;
+  storage_path: string;
+  created_at: string;
+}
+
 const formatUGX = (amount: number) =>
   new Intl.NumberFormat("en-UG", { style: "currency", currency: "UGX", maximumFractionDigits: 0 }).format(amount);
 
@@ -60,17 +69,19 @@ const AdminStudents = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [reportCards, setReportCards] = useState<ReportCard[]>([]);
+  const [scannedDocuments, setScannedDocuments] = useState<ScannedDocument[]>([]);
   const [lawyerSubmissions, setLawyerSubmissions] = useState<any[]>([]);
   const [lawyerTemplates, setLawyerTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
-    const [appsRes, expsRes, schoolsRes, claimsRes, reportsRes, subsRes, tplRes] = await Promise.all([
+    const [appsRes, expsRes, schoolsRes, claimsRes, reportsRes, scannedRes, subsRes, tplRes] = await Promise.all([
       supabase.from("applications").select("*").order("created_at", { ascending: false }),
       supabase.from("expenses").select("*").order("created_at", { ascending: false }),
       supabase.from("schools").select("*"),
       supabase.from("student_claims").select("*").order("created_at", { ascending: false }),
       supabase.from("report_cards").select("*").order("created_at", { ascending: false }),
+      supabase.from("scanned_documents").select("id, application_id, application_number, original_filename, storage_path, created_at"),
       supabase.from("lawyer_form_submissions").select("*").order("created_at", { ascending: false }),
       supabase.from("lawyer_form_templates").select("*"),
     ]);
@@ -79,6 +90,7 @@ const AdminStudents = () => {
     setSchools((schoolsRes.data as unknown as SchoolRow[]) || []);
     setClaims((claimsRes.data as unknown as Claim[]) || []);
     setReportCards((reportsRes.data as unknown as ReportCard[]) || []);
+    setScannedDocuments((scannedRes.data as unknown as ScannedDocument[]) || []);
     setLawyerSubmissions((subsRes.data as any[]) || []);
     setLawyerTemplates((tplRes.data as any[]) || []);
     setLoading(false);
@@ -101,6 +113,7 @@ const AdminStudents = () => {
         expenses={expenses}
         claims={claims}
         reportCards={reportCards}
+        scannedDocuments={scannedDocuments}
         lawyerSubmissions={lawyerSubmissions}
         lawyerTemplates={lawyerTemplates}
         userId={user!.id}
