@@ -72,10 +72,18 @@ const PDFImportSplitView = ({ userId }: Props) => {
       setPdfUrl(null);
       return;
     }
-    const { data } = supabase.storage
-      .from("scanned-documents")
-      .getPublicUrl(activeDoc.storage_path);
-    setPdfUrl(data?.publicUrl || null);
+    const loadUrl = async () => {
+      const { data, error } = await supabase.storage
+        .from("scanned-documents")
+        .createSignedUrl(activeDoc.storage_path, 3600);
+      if (error) {
+        console.error("Failed to get signed URL:", error.message);
+        setPdfUrl(null);
+      } else {
+        setPdfUrl(data?.signedUrl || null);
+      }
+    };
+    loadUrl();
   }, [activeDoc]);
 
   const updateField = (field: keyof PDFImportFormData, value: any) => {
