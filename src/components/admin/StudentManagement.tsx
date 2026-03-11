@@ -185,7 +185,12 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
   const getSchool = (schoolId: string | null) => schools.find((s) => s.id === schoolId);
 
   const filtered = sponsoredStudents.filter((a) => {
-    const matchesSearch = !search || a.student_name.toLowerCase().includes(search.toLowerCase()) || a.parent_name.toLowerCase().includes(search.toLowerCase());
+    const q = search.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      a.student_name.toLowerCase().includes(q) ||
+      a.parent_name.toLowerCase().includes(q) ||
+      (a.registration_number && a.registration_number.toLowerCase().includes(q));
     const matchesLevel = levelFilter === "all" || a.education_level === levelFilter;
     return matchesSearch && matchesLevel;
   });
