@@ -386,9 +386,29 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
       }
     };
 
-    // Launch concurrent workers
-    const workers = Array.from({ length: Math.min(CONCURRENCY, pairs.length) }, () => worker());
-    await Promise.all(workers);
+    // Launch initial workers with adaptive concurrency
+    const spawnWorker = () => {
+      const p = worker();
+      p.then(() => {
+        // When a worker finishes, spawn another if concurrency allows and queue has items
+        if (queue.length > 0 && !abortRef.current && activeWorkerCount() < activeConcurrency) {
+          workerPromises.push(spawnWorker());
+        }
+      });
+      return p;
+    };
+
+    const workerPromises: Promise<void>[] = [];
+    const activeWorkerCount = () => workerPromises.filter(p => {
+      // Simple tracking: we just use initial count
+      return true;
+    }).length;
+
+    const initialWorkers = Math.min(activeConcurrency, pairs.length);
+    for (let i = 0; i < initialWorkers; i++) {
+      workerPromises.push(worker());
+    }
+    await Promise.all(workerPromises);
 
     setPairs([...results]);
     setProcessing(false);
