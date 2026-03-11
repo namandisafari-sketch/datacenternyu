@@ -141,7 +141,7 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
         canvas.width = viewport.width;
         canvas.height = viewport.height;
 
-        await pageObj.render({ canvas, canvasContext: context, viewport }).promise;
+        await pageObj.render({ canvasContext: context, viewport }).promise;
       } catch (err) {
         if (!cancelled) {
           console.error(err);
