@@ -520,6 +520,27 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
         </div>
       )}
 
+      {searchQuery && unmatchedScannedDocuments.length > 0 && (
+        <Card>
+          <CardContent className="py-4 space-y-3">
+            <p className="text-sm font-semibold text-foreground">Matching scanned PDFs without saved student details</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {unmatchedScannedDocuments.slice(0, 12).map((doc) => (
+                <div key={doc.id} className="rounded-md border border-border bg-muted/20 px-3 py-2 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs font-mono font-semibold text-foreground truncate">#{doc.application_number}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{doc.original_filename}</p>
+                  </div>
+                  <Button size="sm" variant="outline" className="gap-1 text-xs" onClick={() => openScannedDocument(doc.storage_path)}>
+                    <ExternalLink size={12} /> PDF
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={(open) => { setDetailOpen(open); if (!open) setEditMode(false); }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
