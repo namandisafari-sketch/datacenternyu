@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Fingerprint, Mail, ShieldAlert, Loader2 } from "lucide-react";
 import dataCentreBg from "@/assets/data-centre-bg.png";
-import FakeErrorPage from "@/components/FakeErrorPage";
 import { generateDeviceFingerprint } from "@/hooks/useDeviceFingerprint";
 import { supabase } from "@/integrations/supabase/client";
 import { loginWithPasskey, isWebAuthnSupported } from "@/lib/webauthn";
