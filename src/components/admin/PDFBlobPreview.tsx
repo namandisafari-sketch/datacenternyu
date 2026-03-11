@@ -203,16 +203,17 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         <style>{`div[data-pdf-scroll]::-webkit-scrollbar { display: none; }`}</style>
-        {loading || rendering ? (
+        {useNativePreview ? (
+          <iframe
+            src={pdfUrl}
+            title="PDF Preview"
+            className="w-full h-full min-h-[420px] rounded border border-border bg-background"
+          />
+        ) : loading || rendering ? (
           <div className="h-full min-h-[320px] flex items-center justify-center text-muted-foreground text-sm">
             <Loader2 className="h-4 w-4 animate-spin mr-2" /> Rendering preview...
           </div>
         ) : error ? (
-          <div className="h-full min-h-[320px] flex flex-col items-center justify-center text-muted-foreground text-sm gap-2">
-            <FileWarning className="h-6 w-6" />
-            <span>{error}</span>
-          </div>
-        ) : (
           <canvas ref={canvasRef} className="mx-auto rounded border border-border bg-background shadow-sm" />
         )}
       </div>
