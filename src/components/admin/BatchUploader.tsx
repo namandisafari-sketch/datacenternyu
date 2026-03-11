@@ -40,6 +40,37 @@ const OCR_MIN_SPACING_MS = 900;
 
 let nextOCRAllowedAt = 0;
 
+function pairFiles(files: File[]): { pairs: PairItem[]; orphans: File[] } {
+  const pdfMap = new Map<string, File>();
+  const pngMap = new Map<string, File>();
+
+  for (const f of files) {
+    const ext = f.name.split(".").pop()?.toLowerCase() || "";
+    const nameOnly = f.name.includes("/") ? f.name.split("/").pop()! : f.name;
+    const base = nameOnly.replace(/\.[^.]+$/, "");
+
+    if (ext === "pdf") pdfMap.set(base, f);
+    else if (["png", "jpg", "jpeg"].includes(ext)) pngMap.set(base, f);
+  }
+
+  const pairs: PairItem[] = [];
+  const orphans: File[] = [];
+
+  for (const [base, pdf] of pdfMap) {
+    const png = pngMap.get(base);
+    if (png) {
+      pairs.push({ pdf, png, baseName: base, status: "pending" });
+      pngMap.delete(base);
+    } else {
+      orphans.push(pdf);
+    }
+  }
+
+  for (const f of pngMap.values()) orphans.push(f);
+
+  return { pairs, orphans };
+}
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
