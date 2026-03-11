@@ -31,7 +31,6 @@ const Auth = () => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("auth_unlocked") === "1");
   const [authMethod, setAuthMethod] = useState<"passkey" | "email">("passkey");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [deviceBlocked, setDeviceBlocked] = useState(false);
