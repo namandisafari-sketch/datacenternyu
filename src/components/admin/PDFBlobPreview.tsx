@@ -56,6 +56,7 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
       setPage(1);
       setError(null);
       setZoom(1);
+      setUseNativePreview(false);
       return;
     }
 
