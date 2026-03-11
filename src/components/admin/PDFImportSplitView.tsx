@@ -275,7 +275,7 @@ const PDFImportSplitView = ({ userId }: Props) => {
             onChange={updateField}
             onSubmit={handleSave}
             saving={saving}
-            hasPdf={!!pdfUrl}
+            hasPdf={!!pdfBlob}
           />
         </div>
       </div>
