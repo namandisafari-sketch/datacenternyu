@@ -183,6 +183,22 @@ const SchoolAttendancePortal = () => {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+        {/* Official Warning */}
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="py-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-destructive">⚠️ Official Portal</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This is the official School Attendance Reporting Portal of <strong>The Nyunga Foundation</strong>, only accessible at{" "}
+                  <strong className="text-foreground">nyungacip.lovable.app</strong>. Do not enter information on any other website claiming to be this portal.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Info Banner */}
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="py-4">
