@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
-  CheckCircle,
   Loader2,
   RefreshCw,
   Inbox,
@@ -16,6 +15,7 @@ import PDFApplicationImportForm, {
   PDFImportFormData,
   emptyFormData,
 } from "@/components/admin/PDFApplicationImportForm";
+import PDFBlobPreview from "@/components/admin/PDFBlobPreview";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ScannedDoc {
