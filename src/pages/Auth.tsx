@@ -55,6 +55,7 @@ const Auth = () => {
     }
 
     setLoading(true);
+    sessionStorage.setItem("device_check_pending", "1");
     try {
       // Trigger fingerprint prompt — browser shows stored passkeys for this domain
       const result = await loginWithPasskey();
@@ -96,6 +97,8 @@ const Auth = () => {
         device_fingerprint: fingerprint,
       });
 
+      sessionStorage.removeItem("device_check_pending");
+
       if (trustResult && !trustResult.device_trusted) {
         await supabase.auth.signOut();
         setDeviceBlocked(true);
@@ -104,7 +107,7 @@ const Auth = () => {
       }
 
       toast.success("Welcome back!");
-      navigate("/dashboard");
+      navigate("/admin");
     } catch (err: any) {
       if (err.name === "NotAllowedError") {
         toast.error("Fingerprint verification cancelled");
@@ -112,6 +115,7 @@ const Auth = () => {
         toast.error(err.message || "Passkey login failed");
       }
     } finally {
+      sessionStorage.removeItem("device_check_pending");
       setLoading(false);
     }
   };
@@ -121,10 +125,14 @@ const Auth = () => {
     setLoading(true);
     setDeviceBlocked(false);
 
+    // Block auto-redirect while we check device trust
+    sessionStorage.setItem("device_check_pending", "1");
+
     const fingerprint = await generateDeviceFingerprint();
     const { error, data } = await signIn(loginForm.email, loginForm.password);
 
     if (error) {
+      sessionStorage.removeItem("device_check_pending");
       await logAccess({
         email: loginForm.email,
         success: false,
@@ -145,6 +153,8 @@ const Auth = () => {
       device_fingerprint: fingerprint,
     });
 
+    sessionStorage.removeItem("device_check_pending");
+
     if (result && !(result as any)?.device_trusted) {
       // Untrusted device — sign out immediately
       await supabase.auth.signOut();
@@ -155,7 +165,7 @@ const Auth = () => {
 
     setLoading(false);
     toast.success("Welcome back!");
-    navigate("/dashboard");
+    navigate("/admin");
   };
 
   const handleUnlock = () => {

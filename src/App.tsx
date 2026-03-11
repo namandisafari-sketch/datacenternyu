@@ -58,7 +58,7 @@ const AppContent = () => {
 
   return (
     <Routes>
-      <Route path="/auth" element={user ? <Navigate to="/admin" replace /> : <Auth />} />
+      <Route path="/auth" element={user && !sessionStorage.getItem("device_check_pending") ? <Navigate to="/admin" replace /> : <Auth />} />
       <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/applications" element={<ProtectedRoute><AdminApplications /></ProtectedRoute>} />
       <Route path="/admin/students" element={<ProtectedRoute><AdminStudents /></ProtectedRoute>} />
