@@ -55,6 +55,7 @@ const Auth = () => {
     }
 
     setLoading(true);
+    sessionStorage.setItem("device_check_pending", "1");
     try {
       // Trigger fingerprint prompt — browser shows stored passkeys for this domain
       const result = await loginWithPasskey();
@@ -96,6 +97,8 @@ const Auth = () => {
         device_fingerprint: fingerprint,
       });
 
+      sessionStorage.removeItem("device_check_pending");
+
       if (trustResult && !trustResult.device_trusted) {
         await supabase.auth.signOut();
         setDeviceBlocked(true);
@@ -104,7 +107,7 @@ const Auth = () => {
       }
 
       toast.success("Welcome back!");
-      navigate("/dashboard");
+      navigate("/admin");
     } catch (err: any) {
       if (err.name === "NotAllowedError") {
         toast.error("Fingerprint verification cancelled");
