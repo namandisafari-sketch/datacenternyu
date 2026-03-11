@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Fingerprint, Mail, ShieldAlert, Loader2 } from "lucide-react";
 import dataCentreBg from "@/assets/data-centre-bg.png";
-import FakeErrorPage from "@/components/FakeErrorPage";
 import { generateDeviceFingerprint } from "@/hooks/useDeviceFingerprint";
 import { supabase } from "@/integrations/supabase/client";
 import { loginWithPasskey, isWebAuthnSupported } from "@/lib/webauthn";
@@ -32,7 +31,6 @@ const Auth = () => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("auth_unlocked") === "1");
   const [authMethod, setAuthMethod] = useState<"passkey" | "email">("passkey");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [deviceBlocked, setDeviceBlocked] = useState(false);
@@ -167,15 +165,6 @@ const Auth = () => {
     toast.success("Welcome back!");
     navigate("/admin");
   };
-
-  const handleUnlock = () => {
-    sessionStorage.setItem("auth_unlocked", "1");
-    setUnlocked(true);
-  };
-
-  if (!unlocked) {
-    return <FakeErrorPage onUnlock={handleUnlock} />;
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-muted/30 relative">
