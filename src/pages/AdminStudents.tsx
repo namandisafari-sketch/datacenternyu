@@ -75,6 +75,11 @@ const AdminStudents = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
+    const { error: autoLinkError } = await supabase.rpc("link_scanned_documents_to_applications");
+    if (autoLinkError) {
+      console.warn("Auto-link skipped:", autoLinkError.message);
+    }
+
     const [appsRes, expsRes, schoolsRes, claimsRes, reportsRes, scannedRes, subsRes, tplRes] = await Promise.all([
       supabase.from("applications").select("*").order("created_at", { ascending: false }),
       supabase.from("expenses").select("*").order("created_at", { ascending: false }),
