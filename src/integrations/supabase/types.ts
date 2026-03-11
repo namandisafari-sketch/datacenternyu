@@ -361,6 +361,7 @@ export type Database = {
           check_in_distance: number | null
           check_out_at: string | null
           created_at: string
+          date: string | null
           hours_worked: number | null
           id: string
           status: string
@@ -371,6 +372,7 @@ export type Database = {
           check_in_distance?: number | null
           check_out_at?: string | null
           created_at?: string
+          date?: string | null
           hours_worked?: number | null
           id?: string
           status?: string
@@ -381,6 +383,7 @@ export type Database = {
           check_in_distance?: number | null
           check_out_at?: string | null
           created_at?: string
+          date?: string | null
           hours_worked?: number | null
           id?: string
           status?: string
