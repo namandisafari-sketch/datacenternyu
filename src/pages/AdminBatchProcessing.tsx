@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Layers, Upload } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Layers, Upload, FileUp } from "lucide-react";
 import BatchUploader from "@/components/admin/BatchUploader";
 import ScannedDocumentSearch from "@/components/admin/ScannedDocumentSearch";
+import PDFImportSplitView from "@/components/admin/PDFImportSplitView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminBatchProcessing = () => {
@@ -16,13 +19,16 @@ const AdminBatchProcessing = () => {
         <Layers className="h-6 w-6 text-primary" /> Batch Document Processing
       </h1>
       <p className="text-sm text-muted-foreground">
-        Upload scanned application PDFs with their ID snippets. The system extracts the application number, renames and stores each PDF.
+        Upload scanned application PDFs with their ID snippets, or import individual PDFs with manual data entry.
       </p>
 
       <Tabs defaultValue="upload" className="w-full">
         <TabsList>
           <TabsTrigger value="upload" className="gap-1.5">
             <Upload className="h-4 w-4" /> Upload & Process
+          </TabsTrigger>
+          <TabsTrigger value="pdf-import" className="gap-1.5">
+            <FileUp className="h-4 w-4" /> PDF Import
           </TabsTrigger>
           <TabsTrigger value="search" className="gap-1.5">
             Search Documents
@@ -31,6 +37,10 @@ const AdminBatchProcessing = () => {
 
         <TabsContent value="upload" className="mt-4">
           <BatchUploader userId={user.id} />
+        </TabsContent>
+
+        <TabsContent value="pdf-import" className="mt-4">
+          <PDFImportSplitView userId={user.id} />
         </TabsContent>
 
         <TabsContent value="search" className="mt-4">

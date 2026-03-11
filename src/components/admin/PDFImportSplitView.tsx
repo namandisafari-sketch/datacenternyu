@@ -1,9 +1,7 @@
 import { useState, useRef, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   FileUp,
@@ -27,8 +25,11 @@ interface QueuedPDF {
   savedAppId?: string;
 }
 
-const AdminPDFImport = () => {
-  const { user } = useAuth();
+interface Props {
+  userId: string;
+}
+
+const PDFImportSplitView = ({ userId }: Props) => {
   const isMobile = useIsMobile();
   const [pdfQueue, setPdfQueue] = useState<QueuedPDF[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -48,15 +49,12 @@ const AdminPDFImport = () => {
       toast.error("No PDF files found in the selection.");
       return;
     }
-
     const items: QueuedPDF[] = pdfs.map((f) => ({
       file: f,
       objectUrl: URL.createObjectURL(f),
       status: "pending" as const,
     }));
-
     items[0].status = "active";
-
     setPdfQueue(items);
     setActiveIdx(0);
     setForm({ ...emptyFormData });
@@ -70,8 +68,6 @@ const AdminPDFImport = () => {
     },
     [handleFiles]
   );
-
-  if (!user) return null;
 
   const updateField = (field: keyof PDFImportFormData, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -91,9 +87,7 @@ const AdminPDFImport = () => {
   const handleSave = async () => {
     if (!activePdf || !form.studentName) return;
     setSaving(true);
-
     try {
-      // Upload PDF to storage
       const appNum = form.registrationNumber || `IMPORT-${Date.now()}`;
       const storagePath = `applications/${appNum}/${activePdf.file.name}`;
       const pdfBytes = await activePdf.file.arrayBuffer();
@@ -101,14 +95,12 @@ const AdminPDFImport = () => {
       const { error: uploadErr } = await supabase.storage
         .from("scanned-documents")
         .upload(storagePath, pdfBytes, { contentType: "application/pdf", upsert: true });
-
       if (uploadErr) throw new Error("PDF upload failed: " + uploadErr.message);
 
-      // Insert application record
       const { data: appData, error: appErr } = await supabase
         .from("applications")
         .insert({
-          user_id: user.id,
+          user_id: userId,
           student_name: form.studentName,
           date_of_birth: form.dateOfBirth || null,
           gender: form.gender || null,
@@ -154,10 +146,8 @@ const AdminPDFImport = () => {
         })
         .select("id")
         .single();
-
       if (appErr) throw new Error("Failed to save application: " + appErr.message);
 
-      // Link scanned document record
       await supabase.from("scanned_documents").insert({
         application_number: appNum,
         application_id: appData.id,
@@ -166,24 +156,19 @@ const AdminPDFImport = () => {
         ocr_confidence: 100,
       });
 
-      // Mark as done
       setPdfQueue((prev) =>
         prev.map((p, i) =>
           i === activeIdx ? { ...p, status: "done", savedAppId: appData.id } : p
         )
       );
-
       toast.success(`Application saved for ${form.studentName}`);
 
-      // Auto-advance to next pending
       const nextIdx = pdfQueue.findIndex((p, i) => i > activeIdx && p.status === "pending");
       if (nextIdx >= 0) {
         setActiveIdx(nextIdx);
         setForm({ ...emptyFormData });
         setPdfQueue((prev) =>
-          prev.map((p, i) =>
-            i === nextIdx ? { ...p, status: "active" } : p
-          )
+          prev.map((p, i) => (i === nextIdx ? { ...p, status: "active" } : p))
         );
       }
     } catch (err: any) {
@@ -195,17 +180,10 @@ const AdminPDFImport = () => {
 
   const doneCount = pdfQueue.filter((p) => p.status === "done").length;
 
-  // No files loaded yet — show upload zone
+  // Upload zone when no files loaded
   if (pdfQueue.length === 0) {
     return (
-      <div className="p-4 sm:p-6 w-full space-y-4">
-        <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
-          <FileUp className="h-6 w-6 text-primary" /> PDF Application Import
-        </h1>
-        <p className="text-sm text-muted-foreground max-w-xl">
-          Upload application PDFs (one per student). For each PDF you'll see a split view: the PDF on the left and a form on the right to fill in or correct the student's details.
-        </p>
-
+      <div className="space-y-4">
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
@@ -213,9 +191,9 @@ const AdminPDFImport = () => {
           onClick={() => inputRef.current?.click()}
         >
           <Upload className="h-12 w-12 mx-auto mb-4 text-primary/50" />
-          <p className="font-medium text-foreground">Drop PDFs here or click to select</p>
+          <p className="font-medium text-foreground">Drop application PDFs here or click to select</p>
           <p className="text-xs text-muted-foreground mt-2">
-            Each PDF represents one student's application form
+            Each PDF represents one student's application — you'll fill in details while viewing the PDF
           </p>
           <div className="flex gap-2 justify-center mt-4">
             <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }} className="gap-1.5">
@@ -226,32 +204,17 @@ const AdminPDFImport = () => {
             </Button>
           </div>
         </div>
-
-        <input
-          ref={inputRef}
-          type="file"
-          multiple
-          accept=".pdf"
-          className="hidden"
-          onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))}
-        />
-        <input
-          ref={folderRef}
-          type="file"
-          multiple
-          className="hidden"
-          {...({ webkitdirectory: "", directory: "" } as any)}
-          onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))}
-        />
+        <input ref={inputRef} type="file" multiple accept=".pdf" className="hidden" onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))} />
+        <input ref={folderRef} type="file" multiple className="hidden" {...({ webkitdirectory: "", directory: "" } as any)} onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))} />
       </div>
     );
   }
 
   // Split view
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] w-full">
+    <div className="flex flex-col border border-border rounded-lg overflow-hidden" style={{ height: "calc(100vh - 260px)" }}>
       {/* Top bar */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-muted/30 shrink-0">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30 shrink-0 flex-wrap">
         <Button variant="ghost" size="sm" onClick={() => { setPdfQueue([]); setForm({ ...emptyFormData }); }}>
           <RotateCcw className="h-4 w-4 mr-1" /> New Batch
         </Button>
@@ -266,19 +229,19 @@ const AdminPDFImport = () => {
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <Badge variant="secondary" className="ml-2 text-xs gap-1">
+        <Badge variant="secondary" className="text-xs gap-1">
           <CheckCircle className="h-3 w-3" /> {doneCount}/{pdfQueue.length} done
         </Badge>
         {isMobile && (
-          <Button variant="outline" size="sm" className="ml-2 text-xs" onClick={() => setMobileView(mobileView === "pdf" ? "form" : "pdf")}>
+          <Button variant="outline" size="sm" className="text-xs" onClick={() => setMobileView(mobileView === "pdf" ? "form" : "pdf")}>
             {mobileView === "pdf" ? "Show Form" : "Show PDF"}
           </Button>
         )}
       </div>
 
-      {/* Queue strip (scrollable thumbnails) */}
+      {/* Queue strip */}
       {pdfQueue.length > 1 && (
-        <div className="flex gap-1 px-4 py-1.5 border-b border-border overflow-x-auto shrink-0 bg-background">
+        <div className="flex gap-1 px-3 py-1.5 border-b border-border overflow-x-auto shrink-0 bg-background">
           {pdfQueue.map((item, i) => (
             <button
               key={i}
@@ -302,39 +265,16 @@ const AdminPDFImport = () => {
       {/* Split content */}
       <div className="flex-1 flex min-h-0">
         {/* PDF viewer */}
-        <div
-          className={`${
-            isMobile
-              ? mobileView === "pdf"
-                ? "w-full"
-                : "hidden"
-              : "w-1/2 border-r border-border"
-          } bg-muted/20 flex flex-col min-h-0`}
-        >
+        <div className={`${isMobile ? (mobileView === "pdf" ? "w-full" : "hidden") : "w-1/2 border-r border-border"} bg-muted/20 flex flex-col min-h-0`}>
           {activePdf ? (
-            <iframe
-              key={activePdf.objectUrl}
-              src={activePdf.objectUrl}
-              className="flex-1 w-full"
-              title="PDF Preview"
-            />
+            <iframe key={activePdf.objectUrl} src={activePdf.objectUrl} className="flex-1 w-full" title="PDF Preview" />
           ) : (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-              No PDF selected
-            </div>
+            <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">No PDF selected</div>
           )}
         </div>
 
         {/* Form */}
-        <div
-          className={`${
-            isMobile
-              ? mobileView === "form"
-                ? "w-full"
-                : "hidden"
-              : "w-1/2"
-          } min-h-0`}
-        >
+        <div className={`${isMobile ? (mobileView === "form" ? "w-full" : "hidden") : "w-1/2"} min-h-0`}>
           <PDFApplicationImportForm
             form={form}
             onChange={updateField}
@@ -348,4 +288,4 @@ const AdminPDFImport = () => {
   );
 };
 
-export default AdminPDFImport;
+export default PDFImportSplitView;
