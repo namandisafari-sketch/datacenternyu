@@ -39,7 +39,7 @@ const PDFImportSplitView = ({ userId }: Props) => {
   const [form, setForm] = useState<PDFImportFormData>({ ...emptyFormData });
   const [saving, setSaving] = useState(false);
   const [mobileView, setMobileView] = useState<"pdf" | "form">("form");
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
 
   const fetchDocs = useCallback(async () => {
     setLoading(true);
