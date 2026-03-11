@@ -66,24 +66,30 @@ const PDFImportSplitView = ({ userId }: Props) => {
 
   const activeDoc = docs[activeIdx] || null;
 
-  // Load PDF URL when active doc changes
+  // Load PDF as blob URL to avoid cross-origin iframe blocking
   useEffect(() => {
     if (!activeDoc) {
       setPdfUrl(null);
       return;
     }
-    const loadUrl = async () => {
+    let revoked = false;
+    const loadPdf = async () => {
       const { data, error } = await supabase.storage
         .from("scanned-documents")
-        .createSignedUrl(activeDoc.storage_path, 3600);
-      if (error) {
-        console.error("Failed to get signed URL:", error.message);
+        .download(activeDoc.storage_path);
+      if (error || !data) {
+        console.error("Failed to download PDF:", error?.message);
         setPdfUrl(null);
-      } else {
-        setPdfUrl(data?.signedUrl || null);
+        return;
       }
+      const blobUrl = URL.createObjectURL(data);
+      if (!revoked) setPdfUrl(blobUrl);
     };
-    loadUrl();
+    loadPdf();
+    return () => {
+      revoked = true;
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    };
   }, [activeDoc]);
 
   const updateField = (field: keyof PDFImportFormData, value: any) => {
