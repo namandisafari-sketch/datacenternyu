@@ -1217,6 +1217,69 @@ export type Database = {
         }
         Relationships: []
       }
+      school_attendance_reports: {
+        Row: {
+          application_id: string | null
+          class_grade: string
+          created_at: string
+          id: string
+          match_status: string
+          registration_number: string | null
+          reported_at: string
+          reporter_name: string | null
+          reporter_phone: string | null
+          school_id: string
+          student_name: string
+          term: string
+          year: string
+        }
+        Insert: {
+          application_id?: string | null
+          class_grade?: string
+          created_at?: string
+          id?: string
+          match_status?: string
+          registration_number?: string | null
+          reported_at?: string
+          reporter_name?: string | null
+          reporter_phone?: string | null
+          school_id: string
+          student_name: string
+          term?: string
+          year?: string
+        }
+        Update: {
+          application_id?: string | null
+          class_grade?: string
+          created_at?: string
+          id?: string
+          match_status?: string
+          registration_number?: string | null
+          reported_at?: string
+          reporter_name?: string | null
+          reporter_phone?: string | null
+          school_id?: string
+          student_name?: string
+          term?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_attendance_reports_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_attendance_reports_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_users: {
         Row: {
           created_at: string
