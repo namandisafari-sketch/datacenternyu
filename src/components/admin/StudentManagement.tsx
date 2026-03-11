@@ -372,8 +372,8 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
           <CardContent className="py-4 flex items-center gap-3">
             <Users size={24} className="text-primary" />
             <div>
-              <p className="text-lg font-bold text-foreground">{sponsoredStudents.length}</p>
-              <p className="text-xs text-muted-foreground">Sponsored Students</p>
+              <p className="text-lg font-bold text-foreground">{totalStudentsCount}</p>
+              <p className="text-xs text-muted-foreground">Students (incl. PDF queue)</p>
             </div>
           </CardContent>
         </Card>
