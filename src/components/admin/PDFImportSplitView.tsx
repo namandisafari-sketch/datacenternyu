@@ -66,15 +66,13 @@ const PDFImportSplitView = ({ userId }: Props) => {
 
   const activeDoc = docs[activeIdx] || null;
 
-  // Load PDF as blob URL to avoid embedded browser PDF blocking
   useEffect(() => {
     if (!activeDoc) {
-      setPdfUrl(null);
+      setPdfBlob(null);
       return;
     }
 
     let active = true;
-    let objectUrl: string | null = null;
 
     const loadPdf = async () => {
       const { data, error } = await supabase.storage
@@ -83,23 +81,19 @@ const PDFImportSplitView = ({ userId }: Props) => {
 
       if (error || !data) {
         console.error("Failed to download PDF:", error?.message);
-        if (active) setPdfUrl(null);
+        if (active) setPdfBlob(null);
         return;
       }
 
-      objectUrl = URL.createObjectURL(data);
       if (active) {
-        setPdfUrl(objectUrl);
-      } else {
-        URL.revokeObjectURL(objectUrl);
+        setPdfBlob(data);
       }
     };
 
-    loadPdf();
+    void loadPdf();
 
     return () => {
       active = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [activeDoc?.id, activeDoc?.storage_path]);
 
