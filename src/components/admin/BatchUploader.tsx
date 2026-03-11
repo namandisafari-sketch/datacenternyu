@@ -542,7 +542,7 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
                   </Button>
                 ) : (
                   <Button size="sm" onClick={processBatch}>
-                    <Zap className="h-3.5 w-3.5 mr-1" /> Process All ({CONCURRENCY}x parallel)
+                    <Zap className="h-3.5 w-3.5 mr-1" /> Process All (adaptive parallel)
                   </Button>
                 )}
               </div>
