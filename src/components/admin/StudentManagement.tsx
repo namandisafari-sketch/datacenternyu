@@ -67,12 +67,22 @@ interface ReportCard {
   created_at: string;
 }
 
+interface ScannedDocument {
+  id: string;
+  application_id: string | null;
+  application_number: string;
+  original_filename: string;
+  storage_path: string;
+  created_at: string;
+}
+
 interface StudentManagementProps {
   applications: Application[];
   schools: SchoolRow[];
   expenses: Expense[];
   claims: Claim[];
   reportCards: ReportCard[];
+  scannedDocuments: ScannedDocument[];
   lawyerSubmissions: any[];
   lawyerTemplates: any[];
   userId: string;
