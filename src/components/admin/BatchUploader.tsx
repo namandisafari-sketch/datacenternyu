@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
   XCircle,
   AlertTriangle,
   Trash2,
+  FolderOpen,
+  Zap,
 } from "lucide-react";
 
 interface PairItem {
@@ -30,17 +32,17 @@ interface BatchUploaderProps {
   userId: string;
 }
 
-/**
- * Pairs PDFs with their PNG snippets by matching filenames.
- * E.g. "005124.pdf" pairs with "005124.png"
- */
+const CONCURRENCY = 6; // parallel workers
+
 function pairFiles(files: File[]): { pairs: PairItem[]; orphans: File[] } {
   const pdfMap = new Map<string, File>();
   const pngMap = new Map<string, File>();
 
   for (const f of files) {
     const ext = f.name.split(".").pop()?.toLowerCase() || "";
-    const base = f.name.replace(/\.[^.]+$/, "");
+    // Strip folder path for base name matching
+    const nameOnly = f.name.includes("/") ? f.name.split("/").pop()! : f.name;
+    const base = nameOnly.replace(/\.[^.]+$/, "");
     if (ext === "pdf") pdfMap.set(base, f);
     else if (["png", "jpg", "jpeg"].includes(ext)) pngMap.set(base, f);
   }
@@ -67,36 +69,148 @@ function fileToBase64(file: File): Promise<string> {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      resolve(result.split(",")[1]); // strip data:...;base64,
+      resolve(result.split(",")[1]);
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 }
 
+async function processOnePair(item: PairItem, userId: string): Promise<PairItem> {
+  try {
+    const imageBase64 = await fileToBase64(item.png);
+    const { data: ocrData, error: ocrError } = await supabase.functions.invoke(
+      "ocr-application-number",
+      { body: { imageBase64 } }
+    );
+
+    if (ocrError) throw new Error(ocrError.message || "OCR failed");
+    if (ocrData?.error) throw new Error(ocrData.error);
+
+    const appNum = ocrData.application_number;
+    const confidence = ocrData.confidence || 0;
+
+    if (!appNum || appNum === "UNREADABLE") {
+      return { ...item, status: "error", error: "Could not read application number", confidence };
+    }
+
+    item.applicationNumber = appNum;
+    item.confidence = confidence;
+
+    const storagePath = `applications/${appNum}/${appNum}.pdf`;
+    const pdfBytes = await item.pdf.arrayBuffer();
+
+    const { error: uploadError } = await supabase.storage
+      .from("scanned-documents")
+      .upload(storagePath, pdfBytes, {
+        contentType: "application/pdf",
+        upsert: true,
+      });
+
+    if (uploadError) throw new Error("Upload failed: " + uploadError.message);
+
+    const { data: appMatch } = await supabase
+      .from("applications")
+      .select("id")
+      .or(`registration_number.eq.${appNum},nin.eq.${appNum}`)
+      .limit(1)
+      .maybeSingle();
+
+    const { error: insertError } = await supabase
+      .from("scanned_documents")
+      .insert({
+        application_number: appNum,
+        application_id: appMatch?.id || null,
+        original_filename: item.pdf.name,
+        storage_path: storagePath,
+        ocr_confidence: confidence,
+      });
+
+    if (insertError) throw new Error("DB insert failed: " + insertError.message);
+
+    return { ...item, status: "done", applicationNumber: appNum, confidence };
+  } catch (err: any) {
+    return { ...item, status: "error", error: err.message || "Unknown error" };
+  }
+}
+
+// Collect files from dropped folder entries recursively
+async function readAllEntries(entry: FileSystemEntry): Promise<File[]> {
+  if (entry.isFile) {
+    return new Promise((resolve) => {
+      (entry as FileSystemFileEntry).file((f) => resolve([f]));
+    });
+  }
+  if (entry.isDirectory) {
+    const dirReader = (entry as FileSystemDirectoryEntry).createReader();
+    const files: File[] = [];
+    let batch: FileSystemEntry[];
+    do {
+      batch = await new Promise((resolve, reject) =>
+        dirReader.readEntries(resolve, reject)
+      );
+      for (const e of batch) {
+        const subFiles = await readAllEntries(e);
+        files.push(...subFiles);
+      }
+    } while (batch.length > 0);
+    return files;
+  }
+  return [];
+}
+
+const VISIBLE_WINDOW = 200; // only render this many items around scroll position
+
 const BatchUploader = ({ userId }: BatchUploaderProps) => {
   const [pairs, setPairs] = useState<PairItem[]>([]);
   const [orphans, setOrphans] = useState<File[]>([]);
   const [processing, setProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [doneCount, setDoneCount] = useState(0);
+  const [errCount, setErrCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const folderRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState(0);
 
-  const handleFiles = useCallback((files: FileList | File[]) => {
-    const arr = Array.from(files);
-    const { pairs: p, orphans: o } = pairFiles(arr);
+  const totalCount = pairs.length;
+  const progress = totalCount > 0 ? Math.round(((doneCount + errCount) / totalCount) * 100) : 0;
+
+  const handleFiles = useCallback((files: File[]) => {
+    const { pairs: p, orphans: o } = pairFiles(files);
     setPairs(p);
     setOrphans(o);
+    setDoneCount(0);
+    setErrCount(0);
     if (p.length === 0) {
-      toast.error("No matching PDF+PNG pairs found. Ensure filenames match (e.g. 005124.pdf + 005124.png).");
+      toast.error("No matching PDF+PNG pairs found.");
     } else {
-      toast.success(`Found ${p.length} PDF-PNG pairs ready to process.`);
+      toast.success(`Found ${p.length} document pairs ready to process.`);
     }
   }, []);
 
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    async (e: React.DragEvent) => {
       e.preventDefault();
-      handleFiles(e.dataTransfer.files);
+      const items = e.dataTransfer.items;
+      if (items && items.length > 0) {
+        const allFiles: File[] = [];
+        const entries: FileSystemEntry[] = [];
+        for (let i = 0; i < items.length; i++) {
+          const entry = items[i].webkitGetAsEntry?.();
+          if (entry) entries.push(entry);
+        }
+        if (entries.length > 0) {
+          for (const entry of entries) {
+            const files = await readAllEntries(entry);
+            allFiles.push(...files);
+          }
+          handleFiles(allFiles);
+          return;
+        }
+      }
+      // Fallback
+      handleFiles(Array.from(e.dataTransfer.files));
     },
     [handleFiles]
   );
@@ -104,96 +218,70 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
   const processBatch = async () => {
     if (pairs.length === 0) return;
     setProcessing(true);
-    setProgress(0);
+    abortRef.current = false;
+    setDoneCount(0);
+    setErrCount(0);
 
-    const updated = [...pairs];
+    const queue = [...pairs.map((_, i) => i)]; // indices
+    const results = [...pairs];
+    let done = 0;
+    let errs = 0;
 
-    for (let i = 0; i < updated.length; i++) {
-      const item = updated[i];
-      item.status = "processing";
-      setPairs([...updated]);
+    // Mark all as pending
+    for (const r of results) r.status = "pending";
+    setPairs([...results]);
 
-      try {
-        // 1. OCR the PNG to get application number
-        const imageBase64 = await fileToBase64(item.png);
-        const { data: ocrData, error: ocrError } = await supabase.functions.invoke(
-          "ocr-application-number",
-          { body: { imageBase64 } }
-        );
+    const worker = async () => {
+      while (queue.length > 0 && !abortRef.current) {
+        const idx = queue.shift()!;
+        results[idx] = { ...results[idx], status: "processing" };
+        // Batch state updates every few items for perf
+        setPairs([...results]);
 
-        if (ocrError) throw new Error(ocrError.message || "OCR failed");
-        if (ocrData?.error) throw new Error(ocrData.error);
-
-        const appNum = ocrData.application_number;
-        const confidence = ocrData.confidence || 0;
-
-        if (!appNum || appNum === "UNREADABLE") {
-          item.status = "error";
-          item.error = "Could not read application number";
-          item.confidence = confidence;
-          setPairs([...updated]);
-          continue;
+        const result = await processOnePair(results[idx], userId);
+        results[idx] = result;
+        if (result.status === "done") {
+          done++;
+          setDoneCount(done);
+        } else {
+          errs++;
+          setErrCount(errs);
         }
 
-        item.applicationNumber = appNum;
-        item.confidence = confidence;
-
-        // 2. Upload PDF to storage with application number as name
-        const storagePath = `applications/${appNum}/${appNum}.pdf`;
-        const pdfBytes = await item.pdf.arrayBuffer();
-
-        const { error: uploadError } = await supabase.storage
-          .from("scanned-documents")
-          .upload(storagePath, pdfBytes, {
-            contentType: "application/pdf",
-            upsert: true,
-          });
-
-        if (uploadError) throw new Error("Upload failed: " + uploadError.message);
-
-        // 3. Try to find matching application in DB
-        const { data: appMatch } = await supabase
-          .from("applications")
-          .select("id")
-          .or(`registration_number.eq.${appNum},nin.eq.${appNum}`)
-          .limit(1)
-          .maybeSingle();
-
-        // 4. Save record in scanned_documents
-        const { error: insertError } = await supabase
-          .from("scanned_documents")
-          .insert({
-            application_number: appNum,
-            application_id: appMatch?.id || null,
-            original_filename: item.pdf.name,
-            storage_path: storagePath,
-            ocr_confidence: confidence,
-            processed_by: userId,
-          });
-
-        if (insertError) throw new Error("DB insert failed: " + insertError.message);
-
-        item.status = "done";
-      } catch (err: any) {
-        item.status = "error";
-        item.error = err.message || "Unknown error";
+        // Update UI periodically (every item for small batches, every 3 for large)
+        if (totalCount < 100 || (done + errs) % 3 === 0 || queue.length === 0) {
+          setPairs([...results]);
+        }
       }
+    };
 
-      setPairs([...updated]);
-      setProgress(Math.round(((i + 1) / updated.length) * 100));
-    }
+    // Launch concurrent workers
+    const workers = Array.from({ length: Math.min(CONCURRENCY, pairs.length) }, () => worker());
+    await Promise.all(workers);
 
+    setPairs([...results]);
     setProcessing(false);
-    const doneCount = updated.filter((p) => p.status === "done").length;
-    const errCount = updated.filter((p) => p.status === "error").length;
-    toast.success(`Batch complete: ${doneCount} processed, ${errCount} errors.`);
+    toast.success(`Batch complete: ${done} processed, ${errs} errors.`);
+  };
+
+  const stopProcessing = () => {
+    abortRef.current = true;
+    toast.info("Stopping after current items finish...");
   };
 
   const clearAll = () => {
     setPairs([]);
     setOrphans([]);
-    setProgress(0);
+    setDoneCount(0);
+    setErrCount(0);
   };
+
+  // Virtual scrolling for large lists
+  const ITEM_HEIGHT = 52;
+  const containerHeight = Math.min(pairs.length * ITEM_HEIGHT, 500);
+  const startIdx = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - 5);
+  const endIdx = Math.min(pairs.length, Math.ceil((scrollTop + containerHeight) / ITEM_HEIGHT) + 5);
+  const visiblePairs = pairs.slice(startIdx, endIdx);
 
   const statusIcon = (s: PairItem["status"]) => {
     switch (s) {
@@ -204,29 +292,60 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
     }
   };
 
+  const stats = useMemo(() => {
+    if (pairs.length === 0) return null;
+    return { total: pairs.length, done: doneCount, errors: errCount, pending: pairs.length - doneCount - errCount };
+  }, [pairs.length, doneCount, errCount]);
+
   return (
     <div className="space-y-4">
       {/* Drop zone */}
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
-        className="border-2 border-dashed border-primary/40 rounded-xl p-8 text-center cursor-pointer hover:border-primary/70 hover:bg-primary/5 transition-colors"
+        className="border-2 border-dashed border-primary/40 rounded-xl p-8 text-center hover:border-primary/70 hover:bg-primary/5 transition-colors"
       >
         <Upload className="h-10 w-10 mx-auto mb-3 text-primary/60" />
         <p className="text-sm font-medium text-foreground">
-          Drop all PDF + PNG files here (or click to browse)
+          Drop files or folders here
         </p>
         <p className="text-xs text-muted-foreground mt-1">
           Each PDF must have a matching PNG with the same filename (e.g. 005124.pdf + 005124.png)
         </p>
+        <div className="flex gap-2 justify-center mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+            className="gap-1.5"
+          >
+            <FileText className="h-4 w-4" /> Select Files
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => folderRef.current?.click()}
+            className="gap-1.5"
+          >
+            <FolderOpen className="h-4 w-4" /> Select Folder
+          </Button>
+        </div>
         <input
           ref={inputRef}
           type="file"
           multiple
           accept=".pdf,.png,.jpg,.jpeg"
           className="hidden"
-          onChange={(e) => e.target.files && handleFiles(e.target.files)}
+          onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))}
+        />
+        {/* @ts-ignore - webkitdirectory is valid but not in React types */}
+        <input
+          ref={folderRef}
+          type="file"
+          multiple
+          className="hidden"
+          {...({ webkitdirectory: "", directory: "" } as any)}
+          onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))}
         />
       </div>
 
@@ -235,8 +354,10 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
         <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
           <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
           <div className="text-xs text-destructive">
-            <strong>{orphans.length} unmatched file(s):</strong>{" "}
-            {orphans.map((f) => f.name).join(", ")}
+            <strong>{orphans.length} unmatched file(s)</strong>
+            {orphans.length <= 20 && (
+              <span>: {orphans.map((f) => f.name).join(", ")}</span>
+            )}
           </div>
         </div>
       )}
@@ -245,54 +366,91 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
       {pairs.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">
-                {pairs.length} Document Pair{pairs.length > 1 ? "s" : ""} Ready
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                {stats?.total} Document Pair{(stats?.total || 0) > 1 ? "s" : ""}
+                {stats && processing && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    ({stats.done} done, {stats.errors} errors, {stats.pending} remaining)
+                  </span>
+                )}
+                {stats && !processing && stats.done > 0 && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    — {stats.done} ✓ {stats.errors > 0 ? `${stats.errors} ✗` : ""}
+                  </span>
+                )}
               </CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={clearAll} disabled={processing}>
                   <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear
                 </Button>
-                <Button size="sm" onClick={processBatch} disabled={processing}>
-                  {processing ? (
-                    <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> Processing...</>
-                  ) : (
-                    "Process All"
-                  )}
-                </Button>
+                {processing ? (
+                  <Button size="sm" variant="destructive" onClick={stopProcessing}>
+                    Stop
+                  </Button>
+                ) : (
+                  <Button size="sm" onClick={processBatch}>
+                    <Zap className="h-3.5 w-3.5 mr-1" /> Process All ({CONCURRENCY}x parallel)
+                  </Button>
+                )}
               </div>
             </div>
-            {processing && <Progress value={progress} className="mt-2" />}
-          </CardHeader>
-          <CardContent className="max-h-[400px] overflow-y-auto space-y-1.5">
-            {pairs.map((p, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 text-sm"
-              >
-                {statusIcon(p.status)}
-                <div className="flex-1 min-w-0">
-                  <span className="font-medium truncate block">{p.baseName}</span>
-                  <span className="text-xs text-muted-foreground flex items-center gap-2">
-                    <FileText className="h-3 w-3" /> {(p.pdf.size / 1024).toFixed(0)}KB
-                    <Image className="h-3 w-3 ml-1" /> {(p.png.size / 1024).toFixed(0)}KB
-                  </span>
-                </div>
-                {p.applicationNumber && (
-                  <Badge variant="secondary" className="font-mono">
-                    #{p.applicationNumber}
-                  </Badge>
-                )}
-                {p.confidence !== undefined && p.status !== "pending" && (
-                  <span className="text-xs text-muted-foreground">{p.confidence}%</span>
-                )}
-                {p.error && (
-                  <span className="text-xs text-destructive max-w-[200px] truncate" title={p.error}>
-                    {p.error}
-                  </span>
-                )}
+            {(processing || progress > 0) && (
+              <div className="mt-2 space-y-1">
+                <Progress value={progress} className="h-2" />
+                <p className="text-xs text-muted-foreground text-right">{progress}%</p>
               </div>
-            ))}
+            )}
+          </CardHeader>
+          <CardContent className="p-0">
+            <div
+              ref={listRef}
+              className="overflow-y-auto"
+              style={{ maxHeight: `${containerHeight}px` }}
+              onScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}
+            >
+              <div style={{ height: pairs.length * ITEM_HEIGHT, position: "relative" }}>
+                {visiblePairs.map((p, vi) => {
+                  const i = startIdx + vi;
+                  return (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 px-4 text-sm border-b border-border/30"
+                      style={{
+                        position: "absolute",
+                        top: i * ITEM_HEIGHT,
+                        height: ITEM_HEIGHT,
+                        left: 0,
+                        right: 0,
+                      }}
+                    >
+                      {statusIcon(p.status)}
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium truncate block text-sm">{p.baseName}</span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-2">
+                          <FileText className="h-3 w-3" /> {(p.pdf.size / 1024).toFixed(0)}KB
+                          <Image className="h-3 w-3 ml-1" /> {(p.png.size / 1024).toFixed(0)}KB
+                        </span>
+                      </div>
+                      {p.applicationNumber && (
+                        <Badge variant="secondary" className="font-mono text-xs">
+                          #{p.applicationNumber}
+                        </Badge>
+                      )}
+                      {p.confidence !== undefined && p.status !== "pending" && (
+                        <span className="text-xs text-muted-foreground">{p.confidence}%</span>
+                      )}
+                      {p.error && (
+                        <span className="text-xs text-destructive max-w-[200px] truncate" title={p.error}>
+                          {p.error}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
