@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { User, Phone, MapPin, BookOpen, School, Heart, Shield, Users, Home } from "lucide-react";
+import LinkedScannedDocuments from "@/components/admin/LinkedScannedDocuments";
 
 interface ParentDetail {
   name?: string;
@@ -449,6 +450,10 @@ const ApplicationFullDetail = ({ app, schoolName }: Props) => {
           </div>
         </>
       )}
+
+      {/* Linked Scanned Documents */}
+      <Separator />
+      <LinkedScannedDocuments applicationId={app.id} />
 
       <div className="text-xs text-muted-foreground pt-2 border-t">
         Applied: {new Date(app.created_at).toLocaleDateString()} · ID: {app.id.slice(0, 8)}…
