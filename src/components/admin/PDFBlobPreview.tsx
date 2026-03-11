@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy } from "pdfjs-dist";
+import pdfWorkerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ExternalLink, Loader2, FileWarning, ZoomIn, ZoomOut } from "lucide-react";
 
 if (typeof window !== "undefined") {
-  GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+  GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 }
 
 interface PDFBlobPreviewProps {
@@ -58,17 +59,32 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
     }
 
     let cancelled = false;
-    const loadTask = getDocument(pdfUrl);
+    let loadTask: ReturnType<typeof getDocument> | null = null;
 
     const load = async () => {
       setLoading(true);
       setError(null);
       try {
-        const doc = await loadTask.promise;
+        const source: any = pdfUrl.startsWith("blob:")
+          ? { data: new Uint8Array(await (await fetch(pdfUrl)).arrayBuffer()) }
+          : { url: pdfUrl };
+
+        loadTask = getDocument(source);
+        let doc: PDFDocumentProxy;
+
+        try {
+          doc = await loadTask.promise;
+        } catch {
+          loadTask?.destroy();
+          loadTask = getDocument({ ...source, disableWorker: true } as any);
+          doc = await loadTask.promise;
+        }
+
         if (cancelled) {
           await doc.destroy();
           return;
         }
+
         setPdfDoc(doc);
         setTotalPages(doc.numPages);
         setPage(1);
@@ -89,7 +105,7 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
 
     return () => {
       cancelled = true;
-      loadTask.destroy();
+      loadTask?.destroy();
     };
   }, [pdfUrl]);
 
