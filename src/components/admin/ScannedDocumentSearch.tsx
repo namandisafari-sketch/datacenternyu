@@ -73,13 +73,6 @@ const ScannedDocumentSearch = () => {
     search("");
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (previewUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
