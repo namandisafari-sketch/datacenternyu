@@ -33,6 +33,8 @@ import AdminAuditLogs from "./pages/AdminAuditLogs";
 import AdminBackup from "./pages/AdminBackup";
 import AdminPhotocopying from "./pages/AdminPhotocopying";
 import AdminBatchProcessing from "./pages/AdminBatchProcessing";
+import AdminAttendanceReports from "./pages/AdminAttendanceReports";
+import SchoolAttendancePortal from "./pages/SchoolAttendancePortal";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
