@@ -26,6 +26,7 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
+  const [useNativePreview, setUseNativePreview] = useState(false);
 
   const zoomIn = useCallback(() => setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP)), []);
   const zoomOut = useCallback(() => setZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_STEP)), []);
@@ -55,6 +56,7 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
       setPage(1);
       setError(null);
       setZoom(1);
+      setUseNativePreview(false);
       return;
     }
 
@@ -69,16 +71,9 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
           ? { data: new Uint8Array(await (await fetch(pdfUrl)).arrayBuffer()) }
           : { url: pdfUrl };
 
+        setUseNativePreview(false);
         loadTask = getDocument(source);
-        let doc: PDFDocumentProxy;
-
-        try {
-          doc = await loadTask.promise;
-        } catch {
-          loadTask?.destroy();
-          loadTask = getDocument({ ...source, disableWorker: true } as any);
-          doc = await loadTask.promise;
-        }
+        const doc = await loadTask.promise;
 
         if (cancelled) {
           await doc.destroy();
@@ -95,6 +90,7 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
           setError("Failed to load PDF preview");
           setPdfDoc(null);
           setTotalPages(0);
+          setUseNativePreview(true);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -110,7 +106,20 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
   }, [pdfUrl]);
 
   useEffect(() => {
-    if (!pdfDoc || !canvasRef.current) return;
+    if (!pdfUrl || useNativePreview || (!loading && !rendering)) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setUseNativePreview(true);
+      setLoading(false);
+      setRendering(false);
+      setError("Preview timeout, switched to native viewer");
+    }, 8000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [pdfUrl, loading, rendering, useNativePreview]);
+
+  useEffect(() => {
+    if (!pdfDoc || !canvasRef.current || useNativePreview) return;
 
     let cancelled = false;
     const renderPage = async () => {
@@ -194,7 +203,13 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         <style>{`div[data-pdf-scroll]::-webkit-scrollbar { display: none; }`}</style>
-        {loading || rendering ? (
+        {useNativePreview ? (
+          <iframe
+            src={pdfUrl}
+            title="PDF Preview"
+            className="w-full h-full min-h-[420px] rounded border border-border bg-background"
+          />
+        ) : loading || rendering ? (
           <div className="h-full min-h-[320px] flex items-center justify-center text-muted-foreground text-sm">
             <Loader2 className="h-4 w-4 animate-spin mr-2" /> Rendering preview...
           </div>
