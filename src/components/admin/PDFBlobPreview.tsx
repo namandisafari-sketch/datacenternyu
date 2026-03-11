@@ -214,6 +214,11 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
             <Loader2 className="h-4 w-4 animate-spin mr-2" /> Rendering preview...
           </div>
         ) : error ? (
+          <div className="h-full min-h-[320px] flex flex-col items-center justify-center text-muted-foreground text-sm gap-2">
+            <FileWarning className="h-6 w-6" />
+            <span>{error}</span>
+          </div>
+        ) : (
           <canvas ref={canvasRef} className="mx-auto rounded border border-border bg-background shadow-sm" />
         )}
       </div>
