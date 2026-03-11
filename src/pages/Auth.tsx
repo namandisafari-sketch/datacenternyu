@@ -115,6 +115,7 @@ const Auth = () => {
         toast.error(err.message || "Passkey login failed");
       }
     } finally {
+      sessionStorage.removeItem("device_check_pending");
       setLoading(false);
     }
   };
