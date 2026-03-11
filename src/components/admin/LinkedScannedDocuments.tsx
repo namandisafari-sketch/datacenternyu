@@ -31,6 +31,13 @@ const LinkedScannedDocuments = ({ applicationId, registrationNumber }: Props) =>
       try {
         const registrationNo = registrationNumber?.trim() || "";
         const normalizedRegistrationNo = normalizeApplicationNumber(registrationNo);
+        const registrationSearchTokens = Array.from(
+          new Set(
+            [registrationNo, normalizedRegistrationNo]
+              .map((token) => token.trim().toLowerCase().replace(/[%_,]/g, ""))
+              .filter(Boolean)
+          )
+        );
         const baseSelect = "id, application_id, application_number, original_filename, storage_path, created_at";
 
         const byAppIdPromise = supabase
@@ -39,11 +46,11 @@ const LinkedScannedDocuments = ({ applicationId, registrationNumber }: Props) =>
           .eq("application_id", applicationId)
           .order("created_at", { ascending: true });
 
-        const byRegNoPromise = normalizedRegistrationNo
+        const byRegNoPromise = registrationSearchTokens.length
           ? supabase
               .from("scanned_documents")
               .select(baseSelect)
-              .ilike("application_number", `%${normalizedRegistrationNo}%`)
+              .or(registrationSearchTokens.map((token) => `application_number.ilike.%${token}%`).join(","))
               .order("created_at", { ascending: true })
           : Promise.resolve({ data: [] as ScannedDoc[], error: null });
 

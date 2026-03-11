@@ -235,39 +235,56 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
   }, [docsByApplicationId, docsByNumber]);
 
   const searchQuery = search.trim().toLowerCase();
-  const visibleApplications = searchQuery ? applications : sponsoredStudents;
+  const normalizedSearchQuery = normalizeApplicationNumber(searchQuery);
+  const hasSearchQuery = searchQuery.length > 0;
+  const visibleApplications = hasSearchQuery ? applications : sponsoredStudents;
 
   const filtered = visibleApplications.filter((a) => {
     const appDocs = getDocsForApp(a);
+    const normalizedRegistrationNumber = normalizeApplicationNumber(a.registration_number);
+
     const matchesSearch =
-      !searchQuery ||
+      !hasSearchQuery ||
       a.student_name.toLowerCase().includes(searchQuery) ||
       a.parent_name.toLowerCase().includes(searchQuery) ||
-      (a.registration_number && a.registration_number.toLowerCase().includes(searchQuery)) ||
-      appDocs.some((doc) => doc.application_number.toLowerCase().includes(searchQuery));
+      a.id.toLowerCase().startsWith(searchQuery) ||
+      (a.registration_number && (
+        a.registration_number.toLowerCase().includes(searchQuery) ||
+        (!!normalizedSearchQuery && normalizedRegistrationNumber.includes(normalizedSearchQuery))
+      )) ||
+      appDocs.some((doc) => {
+        const rawDocNumber = doc.application_number.toLowerCase();
+        const normalizedDocNumber = normalizeApplicationNumber(doc.application_number);
+        return rawDocNumber.includes(searchQuery) || (!!normalizedSearchQuery && normalizedDocNumber.includes(normalizedSearchQuery));
+      });
 
     const matchesLevel = levelFilter === "all" || a.education_level === levelFilter;
     return matchesSearch && matchesLevel;
   });
 
   const unmatchedScannedDocuments = useMemo(() => {
-    if (!searchQuery) return [] as ScannedDocument[];
+    if (!hasSearchQuery) return [] as ScannedDocument[];
 
     return scannedDocuments.filter((doc) => {
-      if (!doc.application_number.toLowerCase().includes(searchQuery)) return false;
+      const normalizedDocNumber = normalizeApplicationNumber(doc.application_number);
+      const matchesDocNumber =
+        doc.application_number.toLowerCase().includes(searchQuery) ||
+        (!!normalizedSearchQuery && normalizedDocNumber.includes(normalizedSearchQuery));
+
+      if (!matchesDocNumber || !normalizedDocNumber) return false;
 
       if (doc.application_id && applications.some((app) => app.id === doc.application_id)) {
         return false;
       }
 
-      const normalizedDocNumber = normalizeApplicationNumber(doc.application_number);
-      const hasRegisteredApp = applications.some(
-        (app) => normalizeApplicationNumber(app.registration_number) === normalizedDocNumber
-      );
+      const hasRegisteredApp = applications.some((app) => {
+        const normalizedRegistrationNumber = normalizeApplicationNumber(app.registration_number);
+        return normalizedRegistrationNumber.length > 0 && normalizedRegistrationNumber === normalizedDocNumber;
+      });
 
       return !hasRegisteredApp;
     });
-  }, [applications, scannedDocuments, searchQuery]);
+  }, [applications, scannedDocuments, searchQuery, normalizedSearchQuery, hasSearchQuery]);
 
   const openScannedDocument = useCallback(async (storagePath: string) => {
     const { data, error } = await supabase.storage
