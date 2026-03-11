@@ -109,7 +109,7 @@ const ScannedDocumentSearch = () => {
       return;
     }
 
-    setPreviewUrl(URL.createObjectURL(data));
+    setPreviewBlob(data);
     setPreviewLoading(false);
   };
 
