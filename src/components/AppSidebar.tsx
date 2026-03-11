@@ -25,6 +25,7 @@ import {
   HardDrive,
   Printer,
   ScanLine,
+  FileUp,
 } from "lucide-react";
 import {
   Sidebar,
