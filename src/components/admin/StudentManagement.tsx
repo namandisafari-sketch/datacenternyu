@@ -185,7 +185,12 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
   const getSchool = (schoolId: string | null) => schools.find((s) => s.id === schoolId);
 
   const filtered = sponsoredStudents.filter((a) => {
-    const matchesSearch = !search || a.student_name.toLowerCase().includes(search.toLowerCase()) || a.parent_name.toLowerCase().includes(search.toLowerCase());
+    const q = search.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      a.student_name.toLowerCase().includes(q) ||
+      a.parent_name.toLowerCase().includes(q) ||
+      (a.registration_number && a.registration_number.toLowerCase().includes(q));
     const matchesLevel = levelFilter === "all" || a.education_level === levelFilter;
     return matchesSearch && matchesLevel;
   });
@@ -296,7 +301,7 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search student or parent..." className="pl-9" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search student, parent, or application number..." className="pl-9" />
         </div>
         <Select value={levelFilter} onValueChange={setLevelFilter}>
           <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
