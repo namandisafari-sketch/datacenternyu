@@ -27,62 +27,74 @@ const LinkedScannedDocuments = ({ applicationId, registrationNumber }: Props) =>
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
-      const registrationNo = registrationNumber?.trim();
 
-      const baseSelect = "id, application_id, application_number, original_filename, storage_path, created_at";
+      try {
+        const registrationNo = registrationNumber?.trim() || "";
+        const normalizedRegistrationNo = normalizeApplicationNumber(registrationNo);
+        const baseSelect = "id, application_id, application_number, original_filename, storage_path, created_at";
 
-      const byAppIdPromise = supabase
-        .from("scanned_documents")
-        .select(baseSelect)
-        .eq("application_id", applicationId)
-        .order("created_at", { ascending: true });
+        const byAppIdPromise = supabase
+          .from("scanned_documents")
+          .select(baseSelect)
+          .eq("application_id", applicationId)
+          .order("created_at", { ascending: true });
 
-      const byRegNoPromise = registrationNo
-        ? supabase
-            .from("scanned_documents")
-            .select(baseSelect)
-            .eq("application_number", registrationNo)
-            .order("created_at", { ascending: true })
-        : Promise.resolve({ data: [] as ScannedDoc[], error: null });
+        const byRegNoPromise = normalizedRegistrationNo
+          ? supabase
+              .from("scanned_documents")
+              .select(baseSelect)
+              .ilike("application_number", `%${normalizedRegistrationNo}%`)
+              .order("created_at", { ascending: true })
+          : Promise.resolve({ data: [] as ScannedDoc[], error: null });
 
-      const [{ data: byAppId, error: byAppIdErr }, { data: byRegNo, error: byRegNoErr }] = await Promise.all([
-        byAppIdPromise,
-        byRegNoPromise,
-      ]);
+        const [{ data: byAppId, error: byAppIdErr }, { data: byRegNo, error: byRegNoErr }] = await Promise.all([
+          byAppIdPromise,
+          byRegNoPromise,
+        ]);
 
-      if (byAppIdErr || byRegNoErr) {
-        setDocs([]);
-        setLoading(false);
-        return;
-      }
-
-      const mergedMap = new Map<string, ScannedDoc>();
-      [...(byAppId || []), ...(byRegNo || [])].forEach((doc) => mergedMap.set(doc.id, doc));
-
-      const merged = Array.from(mergedMap.values()).sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      );
-
-      setDocs(merged);
-
-      if (registrationNo) {
-        const needsLinking = merged.filter((doc) => !doc.application_id && doc.application_number === registrationNo);
-        if (needsLinking.length > 0) {
-          const idsToLink = needsLinking.map((doc) => doc.id);
-          await supabase
-            .from("scanned_documents")
-            .update({ application_id: applicationId })
-            .in("id", idsToLink);
-
-          setDocs((prev) =>
-            prev.map((doc) =>
-              idsToLink.includes(doc.id) ? { ...doc, application_id: applicationId } : doc
-            )
-          );
+        if (byAppIdErr || byRegNoErr) {
+          setDocs([]);
+          return;
         }
-      }
 
-      setLoading(false);
+        const mergedMap = new Map<string, ScannedDoc>();
+        [...(byAppId || []), ...(byRegNo || [])].forEach((doc) => {
+          const shouldInclude =
+            doc.application_id === applicationId ||
+            !normalizedRegistrationNo ||
+            normalizeApplicationNumber(doc.application_number) === normalizedRegistrationNo;
+
+          if (shouldInclude) mergedMap.set(doc.id, doc);
+        });
+
+        const merged = Array.from(mergedMap.values()).sort(
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        );
+
+        setDocs(merged);
+
+        if (normalizedRegistrationNo) {
+          const needsLinking = merged.filter(
+            (doc) => !doc.application_id && normalizeApplicationNumber(doc.application_number) === normalizedRegistrationNo
+          );
+
+          if (needsLinking.length > 0) {
+            const idsToLink = needsLinking.map((doc) => doc.id);
+            await supabase
+              .from("scanned_documents")
+              .update({ application_id: applicationId })
+              .in("id", idsToLink);
+
+            setDocs((prev) =>
+              prev.map((doc) =>
+                idsToLink.includes(doc.id) ? { ...doc, application_id: applicationId } : doc
+              )
+            );
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetch();
