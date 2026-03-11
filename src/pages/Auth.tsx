@@ -158,8 +158,13 @@ const Auth = () => {
     navigate("/dashboard");
   };
 
+  const handleUnlock = () => {
+    sessionStorage.setItem("auth_unlocked", "1");
+    setUnlocked(true);
+  };
+
   if (!unlocked) {
-    return <FakeErrorPage onUnlock={() => setUnlocked(true)} />;
+    return <FakeErrorPage onUnlock={handleUnlock} />;
   }
 
   return (
