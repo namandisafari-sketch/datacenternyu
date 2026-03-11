@@ -65,7 +65,7 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
       setLoading(true);
       setError(null);
       try {
-        const source = pdfUrl.startsWith("blob:")
+        const source: any = pdfUrl.startsWith("blob:")
           ? { data: new Uint8Array(await (await fetch(pdfUrl)).arrayBuffer()) }
           : { url: pdfUrl };
 
@@ -76,7 +76,7 @@ const PDFBlobPreview = ({ pdfUrl }: PDFBlobPreviewProps) => {
           doc = await loadTask.promise;
         } catch {
           loadTask?.destroy();
-          loadTask = getDocument({ ...source, disableWorker: true });
+          loadTask = getDocument({ ...source, disableWorker: true } as any);
           doc = await loadTask.promise;
         }
 
