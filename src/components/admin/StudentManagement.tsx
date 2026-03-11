@@ -411,8 +411,10 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
             const appExpenses = expenses.filter((e) => e.application_id === app.id);
             const appClaims = claims.filter((c) => c.application_id === app.id);
             const appReports = reportCards.filter((r) => r.application_id === app.id);
+            const appDocs = getDocsForApp(app);
             const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
             const openClaimsCount = appClaims.filter((c) => c.status === "open").length;
+            const displayApplicationNumber = app.registration_number || appDocs[0]?.application_number || null;
 
             return (
               <Card key={app.id} className="hover:shadow-md transition-shadow">
