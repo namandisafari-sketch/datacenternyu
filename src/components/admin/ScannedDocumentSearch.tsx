@@ -49,7 +49,7 @@ const ScannedDocumentSearch = () => {
   const [loading, setLoading] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [previewDoc, setPreviewDoc] = useState<ScannedDoc | null>(null);
 
   const search = async (q: string) => {
