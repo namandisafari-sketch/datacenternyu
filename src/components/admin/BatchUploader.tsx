@@ -348,6 +348,11 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
     setDoneCount(0);
     setErrCount(0);
 
+    // Reset adaptive concurrency
+    activeConcurrency = 2;
+    consecutiveSuccesses = 0;
+    consecutiveThrottles = 0;
+
     const queue = [...pairs.map((_, i) => i)]; // indices
     const results = [...pairs];
     let done = 0;
