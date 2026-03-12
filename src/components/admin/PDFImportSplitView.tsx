@@ -214,7 +214,7 @@ const PDFImportSplitView = ({ userId }: Props) => {
   const originalCount = docs.length;
 
   return (
-    <div className="flex flex-col border border-border rounded-lg overflow-hidden" style={{ height: "calc(100vh - 260px)" }}>
+    <div className="flex flex-col border border-border rounded-lg overflow-hidden h-full">
       {/* Top bar */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30 shrink-0 flex-wrap">
         <Button variant="ghost" size="sm" onClick={fetchDocs} className="gap-1.5">
@@ -264,12 +264,12 @@ const PDFImportSplitView = ({ userId }: Props) => {
       {/* Split content */}
       <div className="flex-1 flex min-h-0">
         {/* PDF viewer */}
-        <div className={`${isMobile ? (mobileView === "pdf" ? "w-full" : "hidden") : "w-1/2 border-r border-border"} bg-muted/20 flex flex-col min-h-0`}>
+        <div className={`${isMobile ? (mobileView === "pdf" ? "w-full" : "hidden") : "w-3/5 border-r border-border"} bg-muted/20 flex flex-col min-h-0`}>
           <PDFBlobPreview key={activeDoc?.id || "no-doc"} pdfBlob={pdfBlob} />
         </div>
 
         {/* Form */}
-        <div className={`${isMobile ? (mobileView === "form" ? "w-full" : "hidden") : "w-1/2"} min-h-0`}>
+        <div className={`${isMobile ? (mobileView === "form" ? "w-full" : "hidden") : "w-2/5"} min-h-0`}>
           <PDFApplicationImportForm
             form={form}
             onChange={updateField}
