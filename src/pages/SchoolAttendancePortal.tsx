@@ -46,6 +46,8 @@ interface MatchResult {
   match_status: "matched" | "no_details";
   registration_number?: string;
   application_id?: string;
+  fees_currently_paying: number;
+  expected_fees?: number;
 }
 
 const TERMS = ["Term 1", "Term 2", "Term 3"];
