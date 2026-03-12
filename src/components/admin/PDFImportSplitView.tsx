@@ -108,10 +108,44 @@ const PDFImportSplitView = ({ userId }: Props) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const startEditAppNum = () => {
+    if (!activeDoc) return;
+    setEditAppNumValue(activeDoc.application_number);
+    setEditingAppNum(true);
+  };
+
+  const cancelEditAppNum = () => {
+    setEditingAppNum(false);
+    setEditAppNumValue("");
+  };
+
+  const saveAppNum = async () => {
+    if (!activeDoc || !editAppNumValue.trim()) return;
+    setSavingAppNum(true);
+    const { error } = await supabase
+      .from("scanned_documents")
+      .update({ application_number: editAppNumValue.trim() })
+      .eq("id", activeDoc.id);
+
+    if (error) {
+      toast.error("Failed to update application number");
+    } else {
+      toast.success("Application number updated");
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.id === activeDoc.id ? { ...d, application_number: editAppNumValue.trim() } : d
+        )
+      );
+    }
+    setEditingAppNum(false);
+    setSavingAppNum(false);
+  };
+
   const goToIndex = (idx: number) => {
     if (idx < 0 || idx >= docs.length) return;
     setActiveIdx(idx);
     setForm({ ...emptyFormData });
+    setEditingAppNum(false);
   };
 
   const handleSave = async () => {
