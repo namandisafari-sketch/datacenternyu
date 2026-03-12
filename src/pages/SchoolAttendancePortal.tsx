@@ -79,7 +79,7 @@ const SchoolAttendancePortal = () => {
   }, []);
 
   const addStudent = () => {
-    setStudents((prev) => [...prev, { name: "", class_grade: "" }]);
+    setStudents((prev) => [...prev, { name: "", class_grade: "", fees_currently_paying: "" }]);
   };
 
   const removeStudent = (idx: number) => {
