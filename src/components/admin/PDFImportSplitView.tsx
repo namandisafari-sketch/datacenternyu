@@ -214,7 +214,7 @@ const PDFImportSplitView = ({ userId }: Props) => {
   const originalCount = docs.length;
 
   return (
-    <div className="flex flex-col border border-border rounded-lg overflow-hidden" style={{ height: "calc(100vh - 260px)" }}>
+    <div className="flex flex-col border border-border rounded-lg overflow-hidden h-full">
       {/* Top bar */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30 shrink-0 flex-wrap">
         <Button variant="ghost" size="sm" onClick={fetchDocs} className="gap-1.5">
