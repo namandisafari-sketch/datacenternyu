@@ -121,56 +121,67 @@ const PDFBlobPreview = ({ pdfBlob }: PDFBlobPreviewProps) => {
 
     let cancelled = false;
     let renderTask: RenderTask | null = null;
+    let rafId: number | null = null;
 
-    const renderPage = async () => {
+    const renderPage = () => {
+      // Wait for container to have a real width before rendering
+      const parentWidth = containerRef.current?.clientWidth;
+      if (!parentWidth || parentWidth < 50) {
+        rafId = requestAnimationFrame(renderPage);
+        return;
+      }
+
       setRendering(true);
       setError(null);
 
-      try {
-        const pageObj = await pdfDoc.getPage(page);
-        if (cancelled || !canvasRef.current) return;
+      (async () => {
+        try {
+          const pageObj = await pdfDoc.getPage(page);
+          if (cancelled || !canvasRef.current) return;
 
-        const baseViewport = pageObj.getViewport({ scale: 1 });
-        const parentWidth = containerRef.current?.clientWidth ?? baseViewport.width;
-        const fitScale = Math.max(0.6, Math.min(2.2, (parentWidth - 24) / baseViewport.width));
-        const scale = fitScale * zoom;
-        const viewport = pageObj.getViewport({ scale });
-        const outputScale = window.devicePixelRatio || 1;
+          const baseViewport = pageObj.getViewport({ scale: 1 });
+          const fitScale = Math.max(0.6, Math.min(2.2, (parentWidth - 24) / baseViewport.width));
+          const scale = fitScale * zoom;
+          const viewport = pageObj.getViewport({ scale });
+          const outputScale = window.devicePixelRatio || 1;
 
-        const canvas = canvasRef.current;
-        const context = canvas.getContext("2d");
-        if (!context) return;
+          const canvas = canvasRef.current;
+          const context = canvas.getContext("2d");
+          if (!context) return;
 
-        canvas.width = Math.floor(viewport.width * outputScale);
-        canvas.height = Math.floor(viewport.height * outputScale);
-        canvas.style.width = `${Math.floor(viewport.width)}px`;
-        canvas.style.height = `${Math.floor(viewport.height)}px`;
+          canvas.width = Math.floor(viewport.width * outputScale);
+          canvas.height = Math.floor(viewport.height * outputScale);
+          canvas.style.width = `${Math.floor(viewport.width)}px`;
+          canvas.style.height = `${Math.floor(viewport.height)}px`;
 
-        context.setTransform(1, 0, 0, 1, 0, 0);
-        context.clearRect(0, 0, canvas.width, canvas.height);
+          context.setTransform(1, 0, 0, 1, 0, 0);
+          context.clearRect(0, 0, canvas.width, canvas.height);
 
-        renderTask = pageObj.render({
-          canvasContext: context,
-          viewport,
-          transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined,
-          canvas,
-        });
+          renderTask = pageObj.render({
+            canvasContext: context,
+            viewport,
+            transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined,
+            canvas,
+          });
 
-        await renderTask.promise;
-      } catch (err: any) {
-        if (!cancelled && err?.name !== "RenderingCancelledException") {
-          console.error(err);
-          setError("Failed to render this PDF page");
+          await renderTask.promise;
+        } catch (err: any) {
+          if (!cancelled && err?.name !== "RenderingCancelledException") {
+            console.error(err);
+            setError("Failed to render this PDF page");
+          }
+        } finally {
+          if (!cancelled) setRendering(false);
         }
-      } finally {
-        if (!cancelled) setRendering(false);
-      }
+      })();
     };
 
-    void renderPage();
+    // Use rAF to ensure the container is laid out before first render
+    rafId = requestAnimationFrame(renderPage);
 
     return () => {
       cancelled = true;
+      if (rafId) cancelAnimationFrame(rafId);
       renderTask?.cancel();
     };
   }, [pdfDoc, page, zoom]);
