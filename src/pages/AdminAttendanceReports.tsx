@@ -50,6 +50,10 @@ const AdminAttendanceReports = () => {
   }, [user]);
 
   const getSchoolName = (id: string) => schools.find((s) => s.id === id)?.name || "Unknown";
+  const getExpectedFees = (id: string) => {
+    const s = schools.find((s) => s.id === id);
+    return s?.parent_pays || s?.full_fees || 0;
+  };
 
   const filtered = reports.filter(
     (r) =>
