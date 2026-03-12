@@ -1222,6 +1222,7 @@ export type Database = {
           application_id: string | null
           class_grade: string
           created_at: string
+          fees_currently_paying: number | null
           id: string
           match_status: string
           registration_number: string | null
@@ -1237,6 +1238,7 @@ export type Database = {
           application_id?: string | null
           class_grade?: string
           created_at?: string
+          fees_currently_paying?: number | null
           id?: string
           match_status?: string
           registration_number?: string | null
@@ -1252,6 +1254,7 @@ export type Database = {
           application_id?: string | null
           class_grade?: string
           created_at?: string
+          fees_currently_paying?: number | null
           id?: string
           match_status?: string
           registration_number?: string | null

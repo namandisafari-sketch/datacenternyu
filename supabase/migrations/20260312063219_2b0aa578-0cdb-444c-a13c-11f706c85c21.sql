@@ -1,0 +1,1 @@
+ALTER TABLE public.school_attendance_reports ADD COLUMN fees_currently_paying numeric DEFAULT 0;
