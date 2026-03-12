@@ -14,16 +14,15 @@ const AdminBatchProcessing = () => {
   if (!user) return null;
 
   return (
-    <div className="p-4 sm:p-6 w-full space-y-4">
-      <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
-        <Layers className="h-6 w-6 text-primary" /> Batch Document Processing
-      </h1>
-      <p className="text-sm text-muted-foreground">
-        Upload scanned application PDFs with their ID snippets, or import individual PDFs with manual data entry.
-      </p>
+    <div className="p-2 sm:p-3 w-full flex flex-col" style={{ height: "calc(100vh - 64px)" }}>
+      <div className="flex items-center gap-2 mb-1">
+        <h1 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+          <Layers className="h-5 w-5 text-primary" /> Batch Processing
+        </h1>
+      </div>
 
-      <Tabs defaultValue="upload" className="w-full">
-        <TabsList>
+      <Tabs defaultValue="upload" className="flex-1 flex flex-col min-h-0">
+        <TabsList className="shrink-0">
           <TabsTrigger value="upload" className="gap-1.5">
             <Upload className="h-4 w-4" /> Upload & Process
           </TabsTrigger>
@@ -35,15 +34,15 @@ const AdminBatchProcessing = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="upload" className="mt-4">
+        <TabsContent value="upload" className="mt-2 flex-1 min-h-0 overflow-auto">
           <BatchUploader userId={user.id} />
         </TabsContent>
 
-        <TabsContent value="pdf-import" className="mt-4">
+        <TabsContent value="pdf-import" className="mt-0 flex-1 min-h-0">
           <PDFImportSplitView userId={user.id} />
         </TabsContent>
 
-        <TabsContent value="search" className="mt-4">
+        <TabsContent value="search" className="mt-2 flex-1 min-h-0 overflow-auto">
           <ScannedDocumentSearch />
         </TabsContent>
       </Tabs>
