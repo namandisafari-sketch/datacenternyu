@@ -37,6 +37,7 @@ interface SchoolOption {
 interface StudentEntry {
   name: string;
   class_grade: string;
+  fees_currently_paying: string;
 }
 
 interface MatchResult {
