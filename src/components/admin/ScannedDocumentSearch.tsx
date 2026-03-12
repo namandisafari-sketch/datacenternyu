@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import PDFBlobPreview from "@/components/admin/PDFBlobPreview";
-import { Search, FileText, Eye, Loader2, FileWarning } from "lucide-react";
+import { Search, FileText, Eye, Loader2, FileWarning, Pencil, Check, X } from "lucide-react";
 
 interface ScannedDoc {
   id: string;
@@ -51,6 +52,9 @@ const ScannedDocumentSearch = () => {
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [previewDoc, setPreviewDoc] = useState<ScannedDoc | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const search = async (q: string) => {
     setLoading(true);
@@ -77,6 +81,26 @@ const ScannedDocumentSearch = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     search(query);
+  };
+
+  const saveEditAppNum = async (docId: string) => {
+    if (!editValue.trim()) return;
+    setSavingEdit(true);
+    const { error } = await supabase
+      .from("scanned_documents")
+      .update({ application_number: editValue.trim() })
+      .eq("id", docId);
+
+    if (error) {
+      toast.error("Failed to update application number");
+    } else {
+      toast.success("Application number updated");
+      setResults((prev) =>
+        prev.map((d) => (d.id === docId ? { ...d, application_number: editValue.trim() } : d))
+      );
+    }
+    setEditingId(null);
+    setSavingEdit(false);
   };
 
   const closePreview = () => {
@@ -143,9 +167,41 @@ const ScannedDocumentSearch = () => {
               <FileText className="h-5 w-5 text-primary shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-semibold text-sm">
-                    #{doc.application_number}
-                  </span>
+                  {editingId === doc.id ? (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="h-7 text-xs font-mono w-32"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveEditAppNum(doc.id);
+                          if (e.key === "Escape") setEditingId(null);
+                        }}
+                      />
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => saveEditAppNum(doc.id)} disabled={savingEdit}>
+                        <Check className="h-3 w-3 text-green-600" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditingId(null)}>
+                        <X className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="font-mono font-semibold text-sm">
+                        #{doc.application_number}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5"
+                        onClick={() => { setEditingId(doc.id); setEditValue(doc.application_number); }}
+                        title="Edit application number"
+                      >
+                        <Pencil className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </>
+                  )}
                   <Badge variant="outline" className="text-[10px]">
                     {doc.ocr_confidence}% conf.
                   </Badge>

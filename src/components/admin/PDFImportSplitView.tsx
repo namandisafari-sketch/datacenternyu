@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,6 +11,9 @@ import {
   Loader2,
   RefreshCw,
   Inbox,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import PDFApplicationImportForm, {
   PDFImportFormData,
@@ -40,6 +44,9 @@ const PDFImportSplitView = ({ userId }: Props) => {
   const [saving, setSaving] = useState(false);
   const [mobileView, setMobileView] = useState<"pdf" | "form">("form");
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [editingAppNum, setEditingAppNum] = useState(false);
+  const [editAppNumValue, setEditAppNumValue] = useState("");
+  const [savingAppNum, setSavingAppNum] = useState(false);
 
   const fetchDocs = useCallback(async () => {
     setLoading(true);
@@ -101,10 +108,44 @@ const PDFImportSplitView = ({ userId }: Props) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const startEditAppNum = () => {
+    if (!activeDoc) return;
+    setEditAppNumValue(activeDoc.application_number);
+    setEditingAppNum(true);
+  };
+
+  const cancelEditAppNum = () => {
+    setEditingAppNum(false);
+    setEditAppNumValue("");
+  };
+
+  const saveAppNum = async () => {
+    if (!activeDoc || !editAppNumValue.trim()) return;
+    setSavingAppNum(true);
+    const { error } = await supabase
+      .from("scanned_documents")
+      .update({ application_number: editAppNumValue.trim() })
+      .eq("id", activeDoc.id);
+
+    if (error) {
+      toast.error("Failed to update application number");
+    } else {
+      toast.success("Application number updated");
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.id === activeDoc.id ? { ...d, application_number: editAppNumValue.trim() } : d
+        )
+      );
+    }
+    setEditingAppNum(false);
+    setSavingAppNum(false);
+  };
+
   const goToIndex = (idx: number) => {
     if (idx < 0 || idx >= docs.length) return;
     setActiveIdx(idx);
     setForm({ ...emptyFormData });
+    setEditingAppNum(false);
   };
 
   const handleSave = async () => {
@@ -240,6 +281,45 @@ const PDFImportSplitView = ({ userId }: Props) => {
           </Button>
         )}
       </div>
+
+      {/* Application number bar */}
+      {activeDoc && (
+        <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border bg-background shrink-0">
+          <span className="text-xs text-muted-foreground font-medium">App #:</span>
+          {editingAppNum ? (
+            <div className="flex items-center gap-1">
+              <Input
+                value={editAppNumValue}
+                onChange={(e) => setEditAppNumValue(e.target.value)}
+                className="h-7 text-xs font-mono w-40"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveAppNum();
+                  if (e.key === "Escape") cancelEditAppNum();
+                }}
+              />
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveAppNum} disabled={savingAppNum}>
+                <Check className="h-3.5 w-3.5 text-green-600" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEditAppNum}>
+                <X className="h-3.5 w-3.5 text-destructive" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <span className="font-mono font-semibold text-sm text-foreground">
+                {activeDoc.application_number || "—"}
+              </span>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={startEditAppNum} title="Edit application number">
+                <Pencil className="h-3 w-3 text-muted-foreground" />
+              </Button>
+            </div>
+          )}
+          <span className="text-[10px] text-muted-foreground ml-2 hidden sm:inline">
+            {activeDoc.original_filename}
+          </span>
+        </div>
+      )}
 
       {/* Queue strip */}
       {docs.length > 1 && (
