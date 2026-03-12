@@ -167,9 +167,41 @@ const ScannedDocumentSearch = () => {
               <FileText className="h-5 w-5 text-primary shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-semibold text-sm">
-                    #{doc.application_number}
-                  </span>
+                  {editingId === doc.id ? (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="h-7 text-xs font-mono w-32"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveEditAppNum(doc.id);
+                          if (e.key === "Escape") setEditingId(null);
+                        }}
+                      />
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => saveEditAppNum(doc.id)} disabled={savingEdit}>
+                        <Check className="h-3 w-3 text-green-600" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditingId(null)}>
+                        <X className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="font-mono font-semibold text-sm">
+                        #{doc.application_number}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5"
+                        onClick={() => { setEditingId(doc.id); setEditValue(doc.application_number); }}
+                        title="Edit application number"
+                      >
+                        <Pencil className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </>
+                  )}
                   <Badge variant="outline" className="text-[10px]">
                     {doc.ocr_confidence}% conf.
                   </Badge>
