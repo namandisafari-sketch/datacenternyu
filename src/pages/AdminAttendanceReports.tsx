@@ -133,6 +133,23 @@ const AdminAttendanceReports = () => {
                 <p className="text-xs text-muted-foreground truncate">
                   {getSchoolName(r.school_id)} · {r.term} {r.year} · By {r.reporter_name} ({r.reporter_phone})
                 </p>
+                {r.fees_currently_paying > 0 && (
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-muted-foreground">Paying: <strong className="text-foreground">UGX {r.fees_currently_paying.toLocaleString()}</strong></span>
+                    {getExpectedFees(r.school_id) > 0 && (
+                      <>
+                        <span className="text-xs text-muted-foreground">/ Expected: <strong className="text-foreground">UGX {getExpectedFees(r.school_id).toLocaleString()}</strong></span>
+                        {r.fees_currently_paying < getExpectedFees(r.school_id) ? (
+                          <Badge variant="outline" className="text-[10px] border-destructive/50 text-destructive">Underpaying</Badge>
+                        ) : r.fees_currently_paying > getExpectedFees(r.school_id) ? (
+                          <Badge variant="outline" className="text-[10px] border-amber-500/50 text-amber-600">Overpaying</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] border-green-500/50 text-green-600">Correct ✓</Badge>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
