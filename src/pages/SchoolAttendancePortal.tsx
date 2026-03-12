@@ -263,6 +263,21 @@ const SchoolAttendancePortal = () => {
                     <div>
                       <p className="font-medium text-sm text-foreground">{r.student_name}</p>
                       {r.class_grade && <p className="text-xs text-muted-foreground">{r.class_grade}</p>}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted-foreground">Paying: <strong className="text-foreground">UGX {r.fees_currently_paying.toLocaleString()}</strong></span>
+                        {r.expected_fees != null && r.expected_fees > 0 && (
+                          <>
+                            <span className="text-xs text-muted-foreground">/ Expected: <strong className="text-foreground">UGX {r.expected_fees.toLocaleString()}</strong></span>
+                            {r.fees_currently_paying < r.expected_fees ? (
+                              <Badge variant="outline" className="text-[10px] border-destructive/50 text-destructive">Underpaying</Badge>
+                            ) : r.fees_currently_paying > r.expected_fees ? (
+                              <Badge variant="outline" className="text-[10px] border-amber-500/50 text-amber-600">Overpaying</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] border-green-500/50 text-green-600">Correct ✓</Badge>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <Badge
