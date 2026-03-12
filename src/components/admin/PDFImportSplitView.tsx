@@ -282,6 +282,45 @@ const PDFImportSplitView = ({ userId }: Props) => {
         )}
       </div>
 
+      {/* Application number bar */}
+      {activeDoc && (
+        <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border bg-background shrink-0">
+          <span className="text-xs text-muted-foreground font-medium">App #:</span>
+          {editingAppNum ? (
+            <div className="flex items-center gap-1">
+              <Input
+                value={editAppNumValue}
+                onChange={(e) => setEditAppNumValue(e.target.value)}
+                className="h-7 text-xs font-mono w-40"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveAppNum();
+                  if (e.key === "Escape") cancelEditAppNum();
+                }}
+              />
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={saveAppNum} disabled={savingAppNum}>
+                <Check className="h-3.5 w-3.5 text-green-600" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEditAppNum}>
+                <X className="h-3.5 w-3.5 text-destructive" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <span className="font-mono font-semibold text-sm text-foreground">
+                {activeDoc.application_number || "—"}
+              </span>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={startEditAppNum} title="Edit application number">
+                <Pencil className="h-3 w-3 text-muted-foreground" />
+              </Button>
+            </div>
+          )}
+          <span className="text-[10px] text-muted-foreground ml-2 hidden sm:inline">
+            {activeDoc.original_filename}
+          </span>
+        </div>
+      )}
+
       {/* Queue strip */}
       {docs.length > 1 && (
         <div className="flex gap-1 px-3 py-1.5 border-b border-border overflow-x-auto shrink-0 bg-background">
