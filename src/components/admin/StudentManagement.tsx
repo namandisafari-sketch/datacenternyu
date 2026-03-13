@@ -20,6 +20,7 @@ import ApplicationFullDetail, { FullApplication } from "./ApplicationFullDetail"
 import ApplicationEditForm from "./ApplicationEditForm";
 import PrintableApplicationForm from "@/components/register/PrintableApplicationForm";
 import LawyerFormsTab from "./LawyerFormsTab";
+import PDFBlobPreview from "./PDFBlobPreview";
 
 import { ApplicationForm } from "@/components/register/types";
 
@@ -115,9 +116,12 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
   const [reassignSchoolId, setReassignSchoolId] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [pdfPreviewDoc, setPdfPreviewDoc] = useState<ScannedDocument | null>(null);
-  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfPreviewBlob, setPdfPreviewBlob] = useState<Blob | null>(null);
   const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false);
   const [pdfPreviewStudent, setPdfPreviewStudent] = useState<Application | null>(null);
+  const [pdfLinkSearch, setPdfLinkSearch] = useState("");
+  const [selectedLinkAppId, setSelectedLinkAppId] = useState("");
+  const [linkingPdf, setLinkingPdf] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const mapAppToForm = useCallback((app: Application): ApplicationForm => {
@@ -294,29 +298,95 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
   const openPdfPreview = useCallback(async (doc: ScannedDocument, student?: Application | null) => {
     setPdfPreviewDoc(doc);
     setPdfPreviewStudent(student || null);
-    setPdfPreviewUrl(null);
+    setPdfPreviewBlob(null);
     setPdfPreviewLoading(true);
+    setSelectedLinkAppId("");
+    setPdfLinkSearch("");
 
     const { data, error } = await supabase.storage
       .from("scanned-documents")
-      .createSignedUrl(doc.storage_path, 3600);
+      .download(doc.storage_path);
 
-    if (error || !data?.signedUrl) {
+    if (error || !data) {
       toast.error("Failed to load scanned PDF");
       setPdfPreviewLoading(false);
       return;
     }
 
-    setPdfPreviewUrl(data.signedUrl);
+    setPdfPreviewBlob(data);
     setPdfPreviewLoading(false);
   }, []);
 
   const closePdfPreview = useCallback(() => {
     setPdfPreviewDoc(null);
-    setPdfPreviewUrl(null);
+    setPdfPreviewBlob(null);
     setPdfPreviewLoading(false);
     setPdfPreviewStudent(null);
+    setSelectedLinkAppId("");
+    setPdfLinkSearch("");
+    setLinkingPdf(false);
   }, []);
+
+  const linkableApplications = useMemo(() => {
+    const query = pdfLinkSearch.trim().toLowerCase();
+    const normalizedQuery = normalizeApplicationNumber(query);
+    const docNumberKey = normalizeApplicationNumber(pdfPreviewDoc?.application_number);
+
+    const candidates = applications
+      .map((app) => {
+        const registration = app.registration_number || "";
+        const registrationKey = normalizeApplicationNumber(registration);
+        const studentName = app.student_name.toLowerCase();
+        const parentName = app.parent_name.toLowerCase();
+
+        const matchesQuery =
+          !query ||
+          studentName.includes(query) ||
+          parentName.includes(query) ||
+          registration.toLowerCase().includes(query) ||
+          (!!normalizedQuery && registrationKey.includes(normalizedQuery));
+
+        if (!matchesQuery) return null;
+
+        let score = 0;
+        if (docNumberKey && registrationKey && registrationKey === docNumberKey) score += 100;
+        if (query && studentName.startsWith(query)) score += 20;
+        if (query && parentName.startsWith(query)) score += 10;
+
+        return { app, score };
+      })
+      .filter((item): item is { app: Application; score: number } => item !== null)
+      .sort((a, b) => b.score - a.score || a.app.student_name.localeCompare(b.app.student_name))
+      .slice(0, 80)
+      .map((item) => item.app);
+
+    return candidates;
+  }, [applications, pdfLinkSearch, pdfPreviewDoc?.application_number]);
+
+  const linkPdfToStudent = useCallback(async () => {
+    if (!pdfPreviewDoc || !selectedLinkAppId) return;
+
+    setLinkingPdf(true);
+    const { error } = await supabase
+      .from("scanned_documents")
+      .update({ application_id: selectedLinkAppId })
+      .eq("id", pdfPreviewDoc.id);
+
+    if (error) {
+      toast.error("Failed to link PDF to student");
+      setLinkingPdf(false);
+      return;
+    }
+
+    const linkedStudent = applications.find((app) => app.id === selectedLinkAppId) || null;
+    setPdfPreviewStudent(linkedStudent);
+    setPdfPreviewDoc((prev) => (prev ? { ...prev, application_id: selectedLinkAppId } : prev));
+    setSelectedLinkAppId("");
+    setPdfLinkSearch("");
+    setLinkingPdf(false);
+    toast.success("PDF linked to student record");
+    onRefresh();
+  }, [applications, onRefresh, pdfPreviewDoc, selectedLinkAppId]);
 
   const updateNotes = async (appId: string) => {
     const { error } = await supabase.from("applications").update({ admin_notes: editNotesValue } as any).eq("id", appId);
@@ -760,29 +830,57 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                 <div className="h-full flex items-center justify-center text-muted-foreground text-sm gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" /> Loading PDF…
                 </div>
-              ) : pdfPreviewUrl ? (
-                <iframe
-                  src={pdfPreviewUrl}
-                  className="w-full h-full border-0"
-                  title="PDF Preview"
-                />
               ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-                  No PDF available
-                </div>
+                <PDFBlobPreview key={pdfPreviewDoc?.id || "no-doc"} pdfBlob={pdfPreviewBlob} />
               )}
             </div>
-            {/* Student Details - Right */}
+
+            {/* Student Details / Linking - Right */}
             <div className="w-2/5 min-h-0 overflow-y-auto">
               {pdfPreviewStudent ? (
                 <div className="p-4">
                   <ApplicationFullDetail app={pdfPreviewStudent} schoolName={getSchool(pdfPreviewStudent.school_id)?.name} />
                 </div>
               ) : (
-                <div className="p-6 text-center text-sm text-muted-foreground">
-                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                  <p>No student record linked to this document yet.</p>
-                  <p className="text-xs mt-1">Use the batch processing import to create a student record from this PDF.</p>
+                <div className="p-4 space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-foreground">Link this PDF to a student</p>
+                    <p className="text-xs text-muted-foreground">
+                      Select an existing student record to attach this scanned admission form.
+                    </p>
+                  </div>
+
+                  <Input
+                    value={pdfLinkSearch}
+                    onChange={(e) => setPdfLinkSearch(e.target.value)}
+                    placeholder="Search student, parent, or application number..."
+                  />
+
+                  <Select value={selectedLinkAppId} onValueChange={setSelectedLinkAppId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose student record" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {linkableApplications.length > 0 ? (
+                        linkableApplications.map((app) => (
+                          <SelectItem key={app.id} value={app.id}>
+                            {app.student_name} {app.registration_number ? `• #${app.registration_number}` : "• No reg #"}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <p className="px-2 py-1.5 text-xs text-muted-foreground">No matching students found</p>
+                      )}
+                    </SelectContent>
+                  </Select>
+
+                  <Button
+                    className="w-full gap-2"
+                    disabled={!selectedLinkAppId || linkingPdf}
+                    onClick={linkPdfToStudent}
+                  >
+                    {linkingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlusCircle className="h-4 w-4" />}
+                    Link PDF to Student
+                  </Button>
                 </div>
               )}
             </div>
