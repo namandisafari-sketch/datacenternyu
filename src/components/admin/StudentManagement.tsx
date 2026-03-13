@@ -114,6 +114,10 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
   const [reassignAppId, setReassignAppId] = useState<string | null>(null);
   const [reassignSchoolId, setReassignSchoolId] = useState("");
   const [editMode, setEditMode] = useState(false);
+  const [pdfPreviewDoc, setPdfPreviewDoc] = useState<ScannedDocument | null>(null);
+  const [pdfPreviewBlob, setPdfPreviewBlob] = useState<Blob | null>(null);
+  const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false);
+  const [pdfPreviewStudent, setPdfPreviewStudent] = useState<Application | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   const mapAppToForm = useCallback((app: Application): ApplicationForm => {
