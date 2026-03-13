@@ -35,6 +35,7 @@ const AdminStudentSearch = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [scannedDocuments, setScannedDocuments] = useState<ScannedDocument[]>([]);
   const [loading, setLoading] = useState(true);
+  const [schoolNames, setSchoolNames] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
