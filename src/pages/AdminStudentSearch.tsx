@@ -17,6 +17,7 @@ interface ScannedDocument {
   application_number: string;
   original_filename: string;
   storage_path: string;
+  school_id: string | null;
 }
 
 const normalizeApplicationNumber = (value: string | null | undefined) =>
