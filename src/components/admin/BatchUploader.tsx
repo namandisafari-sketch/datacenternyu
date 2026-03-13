@@ -199,7 +199,7 @@ async function checkDuplicateFile(originalFilename: string): Promise<boolean> {
   return !!data;
 }
 
-async function processOnePair(item: PairItem, userId: string): Promise<PairItem> {
+async function processOnePair(item: PairItem, userId: string, schoolId?: string): Promise<PairItem> {
   try {
     // Check for duplicate file already processed
     const isDuplicate = await checkDuplicateFile(item.pdf.name);
