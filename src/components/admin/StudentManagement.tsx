@@ -521,9 +521,9 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                         size="sm"
                         variant="outline"
                         className="gap-1 text-xs"
-                        onClick={() => openScannedDocument(appDocs[0].storage_path)}
+                        onClick={() => openPdfPreview(appDocs[0], app)}
                       >
-                        <ExternalLink size={12} /> PDF
+                        <Eye size={12} /> PDF
                       </Button>
                     )}
 
