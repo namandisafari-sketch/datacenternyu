@@ -44,9 +44,10 @@ const AdminStudentSearch = () => {
 
   useEffect(() => {
     const fetchStudents = async () => {
-      const [{ data: studentsData }, { data: scannedData }] = await Promise.all([
+      const [{ data: studentsData }, { data: scannedData }, { data: schoolsData }] = await Promise.all([
         supabase.from("applications").select("*").order("created_at", { ascending: false }),
-        supabase.from("scanned_documents").select("id, application_id, application_number, original_filename, storage_path"),
+        supabase.from("scanned_documents").select("id, application_id, application_number, original_filename, storage_path, school_id"),
+        supabase.from("schools").select("id, name"),
       ]);
 
       setStudents((studentsData as unknown as Student[]) || []);
