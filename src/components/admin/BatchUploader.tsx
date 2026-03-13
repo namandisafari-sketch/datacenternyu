@@ -480,7 +480,21 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
         <p className="text-xs text-muted-foreground mt-1">
           Each PDF must have a matching PNG with the same filename (e.g. 005124.pdf + 005124.png)
         </p>
-        <div className="flex gap-2 justify-center mt-4">
+        <div className="flex items-center gap-2 justify-center mt-3">
+          <School className="h-4 w-4 text-muted-foreground" />
+          <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Select source school (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No school selected</SelectItem>
+              {schools.map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-2 justify-center mt-3">
           <Button
             variant="outline"
             size="sm"
