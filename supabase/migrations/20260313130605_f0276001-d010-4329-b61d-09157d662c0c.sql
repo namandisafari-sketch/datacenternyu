@@ -1,0 +1,1 @@
+ALTER TABLE public.scanned_documents ADD COLUMN school_id uuid REFERENCES public.schools(id) ON DELETE SET NULL DEFAULT NULL;

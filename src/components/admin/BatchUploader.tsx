@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,9 @@ import {
   Trash2,
   FolderOpen,
   Zap,
+  School,
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PairItem {
   pdf: File;
@@ -26,6 +28,11 @@ interface PairItem {
   applicationNumber?: string;
   confidence?: number;
   error?: string;
+}
+
+interface SchoolOption {
+  id: string;
+  name: string;
 }
 
 interface BatchUploaderProps {
@@ -192,7 +199,7 @@ async function checkDuplicateFile(originalFilename: string): Promise<boolean> {
   return !!data;
 }
 
-async function processOnePair(item: PairItem, userId: string): Promise<PairItem> {
+async function processOnePair(item: PairItem, userId: string, schoolId?: string): Promise<PairItem> {
   try {
     // Check for duplicate file already processed
     const isDuplicate = await checkDuplicateFile(item.pdf.name);
@@ -250,7 +257,8 @@ async function processOnePair(item: PairItem, userId: string): Promise<PairItem>
         original_filename: item.pdf.name,
         storage_path: storagePath,
         ocr_confidence: confidence,
-      });
+        school_id: schoolId || null,
+      } as any);
 
     if (insertError) throw new Error("DB insert failed: " + insertError.message);
 
@@ -298,6 +306,14 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
   const abortRef = useRef(false);
   const listRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
+  const [schools, setSchools] = useState<SchoolOption[]>([]);
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string>("");
+
+  useEffect(() => {
+    supabase.from("schools").select("id, name").order("name").then(({ data }) => {
+      setSchools((data as SchoolOption[]) || []);
+    });
+  }, []);
 
   const totalCount = pairs.length;
   const progress = totalCount > 0 ? Math.round(((doneCount + errCount) / totalCount) * 100) : 0;
@@ -369,7 +385,7 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
         // Batch state updates every few items for perf
         setPairs([...results]);
 
-        const result = await processOnePair(results[idx], userId);
+        const result = await processOnePair(results[idx], userId, selectedSchoolId && selectedSchoolId !== "none" ? selectedSchoolId : undefined);
         results[idx] = result;
         if (result.status === "done") {
           done++;
@@ -463,7 +479,21 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
         <p className="text-xs text-muted-foreground mt-1">
           Each PDF must have a matching PNG with the same filename (e.g. 005124.pdf + 005124.png)
         </p>
-        <div className="flex gap-2 justify-center mt-4">
+        <div className="flex items-center gap-2 justify-center mt-3">
+          <School className="h-4 w-4 text-muted-foreground" />
+          <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Select source school (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No school selected</SelectItem>
+              {schools.map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex gap-2 justify-center mt-3">
           <Button
             variant="outline"
             size="sm"

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, SearchX, GraduationCap, Eye, User, Phone, MapPin, Command, ExternalLink } from "lucide-react";
+import { Search, SearchX, GraduationCap, Eye, User, Phone, MapPin, Command, ExternalLink, School } from "lucide-react";
 import ApplicationFullDetail, { FullApplication } from "@/components/admin/ApplicationFullDetail";
 
 type Student = FullApplication;
@@ -17,6 +17,7 @@ interface ScannedDocument {
   application_number: string;
   original_filename: string;
   storage_path: string;
+  school_id: string | null;
 }
 
 const normalizeApplicationNumber = (value: string | null | undefined) =>
@@ -34,6 +35,7 @@ const AdminStudentSearch = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [scannedDocuments, setScannedDocuments] = useState<ScannedDocument[]>([]);
   const [loading, setLoading] = useState(true);
+  const [schoolNames, setSchoolNames] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -42,13 +44,17 @@ const AdminStudentSearch = () => {
 
   useEffect(() => {
     const fetchStudents = async () => {
-      const [{ data: studentsData }, { data: scannedData }] = await Promise.all([
+      const [{ data: studentsData }, { data: scannedData }, { data: schoolsData }] = await Promise.all([
         supabase.from("applications").select("*").order("created_at", { ascending: false }),
-        supabase.from("scanned_documents").select("id, application_id, application_number, original_filename, storage_path"),
+        supabase.from("scanned_documents").select("id, application_id, application_number, original_filename, storage_path, school_id"),
+        supabase.from("schools").select("id, name"),
       ]);
 
       setStudents((studentsData as unknown as Student[]) || []);
       setScannedDocuments((scannedData as ScannedDocument[]) || []);
+      const sMap: Record<string, string> = {};
+      (schoolsData || []).forEach((s: any) => { sMap[s.id] = s.name; });
+      setSchoolNames(sMap);
       setLoading(false);
     };
     fetchStudents();
@@ -221,6 +227,13 @@ const AdminStudentSearch = () => {
                     <Badge variant="secondary">{levelLabels[s.education_level] || s.education_level}</Badge>
                     {displayApplicationNumber && <Badge variant="outline" className="font-mono">#{displayApplicationNumber}</Badge>}
                     {studentDocs.length > 0 && <Badge variant="outline">PDF {studentDocs.length}</Badge>}
+                    {(() => {
+                      const docSchoolId = studentDocs.find(d => d.school_id)?.school_id;
+                      const schoolName = docSchoolId ? schoolNames[docSchoolId] : null;
+                      return schoolName ? (
+                        <span className="text-muted-foreground flex items-center gap-1"><School size={12} /> {schoolName}</span>
+                      ) : null;
+                    })()}
                     {s.district && (
                       <span className="text-muted-foreground flex items-center gap-1"><MapPin size={12} /> {s.district}</span>
                     )}

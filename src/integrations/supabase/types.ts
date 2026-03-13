@@ -1195,6 +1195,7 @@ export type Database = {
           id: string
           ocr_confidence: number | null
           original_filename: string
+          school_id: string | null
           storage_path: string
         }
         Insert: {
@@ -1204,6 +1205,7 @@ export type Database = {
           id?: string
           ocr_confidence?: number | null
           original_filename?: string
+          school_id?: string | null
           storage_path?: string
         }
         Update: {
@@ -1213,9 +1215,18 @@ export type Database = {
           id?: string
           ocr_confidence?: number | null
           original_filename?: string
+          school_id?: string | null
           storage_path?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scanned_documents_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       school_attendance_reports: {
         Row: {

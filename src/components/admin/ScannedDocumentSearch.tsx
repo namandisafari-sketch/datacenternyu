@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import PDFBlobPreview from "@/components/admin/PDFBlobPreview";
-import { Search, FileText, Eye, Loader2, FileWarning, Pencil, Check, X } from "lucide-react";
+import { Search, FileText, Eye, Loader2, FileWarning, Pencil, Check, X, School } from "lucide-react";
 
 interface ScannedDoc {
   id: string;
@@ -22,6 +22,11 @@ interface ScannedDoc {
   ocr_confidence: number;
   created_at: string;
   application_id: string | null;
+  school_id: string | null;
+}
+
+interface SchoolMap {
+  [id: string]: string;
 }
 
 const normalizeStoragePath = (path: string) => {
@@ -55,6 +60,15 @@ const ScannedDocumentSearch = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
+  const [schoolNames, setSchoolNames] = useState<SchoolMap>({});
+
+  useEffect(() => {
+    supabase.from("schools").select("id, name").then(({ data }) => {
+      const map: SchoolMap = {};
+      (data || []).forEach((s: any) => { map[s.id] = s.name; });
+      setSchoolNames(map);
+    });
+  }, []);
 
   const search = async (q: string) => {
     setLoading(true);
@@ -213,6 +227,11 @@ const ScannedDocumentSearch = () => {
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
                   {doc.original_filename} · {new Date(doc.created_at).toLocaleDateString()}
+                  {doc.school_id && schoolNames[doc.school_id] && (
+                    <span className="inline-flex items-center gap-1 ml-2 text-primary">
+                      <School className="h-3 w-3" /> {schoolNames[doc.school_id]}
+                    </span>
+                  )}
                 </p>
               </div>
               <Button variant="ghost" size="sm" onClick={() => void openPreview(doc)}>

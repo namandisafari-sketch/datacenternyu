@@ -14,6 +14,7 @@ import {
   Pencil,
   Check,
   X,
+  School,
 } from "lucide-react";
 import PDFApplicationImportForm, {
   PDFImportFormData,
@@ -29,6 +30,12 @@ interface ScannedDoc {
   storage_path: string;
   application_id: string | null;
   created_at: string;
+  school_id: string | null;
+}
+
+interface SchoolInfo {
+  id: string;
+  name: string;
 }
 
 interface Props {
@@ -47,6 +54,15 @@ const PDFImportSplitView = ({ userId }: Props) => {
   const [editingAppNum, setEditingAppNum] = useState(false);
   const [editAppNumValue, setEditAppNumValue] = useState("");
   const [savingAppNum, setSavingAppNum] = useState(false);
+  const [schoolNames, setSchoolNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    supabase.from("schools").select("id, name").then(({ data }) => {
+      const map: Record<string, string> = {};
+      (data || []).forEach((s: any) => { map[s.id] = s.name; });
+      setSchoolNames(map);
+    });
+  }, []);
 
   const fetchDocs = useCallback(async () => {
     setLoading(true);
@@ -318,6 +334,11 @@ const PDFImportSplitView = ({ userId }: Props) => {
           <span className="text-[10px] text-muted-foreground ml-2 hidden sm:inline">
             {activeDoc.original_filename}
           </span>
+          {activeDoc.school_id && schoolNames[activeDoc.school_id] && (
+            <Badge variant="outline" className="ml-auto text-[10px] gap-1">
+              <School className="h-3 w-3" /> {schoolNames[activeDoc.school_id]}
+            </Badge>
+          )}
         </div>
       )}
 
