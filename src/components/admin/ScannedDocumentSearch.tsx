@@ -22,6 +22,11 @@ interface ScannedDoc {
   ocr_confidence: number;
   created_at: string;
   application_id: string | null;
+  school_id: string | null;
+}
+
+interface SchoolMap {
+  [id: string]: string;
 }
 
 const normalizeStoragePath = (path: string) => {
