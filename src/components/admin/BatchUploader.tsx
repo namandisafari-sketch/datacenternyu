@@ -386,7 +386,7 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
         // Batch state updates every few items for perf
         setPairs([...results]);
 
-        const result = await processOnePair(results[idx], userId);
+        const result = await processOnePair(results[idx], userId, selectedSchoolId || undefined);
         results[idx] = result;
         if (result.status === "done") {
           done++;
