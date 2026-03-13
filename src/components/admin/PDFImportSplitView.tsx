@@ -54,6 +54,15 @@ const PDFImportSplitView = ({ userId }: Props) => {
   const [editingAppNum, setEditingAppNum] = useState(false);
   const [editAppNumValue, setEditAppNumValue] = useState("");
   const [savingAppNum, setSavingAppNum] = useState(false);
+  const [schoolNames, setSchoolNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    supabase.from("schools").select("id, name").then(({ data }) => {
+      const map: Record<string, string> = {};
+      (data || []).forEach((s: any) => { map[s.id] = s.name; });
+      setSchoolNames(map);
+    });
+  }, []);
 
   const fetchDocs = useCallback(async () => {
     setLoading(true);
