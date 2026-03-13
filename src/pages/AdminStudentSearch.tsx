@@ -227,6 +227,13 @@ const AdminStudentSearch = () => {
                     <Badge variant="secondary">{levelLabels[s.education_level] || s.education_level}</Badge>
                     {displayApplicationNumber && <Badge variant="outline" className="font-mono">#{displayApplicationNumber}</Badge>}
                     {studentDocs.length > 0 && <Badge variant="outline">PDF {studentDocs.length}</Badge>}
+                    {(() => {
+                      const docSchoolId = studentDocs.find(d => d.school_id)?.school_id;
+                      const schoolName = docSchoolId ? schoolNames[docSchoolId] : null;
+                      return schoolName ? (
+                        <span className="text-muted-foreground flex items-center gap-1"><School size={12} /> {schoolName}</span>
+                      ) : null;
+                    })()}
                     {s.district && (
                       <span className="text-muted-foreground flex items-center gap-1"><MapPin size={12} /> {s.district}</span>
                     )}
