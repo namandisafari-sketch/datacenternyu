@@ -830,29 +830,57 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                 <div className="h-full flex items-center justify-center text-muted-foreground text-sm gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" /> Loading PDF…
                 </div>
-              ) : pdfPreviewUrl ? (
-                <iframe
-                  src={pdfPreviewUrl}
-                  className="w-full h-full border-0"
-                  title="PDF Preview"
-                />
               ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-                  No PDF available
-                </div>
+                <PDFBlobPreview key={pdfPreviewDoc?.id || "no-doc"} pdfBlob={pdfPreviewBlob} />
               )}
             </div>
-            {/* Student Details - Right */}
+
+            {/* Student Details / Linking - Right */}
             <div className="w-2/5 min-h-0 overflow-y-auto">
               {pdfPreviewStudent ? (
                 <div className="p-4">
                   <ApplicationFullDetail app={pdfPreviewStudent} schoolName={getSchool(pdfPreviewStudent.school_id)?.name} />
                 </div>
               ) : (
-                <div className="p-6 text-center text-sm text-muted-foreground">
-                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                  <p>No student record linked to this document yet.</p>
-                  <p className="text-xs mt-1">Use the batch processing import to create a student record from this PDF.</p>
+                <div className="p-4 space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-foreground">Link this PDF to a student</p>
+                    <p className="text-xs text-muted-foreground">
+                      Select an existing student record to attach this scanned admission form.
+                    </p>
+                  </div>
+
+                  <Input
+                    value={pdfLinkSearch}
+                    onChange={(e) => setPdfLinkSearch(e.target.value)}
+                    placeholder="Search student, parent, or application number..."
+                  />
+
+                  <Select value={selectedLinkAppId} onValueChange={setSelectedLinkAppId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose student record" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {linkableApplications.length > 0 ? (
+                        linkableApplications.map((app) => (
+                          <SelectItem key={app.id} value={app.id}>
+                            {app.student_name} {app.registration_number ? `• #${app.registration_number}` : "• No reg #"}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <p className="px-2 py-1.5 text-xs text-muted-foreground">No matching students found</p>
+                      )}
+                    </SelectContent>
+                  </Select>
+
+                  <Button
+                    className="w-full gap-2"
+                    disabled={!selectedLinkAppId || linkingPdf}
+                    onClick={linkPdfToStudent}
+                  >
+                    {linkingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlusCircle className="h-4 w-4" />}
+                    Link PDF to Student
+                  </Button>
                 </div>
               )}
             </div>
