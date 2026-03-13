@@ -300,8 +300,8 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
     setPdfPreviewStudent(student || null);
     setPdfPreviewBlob(null);
     setPdfPreviewLoading(true);
-    setSelectedLinkAppId("");
-    setPdfLinkSearch("");
+    setPdfImportForm({ ...emptyFormData, registrationNumber: doc.application_number || "" });
+    setPdfImportSaving(false);
 
     const { data, error } = await supabase.storage
       .from("scanned-documents")
