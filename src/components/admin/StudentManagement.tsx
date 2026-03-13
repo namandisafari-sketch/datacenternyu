@@ -291,17 +291,31 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
     });
   }, [applications, scannedDocuments, searchQuery, normalizedSearchQuery, hasSearchQuery]);
 
-  const openScannedDocument = useCallback(async (storagePath: string) => {
+  const openPdfPreview = useCallback(async (doc: ScannedDocument, student?: Application | null) => {
+    setPdfPreviewDoc(doc);
+    setPdfPreviewStudent(student || null);
+    setPdfPreviewBlob(null);
+    setPdfPreviewLoading(true);
+
     const { data, error } = await supabase.storage
       .from("scanned-documents")
-      .createSignedUrl(storagePath, 3600);
+      .download(doc.storage_path);
 
-    if (error || !data?.signedUrl) {
-      toast.error("Failed to open scanned PDF");
+    if (error || !data) {
+      toast.error("Failed to load scanned PDF");
+      setPdfPreviewLoading(false);
       return;
     }
 
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    setPdfPreviewBlob(data);
+    setPdfPreviewLoading(false);
+  }, []);
+
+  const closePdfPreview = useCallback(() => {
+    setPdfPreviewDoc(null);
+    setPdfPreviewBlob(null);
+    setPdfPreviewLoading(false);
+    setPdfPreviewStudent(null);
   }, []);
 
   const updateNotes = async (appId: string) => {
