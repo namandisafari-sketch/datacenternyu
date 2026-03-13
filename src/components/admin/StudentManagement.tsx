@@ -20,6 +20,7 @@ import ApplicationFullDetail, { FullApplication } from "./ApplicationFullDetail"
 import ApplicationEditForm from "./ApplicationEditForm";
 import PrintableApplicationForm from "@/components/register/PrintableApplicationForm";
 import LawyerFormsTab from "./LawyerFormsTab";
+import PDFBlobPreview from "./PDFBlobPreview";
 
 import { ApplicationForm } from "@/components/register/types";
 
