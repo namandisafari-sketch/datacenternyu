@@ -16,7 +16,9 @@ import {
   Trash2,
   FolderOpen,
   Zap,
+  School,
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PairItem {
   pdf: File;
