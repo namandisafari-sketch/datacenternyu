@@ -29,6 +29,12 @@ interface ScannedDoc {
   storage_path: string;
   application_id: string | null;
   created_at: string;
+  school_id: string | null;
+}
+
+interface SchoolInfo {
+  id: string;
+  name: string;
 }
 
 interface Props {
