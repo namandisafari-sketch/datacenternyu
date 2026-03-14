@@ -203,67 +203,109 @@ const AdminStudentSearch = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 pt-4">
           {filtered.map((s) => {
             const studentDocs = getDocsForStudent(s);
             const displayApplicationNumber = s.registration_number || studentDocs[0]?.application_number || null;
+            const statusKey = s.status || "pending";
+            const statusStrip = statusKey === "approved" ? "bg-accent" : statusKey === "rejected" ? "bg-destructive" : statusKey === "under_review" ? "bg-blue-500" : "bg-secondary";
 
             return (
-              <Card key={s.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedStudent(s)}>
-                <CardContent className="py-4 space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1 min-w-0">
-                      <p className="font-mono text-xs font-semibold text-primary truncate">{getSponsorshipNumber(s.id)}</p>
-                      <p className="font-semibold text-sm flex items-center gap-1.5 truncate">
-                        <User size={14} className="text-muted-foreground shrink-0" /> {s.student_name}
-                      </p>
-                    </div>
-                    <Badge className={`text-xs capitalize ${statusColors[s.status] || ""}`}>
-                      {s.status?.replace("_", " ")}
-                    </Badge>
+              <div key={s.id} className="group cursor-pointer" onClick={() => setSelectedStudent(s)}>
+                <div className="relative">
+                  {/* Folder tab */}
+                  <div
+                    className="absolute -top-3 left-2 right-[50%] h-5 rounded-t-lg z-0"
+                    style={{ background: "linear-gradient(180deg, hsl(var(--folder-tab)) 0%, hsl(var(--folder-body)) 100%)" }}
+                  >
+                    <div className="absolute bottom-0 left-1 right-1 h-1 rounded-t-sm bg-folder-inner opacity-60" />
                   </div>
 
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    <Badge variant="secondary">{levelLabels[s.education_level] || s.education_level}</Badge>
-                    {displayApplicationNumber && <Badge variant="outline" className="font-mono">#{displayApplicationNumber}</Badge>}
-                    {studentDocs.length > 0 && <Badge variant="outline">PDF {studentDocs.length}</Badge>}
-                    {(() => {
-                      const docSchoolId = studentDocs.find(d => d.school_id)?.school_id;
-                      const schoolName = docSchoolId ? schoolNames[docSchoolId] : null;
-                      return schoolName ? (
-                        <span className="text-muted-foreground flex items-center gap-1"><School size={12} /> {schoolName}</span>
-                      ) : null;
-                    })()}
-                    {s.district && (
-                      <span className="text-muted-foreground flex items-center gap-1"><MapPin size={12} /> {s.district}</span>
-                    )}
-                  </div>
+                  {/* Folder body */}
+                  <div
+                    className="relative rounded-lg overflow-hidden transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-lg z-10"
+                    style={{
+                      background: "linear-gradient(170deg, hsl(var(--folder-body-light)) 0%, hsl(var(--folder-body)) 40%, hsl(var(--folder-tab)) 100%)",
+                      boxShadow: "0 2px 8px hsl(var(--folder-shadow) / 0.25), inset 0 1px 0 hsl(var(--folder-body-light) / 0.5)",
+                    }}
+                  >
+                    {/* Status strip */}
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${statusStrip}`} />
 
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                      <Phone size={12} className="shrink-0" /> {s.parent_name}
-                    </p>
-                    <div className="flex items-center gap-1">
-                      {studentDocs[0] && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-1 text-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openScannedDocument(studentDocs[0].storage_path);
-                          }}
-                        >
-                          <ExternalLink size={12} /> PDF
-                        </Button>
-                      )}
-                      <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); setSelectedStudent(s); }}>
-                        <Eye size={15} />
-                      </Button>
+                    <div className="p-3 sm:p-4 pl-4 space-y-2.5">
+                      {/* Header */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-0.5 min-w-0">
+                          <p className="font-mono text-[11px] font-semibold text-folder-shadow dark:text-folder-inner truncate">{getSponsorshipNumber(s.id)}</p>
+                          <p className="font-semibold text-xs sm:text-sm flex items-center gap-1.5 truncate text-primary-foreground dark:text-foreground">
+                            <User size={13} className="shrink-0 opacity-70" /> {s.student_name}
+                          </p>
+                        </div>
+                        <Badge className={`text-[10px] capitalize shrink-0 ${statusColors[s.status] || ""}`}>
+                          {s.status?.replace("_", " ")}
+                        </Badge>
+                      </div>
+
+                      {/* Badges row */}
+                      <div className="flex flex-wrap gap-1.5 text-[11px]">
+                        <Badge variant="secondary" className="bg-folder-inner/60 text-folder-shadow dark:bg-folder-inner dark:text-foreground border-0 text-[10px]">
+                          {levelLabels[s.education_level] || s.education_level}
+                        </Badge>
+                        {displayApplicationNumber && (
+                          <Badge variant="outline" className="font-mono border-folder-shadow/20 text-folder-shadow dark:border-folder-inner/30 dark:text-folder-inner text-[10px]">
+                            #{displayApplicationNumber}
+                          </Badge>
+                        )}
+                        {studentDocs.length > 0 && (
+                          <Badge variant="outline" className="border-folder-shadow/20 text-folder-shadow dark:border-folder-inner/30 dark:text-folder-inner text-[10px]">
+                            PDF {studentDocs.length}
+                          </Badge>
+                        )}
+                        {(() => {
+                          const docSchoolId = studentDocs.find(d => d.school_id)?.school_id;
+                          const schoolName = docSchoolId ? schoolNames[docSchoolId] : null;
+                          return schoolName ? (
+                            <span className="text-folder-shadow/70 dark:text-folder-inner/80 flex items-center gap-1"><School size={11} /> {schoolName}</span>
+                          ) : null;
+                        })()}
+                        {s.district && (
+                          <span className="text-folder-shadow/70 dark:text-folder-inner/80 flex items-center gap-1"><MapPin size={11} /> {s.district}</span>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between gap-2 pt-0.5">
+                        <p className="text-[11px] text-folder-shadow/70 dark:text-folder-inner/80 flex items-center gap-1 truncate">
+                          <Phone size={11} className="shrink-0" /> {s.parent_name}
+                        </p>
+                        <div className="flex items-center gap-1">
+                          {studentDocs[0] && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1 text-[10px] h-7 bg-folder-inner/40 border-folder-shadow/20 text-folder-shadow hover:bg-folder-inner/70 dark:bg-folder-inner/20 dark:border-folder-inner/30 dark:text-folder-inner"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openScannedDocument(studentDocs[0].storage_path);
+                              }}
+                            >
+                              <ExternalLink size={11} /> PDF
+                            </Button>
+                          )}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-folder-shadow/70 hover:bg-folder-inner/40 dark:text-folder-inner/80 dark:hover:bg-folder-inner/20"
+                            onClick={(e) => { e.stopPropagation(); setSelectedStudent(s); }}
+                          >
+                            <Eye size={14} />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
