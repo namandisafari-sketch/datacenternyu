@@ -60,10 +60,12 @@ export default {
         },
         success: "hsl(var(--success))",
         folder: {
-          manila: "hsl(var(--folder-manila))",
-          "manila-dark": "hsl(var(--folder-manila-dark))",
+          body: "hsl(var(--folder-body))",
+          "body-light": "hsl(var(--folder-body-light))",
           tab: "hsl(var(--folder-tab))",
-          "tab-active": "hsl(var(--folder-tab-active))",
+          "tab-light": "hsl(var(--folder-tab-light))",
+          inner: "hsl(var(--folder-inner))",
+          shadow: "hsl(var(--folder-shadow))",
           rack: "hsl(var(--folder-rack-bg))",
         },
         sidebar: {
