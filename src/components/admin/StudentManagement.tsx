@@ -535,8 +535,8 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
           No matching student folders found.
         </div>
       ) : (
-        <div className="rounded-lg bg-folder-rack border border-border p-3 sm:p-4">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-xl bg-folder-rack border border-border p-4 sm:p-5">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 pt-3">
             {filtered.map((app) => {
               const school = getSchool(app.school_id);
               const appExpenses = expenses.filter((e) => e.application_id === app.id);
