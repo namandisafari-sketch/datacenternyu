@@ -466,67 +466,52 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-        <GraduationCap size={22} className="text-primary" /> Student Management
-      </h2>
-
-      {/* Quick stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="py-4 flex items-center gap-3">
-            <Users size={24} className="text-primary" />
-            <div>
-              <p className="text-lg font-bold text-foreground">{totalStudentsCount}</p>
-              <p className="text-xs text-muted-foreground">Students (incl. PDF queue)</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-4 flex items-center gap-3">
-            <School size={24} className="text-accent" />
-            <div>
-              <p className="text-lg font-bold text-foreground">{Object.keys(schoolBreakdown).length}</p>
-              <p className="text-xs text-muted-foreground">Partner Schools</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-4 flex items-center gap-3">
-            <DollarSign size={24} className="text-secondary" />
-            <div>
-              <p className="text-lg font-bold text-foreground">{formatUGX(totalInvestment)}</p>
-              <p className="text-xs text-muted-foreground">Total Invested</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-4 flex items-center gap-3">
-            <AlertTriangle size={24} className="text-destructive" />
-            <div>
-              <p className="text-lg font-bold text-foreground">{claims.filter((c) => c.status === "open" && sponsoredStudents.some((a) => a.id === c.application_id)).length}</p>
-              <p className="text-xs text-muted-foreground">Open Claims</p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Filing Cabinet Header */}
+      <div className="flex items-center gap-3">
+        <div className="bg-primary rounded-md p-2.5">
+          <GraduationCap size={22} className="text-primary-foreground" />
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">Student Filing Cabinet</h2>
+          <p className="text-xs text-muted-foreground">All student folders &amp; records in one place</p>
+        </div>
       </div>
 
-      {/* School breakdown */}
-      {Object.keys(schoolBreakdown).length > 0 && (
-        <Card>
-          <CardContent className="py-4">
-            <p className="text-sm font-semibold mb-2 text-muted-foreground">Students per School</p>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(schoolBreakdown).map(([name, count]) => (
-                <Badge key={name} variant="outline" className="text-sm py-1 px-3">
-                  {name}: {count}
-                </Badge>
-              ))}
+      {/* Quick stats — styled as filing cabinet drawer labels */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {[
+          { icon: Users, value: totalStudentsCount, label: "Total Folders", color: "bg-primary text-primary-foreground" },
+          { icon: School, value: Object.keys(schoolBreakdown).length, label: "Partner Schools", color: "bg-accent text-accent-foreground" },
+          { icon: DollarSign, value: formatUGX(totalInvestment), label: "Total Invested", color: "bg-secondary text-secondary-foreground" },
+          { icon: AlertTriangle, value: claims.filter((c) => c.status === "open" && sponsoredStudents.some((a) => a.id === c.application_id)).length, label: "Open Claims", color: "bg-destructive text-destructive-foreground" },
+        ].map((stat, i) => (
+          <div key={i} className="flex items-center gap-3 rounded-md border border-border bg-card p-3 shadow-sm">
+            <div className={`rounded p-1.5 ${stat.color}`}>
+              <stat.icon size={16} />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-sm font-bold text-foreground">{stat.value}</p>
+              <p className="text-[10px] text-muted-foreground">{stat.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* School breakdown — drawer index */}
+      {Object.keys(schoolBreakdown).length > 0 && (
+        <div className="rounded-md border border-border bg-card p-3">
+          <p className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wider">Index — Students per School</p>
+          <div className="flex flex-wrap gap-1.5">
+            {Object.entries(schoolBreakdown).map(([name, count]) => (
+              <span key={name} className="inline-flex items-center gap-1.5 rounded bg-folder-manila px-2.5 py-1 text-xs font-medium text-foreground border border-folder-manila-dark/40">
+                {name} <span className="font-bold text-primary">{count}</span>
+              </span>
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* Filters */}
+      {/* Filters — search drawer */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -543,122 +528,146 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
         </Select>
       </div>
 
-      {/* Student card grid */}
+      {/* Folder Rack — The main grid */}
       {filtered.length === 0 ? (
-        <Card><CardContent className="py-8 text-center text-muted-foreground">No matching student records found.</CardContent></Card>
+        <div className="rounded-lg border-2 border-dashed border-border bg-folder-rack p-12 text-center text-muted-foreground">
+          <Users className="mx-auto mb-2 h-8 w-8 opacity-40" />
+          No matching student folders found.
+        </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((app) => {
-            const school = getSchool(app.school_id);
-            const appExpenses = expenses.filter((e) => e.application_id === app.id);
-            const appClaims = claims.filter((c) => c.application_id === app.id);
-            const appReports = reportCards.filter((r) => r.application_id === app.id);
-            const appDocs = getDocsForApp(app);
-            const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
-            const openClaimsCount = appClaims.filter((c) => c.status === "open").length;
-            const displayApplicationNumber = app.registration_number || appDocs[0]?.application_number || null;
+        <div className="rounded-lg bg-folder-rack border border-border p-3 sm:p-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((app) => {
+              const school = getSchool(app.school_id);
+              const appExpenses = expenses.filter((e) => e.application_id === app.id);
+              const appClaims = claims.filter((c) => c.application_id === app.id);
+              const appReports = reportCards.filter((r) => r.application_id === app.id);
+              const appDocs = getDocsForApp(app);
+              const totalSpent = appExpenses.reduce((s, e) => s + e.amount, 0);
+              const openClaimsCount = appClaims.filter((c) => c.status === "open").length;
+              const displayApplicationNumber = app.registration_number || appDocs[0]?.application_number || null;
 
-            return (
-              <Card key={app.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="py-4 space-y-3">
-                  {/* Header */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-sm text-foreground truncate">{app.student_name}</h3>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        <Badge variant="outline" className="text-[10px]">{levelLabels[app.education_level] || app.education_level}</Badge>
-                        {app.class_grade && <Badge variant="secondary" className="text-[10px]">Class {app.class_grade}</Badge>}
-                        <Badge variant="outline" className="text-[10px] capitalize">{app.status.replace("_", " ")}</Badge>
-                        {displayApplicationNumber && <Badge variant="secondary" className="text-[10px] font-mono">#{displayApplicationNumber}</Badge>}
-                        {appDocs.length > 0 && <Badge variant="secondary" className="text-[10px]">PDF {appDocs.length}</Badge>}
+              return (
+                <div key={app.id} className="group relative">
+                  {/* Folder tab sticking up */}
+                  <div className="relative z-10 ml-3 inline-flex items-center gap-1.5 rounded-t-md bg-folder-tab px-3 py-1 text-[10px] font-bold text-foreground border border-b-0 border-folder-manila-dark/40 shadow-sm">
+                    <User size={10} className="shrink-0" />
+                    <span className="truncate max-w-[120px]">{app.student_name.split(" ")[0]}</span>
+                    {displayApplicationNumber && <span className="font-mono text-muted-foreground">#{displayApplicationNumber}</span>}
+                  </div>
+
+                  {/* Folder body */}
+                  <div className="relative -mt-px rounded-lg rounded-tl-none bg-folder-manila border border-folder-manila-dark/40 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    {/* Left color strip for status */}
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+                      app.status === "approved" ? "bg-accent" :
+                      app.status === "rejected" ? "bg-destructive" :
+                      app.status === "pending" ? "bg-secondary" :
+                      "bg-muted-foreground"
+                    }`} />
+
+                    <div className="pl-4 pr-3 py-3 space-y-2.5">
+                      {/* Header row */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-sm text-foreground truncate">{app.student_name}</h3>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            <Badge variant="outline" className="text-[10px] bg-card/60">{levelLabels[app.education_level] || app.education_level}</Badge>
+                            {app.class_grade && <Badge variant="secondary" className="text-[10px]">Class {app.class_grade}</Badge>}
+                            <Badge className={`text-[10px] capitalize ${
+                              app.status === "approved" ? "bg-accent text-accent-foreground" :
+                              app.status === "rejected" ? "bg-destructive text-destructive-foreground" :
+                              ""
+                            }`}>{app.status.replace("_", " ")}</Badge>
+                            {appDocs.length > 0 && <Badge variant="secondary" className="text-[10px]"><FileText size={8} className="mr-0.5" /> {appDocs.length}</Badge>}
+                          </div>
+                        </div>
+                        {app.passport_photo_url ? (
+                          <img src={app.passport_photo_url} alt="" className="h-10 w-8 rounded-sm object-cover border border-folder-manila-dark/30 shrink-0" />
+                        ) : (
+                          <div className="h-10 w-8 rounded-sm bg-card/50 border border-folder-manila-dark/30 flex items-center justify-center shrink-0">
+                            <User size={12} className="text-muted-foreground" />
+                          </div>
+                        )}
+                        {openClaimsCount > 0 && (
+                          <Badge variant="destructive" className="gap-0.5 text-[10px] shrink-0 absolute top-2 right-2">
+                            <AlertTriangle size={9} /> {openClaimsCount}
+                          </Badge>
+                        )}
                       </div>
-                    </div>
-                    {openClaimsCount > 0 && (
-                      <Badge variant="destructive" className="gap-1 text-[10px] shrink-0">
-                        <AlertTriangle size={10} /> {openClaimsCount}
-                      </Badge>
-                    )}
-                  </div>
 
-                  {/* Details */}
-                  <div className="space-y-1 text-xs text-muted-foreground">
-                    {school && <p className="flex items-center gap-1 truncate"><School size={12} className="shrink-0" /> {school.name}</p>}
-                    <p className="flex items-center gap-1 truncate"><User size={12} className="shrink-0" /> {app.parent_name}</p>
-                    <p className="flex items-center gap-1"><Phone size={12} className="shrink-0" /> {app.parent_phone}</p>
-                    {app.district && <p className="flex items-center gap-1"><MapPin size={12} className="shrink-0" /> {app.district}</p>}
-                  </div>
+                      {/* Details - like info printed on folder */}
+                      <div className="space-y-0.5 text-[11px] text-foreground/70">
+                        {school && <p className="flex items-center gap-1.5 truncate"><School size={11} className="shrink-0 text-primary" /> {school.name}</p>}
+                        <p className="flex items-center gap-1.5 truncate"><Users size={11} className="shrink-0" /> {app.parent_name} · <Phone size={10} className="shrink-0" /> {app.parent_phone}</p>
+                        {app.district && <p className="flex items-center gap-1.5"><MapPin size={11} className="shrink-0" /> {app.district}</p>}
+                      </div>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-2 text-center text-xs border-t border-border pt-2">
-                    <div><p className="font-semibold text-foreground">{formatUGX(totalSpent)}</p><p className="text-muted-foreground">Expenses</p></div>
-                    <div><p className="font-semibold text-foreground">{appReports.length}</p><p className="text-muted-foreground">Reports</p></div>
-                    <div><p className="font-semibold text-foreground">{appClaims.length}</p><p className="text-muted-foreground">Claims</p></div>
-                  </div>
+                      {/* Stats strip — like stamped info on folder */}
+                      <div className="grid grid-cols-3 gap-1 text-center text-[10px] bg-card/40 rounded p-1.5 border border-folder-manila-dark/20">
+                        <div><p className="font-bold text-foreground">{formatUGX(totalSpent)}</p><p className="text-muted-foreground">Expenses</p></div>
+                        <div className="border-x border-folder-manila-dark/20"><p className="font-bold text-foreground">{appReports.length}</p><p className="text-muted-foreground">Reports</p></div>
+                        <div><p className="font-bold text-foreground">{appClaims.length}</p><p className="text-muted-foreground">Claims</p></div>
+                      </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-wrap gap-1 border-t border-border pt-2">
-                    <Button size="sm" variant="ghost" className="gap-1 text-xs flex-1" onClick={() => { setSelectedApp(app); setDetailOpen(true); }}>
-                      <Eye size={12} /> Details
-                    </Button>
-
-                    {appDocs[0] && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-1 text-xs"
-                        onClick={() => openPdfPreview(appDocs[0], app)}
-                      >
-                        <Eye size={12} /> PDF
-                      </Button>
-                    )}
-
-                    <Popover open={reassignAppId === app.id} onOpenChange={(open) => { setReassignAppId(open ? app.id : null); setReassignSchoolId(""); }}>
-                      <PopoverTrigger asChild>
-                        <Button size="sm" variant="outline" className="gap-1 text-xs">
-                          <ArrowRightLeft size={12} /> Reassign
+                      {/* Actions — folder operations */}
+                      <div className="flex flex-wrap gap-1 pt-1 border-t border-folder-manila-dark/20">
+                        <Button size="sm" variant="ghost" className="gap-1 text-xs flex-1 h-7" onClick={() => { setSelectedApp(app); setDetailOpen(true); }}>
+                          <Eye size={12} /> Open
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-72 space-y-3" align="end">
-                        <p className="text-sm font-medium">Reassign {app.student_name}</p>
-                        <Select value={reassignSchoolId} onValueChange={setReassignSchoolId}>
-                          <SelectTrigger><SelectValue placeholder="Select new school..." /></SelectTrigger>
-                          <SelectContent>
-                            {schools.filter((s) => s.id !== app.school_id).map((s) => (
-                              <SelectItem key={s.id} value={s.id}>{s.name} — {s.district}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button size="sm" className="w-full" disabled={!reassignSchoolId} onClick={reassignSchool}>Confirm</Button>
-                      </PopoverContent>
-                    </Popover>
-
-                    <Button size="sm" variant="destructive" className="gap-1 text-xs" onClick={() => stopSponsorship(app.id)}>
-                      <XCircle size={12} /> Stop
-                    </Button>
-                  </div>
-
-                  {/* Notes */}
-                  {editNotesId === app.id ? (
-                    <div className="space-y-2 border-t border-border pt-2">
-                      <Textarea rows={2} value={editNotesValue} onChange={(e) => setEditNotesValue(e.target.value)} placeholder="Admin notes..." className="text-xs" />
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={() => updateNotes(app.id)}>Save</Button>
-                        <Button size="sm" variant="ghost" onClick={() => setEditNotesId(null)}>Cancel</Button>
+                        {appDocs[0] && (
+                          <Button size="sm" variant="outline" className="gap-1 text-xs h-7 bg-card/50" onClick={() => openPdfPreview(appDocs[0], app)}>
+                            <FileText size={12} /> PDF
+                          </Button>
+                        )}
+                        <Popover open={reassignAppId === app.id} onOpenChange={(open) => { setReassignAppId(open ? app.id : null); setReassignSchoolId(""); }}>
+                          <PopoverTrigger asChild>
+                            <Button size="sm" variant="outline" className="gap-1 text-xs h-7 bg-card/50">
+                              <ArrowRightLeft size={12} />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-72 space-y-3" align="end">
+                            <p className="text-sm font-medium">Reassign {app.student_name}</p>
+                            <Select value={reassignSchoolId} onValueChange={setReassignSchoolId}>
+                              <SelectTrigger><SelectValue placeholder="Select new school..." /></SelectTrigger>
+                              <SelectContent>
+                                {schools.filter((s) => s.id !== app.school_id).map((s) => (
+                                  <SelectItem key={s.id} value={s.id}>{s.name} — {s.district}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button size="sm" className="w-full" disabled={!reassignSchoolId} onClick={reassignSchool}>Confirm</Button>
+                          </PopoverContent>
+                        </Popover>
+                        <Button size="sm" variant="destructive" className="gap-1 text-xs h-7" onClick={() => stopSponsorship(app.id)}>
+                          <XCircle size={12} />
+                        </Button>
                       </div>
+
+                      {/* Notes — sticky note on folder */}
+                      {editNotesId === app.id ? (
+                        <div className="space-y-2 border-t border-folder-manila-dark/20 pt-2">
+                          <Textarea rows={2} value={editNotesValue} onChange={(e) => setEditNotesValue(e.target.value)} placeholder="Admin notes..." className="text-xs" />
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => updateNotes(app.id)}>Save</Button>
+                            <Button size="sm" variant="ghost" onClick={() => setEditNotesId(null)}>Cancel</Button>
+                          </div>
+                        </div>
+                      ) : app.admin_notes ? (
+                        <p className="text-[11px] text-foreground/70 bg-secondary/20 p-1.5 rounded cursor-pointer truncate border border-secondary/30" onClick={() => { setEditNotesId(app.id); setEditNotesValue(app.admin_notes || ""); }}>
+                          📝 {app.admin_notes}
+                        </p>
+                      ) : (
+                        <button className="text-[11px] text-primary hover:underline" onClick={() => { setEditNotesId(app.id); setEditNotesValue(""); }}>
+                          + Add notes
+                        </button>
+                      )}
                     </div>
-                  ) : app.admin_notes ? (
-                    <p className="text-xs text-muted-foreground bg-muted/30 p-2 rounded cursor-pointer truncate" onClick={() => { setEditNotesId(app.id); setEditNotesValue(app.admin_notes || ""); }}>
-                      📝 {app.admin_notes}
-                    </p>
-                  ) : (
-                    <button className="text-xs text-primary hover:underline" onClick={() => { setEditNotesId(app.id); setEditNotesValue(""); }}>
-                      + Add notes
-                    </button>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

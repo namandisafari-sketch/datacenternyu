@@ -52,6 +52,14 @@
     --navy-deep: 215 58% 18%;
     --success: 145 45% 38%;
     --warm-bg: 35 40% 96%;
+
+    /* Folder rack tokens */
+    --folder-manila: 42 55% 88%;
+    --folder-manila-dark: 38 45% 78%;
+    --folder-tab: 42 60% 82%;
+    --folder-tab-active: 215 58% 26%;
+    --folder-shadow: 0 2px 8px -2px hsl(215 30% 20% / 0.12);
+    --folder-rack-bg: 30 20% 94%;
   }
 
   .dark {

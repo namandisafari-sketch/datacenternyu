@@ -59,6 +59,13 @@ export default {
           deep: "hsl(var(--navy-deep))",
         },
         success: "hsl(var(--success))",
+        folder: {
+          manila: "hsl(var(--folder-manila))",
+          "manila-dark": "hsl(var(--folder-manila-dark))",
+          tab: "hsl(var(--folder-tab))",
+          "tab-active": "hsl(var(--folder-tab-active))",
+          rack: "hsl(var(--folder-rack-bg))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
