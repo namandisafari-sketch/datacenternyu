@@ -168,9 +168,9 @@ export const generateLugandaDocumentHTML = (r: Record<string, any>, signatureUrl
   const fv = (val: string | undefined, n = 40) => val || dots(n);
 
   return `
-<div style="font-family:'Times New Roman',serif;color:#000;background:#fff;padding:15px 30px 10px 30px;max-width:210mm;margin:0 auto;font-size:11pt;line-height:1.45">
+<div style="font-family:'Times New Roman',serif;color:#000;background:#fff;padding:12px 28px 8px 28px;max-width:210mm;margin:0 auto;font-size:11pt;line-height:1.4">
 
-  <!-- HEADER - single line title matching original -->
+  <!-- HEADER -->
   <p style="text-align:center;margin:0 0 1px 0;font-size:10.5pt;white-space:nowrap">
     <em><u><strong>ENTEESEGANYA N&rsquo;OKUKKAANYA EBITUUKIDDWAKO WAKATI W&rsquo;ESSOMERO LYA</strong></u></em> ${dots(20)}
   </p>
@@ -181,36 +181,30 @@ export const generateLugandaDocumentHTML = (r: Record<string, any>, signatureUrl
     ${dots(50)} <strong>AGENDA MU</strong> ${dots(12)} <strong>OMWAKA</strong>${dots(16)}
   </p>
 
-  <!-- Body paragraph 1 - indented -->
-  <p style="margin-top:8px;text-indent:36px;text-align:justify;margin-bottom:4px">Oluvanyuma lwa Nyunga Foundation okusaba e ssomero lino ku lwa Foundation liweeyo bbasale ezijjudde ziweebwe abayizi abatalina busobozi bwa ssente bumala kubongerayo kusoma, e ssomero lyakiriza neriwaayo bbasale zino abayizi basome nga tebasasula bisale bye ssomero (Tuition Fees) okutuusa buli muyizi lwalimaliriza omutendera kwabeera ayingiridde mu ssomero lino.</p>
+  <p style="margin-top:6px;text-align:justify;margin-bottom:3px">Oluvanyuma lwa Nyunga Foundation okusaba e ssomero lino ku lwa Foundation liweeyo bbasale ezijjudde ziweebwe abayizi abatalina busobozi bwa ssente bumala kubongerayo kusoma, e ssomero lyakiriza neriwaayo bbasale zino abayizi basome nga tebasasula bisale bye ssomero (Tuition Fees) okutuusa buli muyizi lwalimaliriza omutendera kwabeera ayingiridde mu ssomero lino.</p>
 
-  <!-- Body paragraph 2 - indented -->
-  <p style="text-indent:36px;text-align:justify;margin-top:4px;margin-bottom:4px">Abazadde n&rsquo;abayizi abenjawulo bwe baategeezebwa ku mukisa guno, baawaayo okusaba kwabwe mu buwandiike nga baagala bayambibwe mu nteekateeka eno era bino wammanga bikaanyizidwaako olwaleero nga ennaku z&rsquo;omwezi ${dots(50)}</p>
+  <p style="text-align:justify;margin-top:3px;margin-bottom:3px">Abazadde n&rsquo;abayizi abenjawulo bwe baategeezebwa ku mukisa guno, baawaayo okusaba kwabwe mu buwandiike nga baagala bayambibwe mu nteekateeka eno era bino wammanga bikaanyizidwaako olwaleero nga ennaku z&rsquo;omwezi ${dots(50)}</p>
 
-  <!-- SECTION 1 -->
-  <p style="margin-top:8px;text-align:justify;margin-bottom:2px"><strong>1.</strong> &nbsp;&nbsp;<strong>(a)</strong> Bbasale eri ku bisale bya Ssomero (tuition fees) ebbanga lyonna. Omuyizi taggya kusasulanga &ldquo;school fees&rdquo; (tuition fees) ekisera kyonna kyanaamala nga asoma kumutendera guno mu ssomero lino. Omuyizi wakusasulanga byetaago bya ssomero byokka ebikkanyizidwako nga omwana aweebwa e kifo mu ssomero lino.</p>
+  <p style="margin-top:6px;text-align:justify;margin-bottom:2px"><strong>1.</strong> <strong>(a)</strong> Bbasale eri ku bisale bya Ssomero (tuition fees) ebbanga lyonna. Omuyizi taggya kusasulanga &ldquo;school fees&rdquo; (tuition fees) ekisera kyonna kyanaamala nga asoma kumutendera guno mu ssomero lino. Omuyizi wakusasulanga byetaago bya ssomero byokka ebikkanyizidwako nga omwana aweebwa e kifo mu ssomero lino.</p>
 
-  <p style="margin-left:28px;text-align:justify;margin-top:3px;margin-bottom:2px"><strong>(b) Essomero teryefuulire muzadde na mwana</strong> nga lisaba e bisale by&rsquo;essomero (Tuition fees) ekiseera kyonna omwana kyanaamala nga asoma ku mutendera guno gwayingirideko.</p>
+  <p style="text-align:justify;margin-top:2px;margin-bottom:2px"><strong>(b) Essomero teryefuulire muzadde na mwana</strong> nga lisaba e bisale by&rsquo;essomero (Tuition fees) ekiseera kyonna omwana kyanaamala nga asoma ku mutendera guno gwayingirideko.</p>
 
-  <p style="margin-left:28px;text-align:justify;margin-top:3px;margin-bottom:2px"><strong>(c)</strong> Omuzadde alina okuba ng&rsquo;akkirizza era nga asobola okusasula ebyetaago by&rsquo;essomero (school requirements) ebiragiddwa nga omwana atandika okusoma. Kuno kuliko ebisasulwa buli lusoma (Termly requirements) n&rsquo;ebisasulwa omulundi ogumu nga omwana ayingira mu ssomero nga bwe biragiddwa ku bbaluwa ewa omwana ekifo.</p>
+  <p style="text-align:justify;margin-top:2px;margin-bottom:2px"><strong>(c)</strong> Omuzadde alina okuba ng&rsquo;akkirizza era nga asobola okusasula ebyetaago by&rsquo;essomero (school requirements) ebiragiddwa nga omwana atandika okusoma. Kuno kuliko ebisasulwa buli lusoma (Termly requirements) n&rsquo;ebisasulwa omulundi ogumu nga omwana ayingira mu ssomero nga bwe biragiddwa ku bbaluwa ewa omwana ekifo.</p>
 
-  <p style="margin-left:28px;text-align:justify;margin-top:3px;margin-bottom:2px"><strong>(d)</strong> Omuzadde alina okuba nga asobola okuwa omwana we ebyetaago ebimuyamba mu kusoma nga omuyizi, bino bikyuuka okusinziira ku muyizi kyaaba yeetaaga.</p>
+  <p style="text-align:justify;margin-top:2px;margin-bottom:2px"><strong>(d)</strong> Omuzadde alina okuba nga asobola okuwa omwana we ebyetaago ebimuyamba mu kusoma nga omuyizi, bino bikyuuka okusinziira ku muyizi kyaaba yeetaaga.</p>
 
-  <!-- SECTION 2 -->
-  <p style="margin-top:8px;text-align:justify;margin-bottom:2px"><strong>2. (a)</strong> Omuyizi wa kusoma emyaka ${dots(20)} nga takyusizza ssomero kugenda mu ddala.</p>
+  <p style="margin-top:6px;text-align:justify;margin-bottom:2px"><strong>2. (a)</strong> Omuyizi wa kusoma emyaka ${dots(20)} nga takyusizza ssomero kugenda mu ddala.</p>
 
-  <p style="margin-left:28px;text-align:justify;margin-top:3px;margin-bottom:2px"><strong>(b)</strong> Singa e kiseera kituuka omuzadde n&rsquo;omuyizi nebaagala okukyuusa e ssomero awatali buzibu bwonna butebeereka, nga kino bakikola lwakuba bafunye ssente ezimala okuweerera omwana ewalala yonna gye baagala, balina okusooka okusasula ebisale by&rsquo;essomero (tuition fees) eby&rsquo;ekiseera kyonna omwana kyasomedde mu ssomero lino awatali kwekwaasa nsonga yonna.</p>
+  <p style="text-align:justify;margin-top:2px;margin-bottom:2px"><strong>(b)</strong> Singa e kiseera kituuka omuzadde n&rsquo;omuyizi nebaagala okukyuusa e ssomero awatali buzibu bwonna butebeereka, nga kino bakikola lwakuba bafunye ssente ezimala okuweerera omwana ewalala yonna gye baagala, balina okusooka okusasula ebisale by&rsquo;essomero (tuition fees) eby&rsquo;ekiseera kyonna omwana kyasomedde mu ssomero lino awatali kwekwaasa nsonga yonna.</p>
 
-  <!-- SECTION 3 -->
-  <p style="margin-top:8px;text-align:justify;margin-bottom:2px"><strong>3. (a)</strong> Omuzadde n&rsquo;omwana balina okukkiriza n&rsquo;okugoberera enteekateeka n&rsquo;amateeka g&rsquo;essomero gonna.</p>
+  <p style="margin-top:6px;text-align:justify;margin-bottom:2px"><strong>3. (a)</strong> Omuzadde n&rsquo;omwana balina okukkiriza n&rsquo;okugoberera enteekateeka n&rsquo;amateeka g&rsquo;essomero gonna.</p>
 
-  <p style="margin-left:28px;text-align:justify;margin-top:3px;margin-bottom:2px"><strong>(b)</strong> Singa omuyizi n&rsquo;omuzadde balemererwa okugoberera enteekateeka n&rsquo;amateeka g&rsquo;essomero, omwana ajibwako omukisa gwa bbasale nazzibwa e waka.</p>
+  <p style="text-align:justify;margin-top:2px;margin-bottom:2px"><strong>(b)</strong> Singa omuyizi n&rsquo;omuzadde balemererwa okugoberera enteekateeka n&rsquo;amateeka g&rsquo;essomero, omwana ajibwako omukisa gwa bbasale nazzibwa e waka.</p>
 
-  <!-- SECTION 4 -->
-  <p style="margin-top:8px;text-align:justify;margin-bottom:2px"><strong>4 (a)</strong> Kunkomerero yabuli lusoma, alipoota y&rsquo;omuyizi ey&rsquo;olusoma olwo, erireetebwanga ku Kkakkalabizo lya Nyunga Foundation okuva ku ssomero kisobozese okulondoola ensoma y&rsquo;Omwana.</p>
+  <p style="margin-top:6px;text-align:justify;margin-bottom:2px"><strong>4 (a)</strong> Kunkomerero yabuli lusoma, alipoota y&rsquo;omuyizi ey&rsquo;olusoma olwo, erireetebwanga ku Kkakkalabizo lya Nyunga Foundation okuva ku ssomero kisobozese okulondoola ensoma y&rsquo;Omwana.</p>
 
   <!-- Page 1 footer -->
-  <p style="text-align:left;font-size:9pt;margin-top:16px;color:#555"><em>1 | P a g e</em></p>
+  <p style="text-align:left;font-size:9pt;margin-top:12px;color:#555"><em>1 | P a g e</em></p>
 
   <!-- PAGE BREAK -->
   <div style="page-break-before:always"></div>
