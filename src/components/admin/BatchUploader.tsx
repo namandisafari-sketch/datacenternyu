@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Upload,
   FileText,
-  Image,
   Loader2,
   CheckCircle,
   XCircle,
@@ -20,13 +19,10 @@ import {
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface PairItem {
-  pdf: File;
-  png: File;
-  baseName: string;
+interface QueueItem {
+  file: File;
+  appNumber: string;
   status: "pending" | "processing" | "done" | "error";
-  applicationNumber?: string;
-  confidence?: number;
   error?: string;
 }
 
@@ -39,154 +35,12 @@ interface BatchUploaderProps {
   userId: string;
 }
 
-const MAX_CONCURRENCY = 4;
-const MIN_CONCURRENCY = 1;
-const MAX_RETRIES = 6;
-const BASE_DELAY_MS = 2500;
-const MAX_DELAY_MS = 30000;
-const OCR_MIN_SPACING_MS = 900;
-const RAMP_UP_AFTER_SUCCESSES = 5; // consecutive successes before increasing concurrency
+const CONCURRENCY = 3;
 
-// Adaptive concurrency state (shared across workers)
-let activeConcurrency = 2;
-let consecutiveSuccesses = 0;
-let consecutiveThrottles = 0;
-
-let nextOCRAllowedAt = 0;
-
-function pairFiles(files: File[]): { pairs: PairItem[]; orphans: File[] } {
-  const pdfMap = new Map<string, File>();
-  const pngMap = new Map<string, File>();
-
-  for (const f of files) {
-    const ext = f.name.split(".").pop()?.toLowerCase() || "";
-    const nameOnly = f.name.includes("/") ? f.name.split("/").pop()! : f.name;
-    const base = nameOnly.replace(/\.[^.]+$/, "");
-
-    if (ext === "pdf") pdfMap.set(base, f);
-    else if (["png", "jpg", "jpeg"].includes(ext)) pngMap.set(base, f);
-  }
-
-  const pairs: PairItem[] = [];
-  const orphans: File[] = [];
-
-  for (const [base, pdf] of pdfMap) {
-    const png = pngMap.get(base);
-    if (png) {
-      pairs.push({ pdf, png, baseName: base, status: "pending" });
-      pngMap.delete(base);
-    } else {
-      orphans.push(pdf);
-    }
-  }
-
-  for (const f of pngMap.values()) orphans.push(f);
-
-  return { pairs, orphans };
-}
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(",")[1]);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-async function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function getErrorStatusCode(error: any): number | null {
-  const status = error?.context?.status ?? error?.status ?? null;
-  return typeof status === "number" ? status : null;
-}
-
-function isRateLimitedResponse(data: any, error: any): boolean {
-  const statusCode = getErrorStatusCode(error);
-  const errorMessage = typeof error?.message === "string" ? error.message.toLowerCase() : "";
-  const dataError = typeof data?.error === "string" ? data.error.toLowerCase() : "";
-
-  return (
-    statusCode === 429 ||
-    errorMessage.includes("429") ||
-    errorMessage.includes("rate limit") ||
-    dataError.includes("rate limited")
-  );
-}
-
-function getServerRetryMs(data: any): number | null {
-  const retryAfter = data?.retry_after_ms;
-  return typeof retryAfter === "number" && Number.isFinite(retryAfter) && retryAfter > 0
-    ? retryAfter
-    : null;
-}
-
-async function waitForOCRSlot() {
-  const now = Date.now();
-  if (now < nextOCRAllowedAt) {
-    await delay(nextOCRAllowedAt - now);
-  }
-  nextOCRAllowedAt = Date.now() + OCR_MIN_SPACING_MS;
-}
-
-async function invokeOCRWithRetry(imageBase64: string): Promise<{ data: any; error: any }> {
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    await waitForOCRSlot();
-
-    const { data, error } = await supabase.functions.invoke("ocr-application-number", {
-      body: { imageBase64 },
-    });
-
-    if (isRateLimitedResponse(data, error)) {
-      if (attempt < MAX_RETRIES) {
-        const serverRetryMs = getServerRetryMs(data) ?? 0;
-        const backoffMs = Math.min(MAX_DELAY_MS, BASE_DELAY_MS * Math.pow(2, attempt)) + Math.random() * 1200;
-        const waitMs = Math.max(serverRetryMs, backoffMs);
-
-        nextOCRAllowedAt = Math.max(nextOCRAllowedAt, Date.now() + waitMs);
-
-        console.log(
-          `Rate limited, retrying in ${Math.round(waitMs)}ms (attempt ${attempt + 1}/${MAX_RETRIES + 1})`
-        );
-
-        await delay(waitMs);
-        continue;
-      }
-
-      return { data: null, error: { message: "Rate limited after maximum retries" } };
-    }
-
-    if (error) return { data, error };
-    if (data?.error) return { data: null, error: { message: data.error } };
-
-    return { data, error: null };
-  }
-
-  return { data: null, error: { message: "Max retries exceeded due to rate limiting" } };
-}
-
-function onOCRSuccess() {
-  consecutiveThrottles = 0;
-  consecutiveSuccesses++;
-  if (consecutiveSuccesses >= RAMP_UP_AFTER_SUCCESSES && activeConcurrency < MAX_CONCURRENCY) {
-    activeConcurrency++;
-    consecutiveSuccesses = 0;
-    console.log(`Concurrency ramped up to ${activeConcurrency}`);
-  }
-}
-
-function onOCRThrottle() {
-  consecutiveSuccesses = 0;
-  consecutiveThrottles++;
-  if (consecutiveThrottles >= 2 && activeConcurrency > MIN_CONCURRENCY) {
-    activeConcurrency = MIN_CONCURRENCY;
-    console.log(`Heavy throttling detected, concurrency dropped to ${activeConcurrency}`);
-  }
+function extractAppNumber(filename: string): string {
+  // Strip path, extension, and return the base name as the application number
+  const nameOnly = filename.includes("/") ? filename.split("/").pop()! : filename;
+  return nameOnly.replace(/\.[^.]+$/, "").trim();
 }
 
 async function checkDuplicateFile(originalFilename: string): Promise<boolean> {
@@ -199,39 +53,15 @@ async function checkDuplicateFile(originalFilename: string): Promise<boolean> {
   return !!data;
 }
 
-async function processOnePair(item: PairItem, userId: string, schoolId?: string): Promise<PairItem> {
+async function processOneFile(item: QueueItem, userId: string, schoolId?: string): Promise<QueueItem> {
   try {
-    // Check for duplicate file already processed
-    const isDuplicate = await checkDuplicateFile(item.pdf.name);
+    const isDuplicate = await checkDuplicateFile(item.file.name);
     if (isDuplicate) {
-      return { ...item, status: "error", error: "Already processed (duplicate)" };
+      return { ...item, status: "error", error: "Already uploaded (duplicate)" };
     }
 
-    const imageBase64 = await fileToBase64(item.png);
-    const { data: ocrData, error: ocrError } = await invokeOCRWithRetry(imageBase64);
-
-    if (ocrError) {
-      if (ocrError.message?.toLowerCase().includes("rate limit")) {
-        onOCRThrottle();
-      }
-      throw new Error(ocrError.message || "OCR failed");
-    }
-    if (ocrData?.error) throw new Error(ocrData.error);
-
-    onOCRSuccess();
-
-    const appNum = ocrData.application_number;
-    const confidence = ocrData.confidence || 0;
-
-    if (!appNum || appNum === "UNREADABLE") {
-      return { ...item, status: "error", error: "Could not read application number", confidence };
-    }
-
-    item.applicationNumber = appNum;
-    item.confidence = confidence;
-
-    const storagePath = `applications/${appNum}/${appNum}.pdf`;
-    const pdfBytes = await item.pdf.arrayBuffer();
+    const storagePath = `applications/${item.appNumber}/${item.appNumber}.pdf`;
+    const pdfBytes = await item.file.arrayBuffer();
 
     const { error: uploadError } = await supabase.storage
       .from("scanned-documents")
@@ -242,27 +72,27 @@ async function processOnePair(item: PairItem, userId: string, schoolId?: string)
 
     if (uploadError) throw new Error("Upload failed: " + uploadError.message);
 
+    // Try to auto-link to an existing application
     const { data: appMatch } = await supabase
       .from("applications")
       .select("id")
-      .or(`registration_number.eq.${appNum},nin.eq.${appNum}`)
+      .or(`registration_number.eq.${item.appNumber},nin.eq.${item.appNumber}`)
       .limit(1)
       .maybeSingle();
 
     const { error: insertError } = await supabase
       .from("scanned_documents")
       .insert({
-        application_number: appNum,
+        application_number: item.appNumber,
         application_id: appMatch?.id || null,
-        original_filename: item.pdf.name,
+        original_filename: item.file.name,
         storage_path: storagePath,
-        ocr_confidence: confidence,
         school_id: schoolId || null,
       } as any);
 
     if (insertError) throw new Error("DB insert failed: " + insertError.message);
 
-    return { ...item, status: "done", applicationNumber: appNum, confidence };
+    return { ...item, status: "done" };
   } catch (err: any) {
     return { ...item, status: "error", error: err.message || "Unknown error" };
   }
@@ -293,11 +123,11 @@ async function readAllEntries(entry: FileSystemEntry): Promise<File[]> {
   return [];
 }
 
-const VISIBLE_WINDOW = 200; // only render this many items around scroll position
+const ITEM_HEIGHT = 44;
 
 const BatchUploader = ({ userId }: BatchUploaderProps) => {
-  const [pairs, setPairs] = useState<PairItem[]>([]);
-  const [orphans, setOrphans] = useState<File[]>([]);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [nonPdfs, setNonPdfs] = useState<File[]>([]);
   const [processing, setProcessing] = useState(false);
   const [doneCount, setDoneCount] = useState(0);
   const [errCount, setErrCount] = useState(0);
@@ -315,19 +145,35 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
     });
   }, []);
 
-  const totalCount = pairs.length;
+  const totalCount = queue.length;
   const progress = totalCount > 0 ? Math.round(((doneCount + errCount) / totalCount) * 100) : 0;
 
   const handleFiles = useCallback((files: File[]) => {
-    const { pairs: p, orphans: o } = pairFiles(files);
-    setPairs(p);
-    setOrphans(o);
+    const pdfs: QueueItem[] = [];
+    const others: File[] = [];
+
+    for (const f of files) {
+      const ext = f.name.split(".").pop()?.toLowerCase() || "";
+      if (ext === "pdf") {
+        pdfs.push({
+          file: f,
+          appNumber: extractAppNumber(f.name),
+          status: "pending",
+        });
+      } else {
+        others.push(f);
+      }
+    }
+
+    setQueue(pdfs);
+    setNonPdfs(others);
     setDoneCount(0);
     setErrCount(0);
-    if (p.length === 0) {
-      toast.error("No matching PDF+PNG pairs found.");
+
+    if (pdfs.length === 0) {
+      toast.error("No PDF files found.");
     } else {
-      toast.success(`Found ${p.length} document pairs ready to process.`);
+      toast.success(`Found ${pdfs.length} PDF(s) ready to upload.`);
     }
   }, []);
 
@@ -351,41 +197,37 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
           return;
         }
       }
-      // Fallback
       handleFiles(Array.from(e.dataTransfer.files));
     },
     [handleFiles]
   );
 
   const processBatch = async () => {
-    if (pairs.length === 0) return;
+    if (queue.length === 0) return;
     setProcessing(true);
     abortRef.current = false;
     setDoneCount(0);
     setErrCount(0);
 
-    // Reset adaptive concurrency
-    activeConcurrency = 2;
-    consecutiveSuccesses = 0;
-    consecutiveThrottles = 0;
-
-    const queue = [...pairs.map((_, i) => i)]; // indices
-    const results = [...pairs];
+    const indices = queue.map((_, i) => i);
+    const results = [...queue];
     let done = 0;
     let errs = 0;
 
-    // Mark all as pending
     for (const r of results) r.status = "pending";
-    setPairs([...results]);
+    setQueue([...results]);
 
     const worker = async () => {
-      while (queue.length > 0 && !abortRef.current) {
-        const idx = queue.shift()!;
+      while (indices.length > 0 && !abortRef.current) {
+        const idx = indices.shift()!;
         results[idx] = { ...results[idx], status: "processing" };
-        // Batch state updates every few items for perf
-        setPairs([...results]);
+        setQueue([...results]);
 
-        const result = await processOnePair(results[idx], userId, selectedSchoolId && selectedSchoolId !== "none" ? selectedSchoolId : undefined);
+        const result = await processOneFile(
+          results[idx],
+          userId,
+          selectedSchoolId && selectedSchoolId !== "none" ? selectedSchoolId : undefined
+        );
         results[idx] = result;
         if (result.status === "done") {
           done++;
@@ -394,41 +236,16 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
           errs++;
           setErrCount(errs);
         }
-
-        // Update UI periodically (every item for small batches, every 3 for large)
-        if (totalCount < 100 || (done + errs) % 3 === 0 || queue.length === 0) {
-          setPairs([...results]);
-        }
+        setQueue([...results]);
       }
     };
 
-    // Launch initial workers with adaptive concurrency
-    const spawnWorker = () => {
-      const p = worker();
-      p.then(() => {
-        // When a worker finishes, spawn another if concurrency allows and queue has items
-        if (queue.length > 0 && !abortRef.current && activeWorkerCount() < activeConcurrency) {
-          workerPromises.push(spawnWorker());
-        }
-      });
-      return p;
-    };
+    const workers = Math.min(CONCURRENCY, queue.length);
+    await Promise.all(Array.from({ length: workers }, () => worker()));
 
-    const workerPromises: Promise<void>[] = [];
-    const activeWorkerCount = () => workerPromises.filter(p => {
-      // Simple tracking: we just use initial count
-      return true;
-    }).length;
-
-    const initialWorkers = Math.min(activeConcurrency, pairs.length);
-    for (let i = 0; i < initialWorkers; i++) {
-      workerPromises.push(worker());
-    }
-    await Promise.all(workerPromises);
-
-    setPairs([...results]);
+    setQueue([...results]);
     setProcessing(false);
-    toast.success(`Batch complete: ${done} processed, ${errs} errors.`);
+    toast.success(`Upload complete: ${done} saved, ${errs} errors.`);
   };
 
   const stopProcessing = () => {
@@ -437,20 +254,19 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
   };
 
   const clearAll = () => {
-    setPairs([]);
-    setOrphans([]);
+    setQueue([]);
+    setNonPdfs([]);
     setDoneCount(0);
     setErrCount(0);
   };
 
-  // Virtual scrolling for large lists
-  const ITEM_HEIGHT = 52;
-  const containerHeight = Math.min(pairs.length * ITEM_HEIGHT, 500);
+  // Virtual scrolling
+  const containerHeight = Math.min(queue.length * ITEM_HEIGHT, 500);
   const startIdx = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - 5);
-  const endIdx = Math.min(pairs.length, Math.ceil((scrollTop + containerHeight) / ITEM_HEIGHT) + 5);
-  const visiblePairs = pairs.slice(startIdx, endIdx);
+  const endIdx = Math.min(queue.length, Math.ceil((scrollTop + containerHeight) / ITEM_HEIGHT) + 5);
+  const visibleItems = queue.slice(startIdx, endIdx);
 
-  const statusIcon = (s: PairItem["status"]) => {
+  const statusIcon = (s: QueueItem["status"]) => {
     switch (s) {
       case "pending": return <FileText className="h-4 w-4 text-muted-foreground" />;
       case "processing": return <Loader2 className="h-4 w-4 text-primary animate-spin" />;
@@ -460,9 +276,9 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
   };
 
   const stats = useMemo(() => {
-    if (pairs.length === 0) return null;
-    return { total: pairs.length, done: doneCount, errors: errCount, pending: pairs.length - doneCount - errCount };
-  }, [pairs.length, doneCount, errCount]);
+    if (queue.length === 0) return null;
+    return { total: queue.length, done: doneCount, errors: errCount, pending: queue.length - doneCount - errCount };
+  }, [queue.length, doneCount, errCount]);
 
   return (
     <div className="space-y-4">
@@ -474,10 +290,10 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
       >
         <Upload className="h-10 w-10 mx-auto mb-3 text-primary/60" />
         <p className="text-sm font-medium text-foreground">
-          Drop files or folders here
+          Drop a folder of pre-named PDFs here
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Each PDF must have a matching PNG with the same filename (e.g. 005124.pdf + 005124.png)
+          Each PDF filename is used as the application number (e.g. <span className="font-mono">20176.pdf</span> → App #20176)
         </p>
         <div className="flex items-center gap-2 justify-center mt-3">
           <School className="h-4 w-4 text-muted-foreground" />
@@ -500,7 +316,7 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
             onClick={() => inputRef.current?.click()}
             className="gap-1.5"
           >
-            <FileText className="h-4 w-4" /> Select Files
+            <FileText className="h-4 w-4" /> Select PDFs
           </Button>
           <Button
             variant="outline"
@@ -515,7 +331,7 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
           ref={inputRef}
           type="file"
           multiple
-          accept=".pdf,.png,.jpg,.jpeg"
+          accept=".pdf"
           className="hidden"
           onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))}
         />
@@ -530,27 +346,27 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
         />
       </div>
 
-      {/* Orphans warning */}
-      {orphans.length > 0 && (
+      {/* Non-PDF warning */}
+      {nonPdfs.length > 0 && (
         <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
           <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
           <div className="text-xs text-destructive">
-            <strong>{orphans.length} unmatched file(s)</strong>
-            {orphans.length <= 20 && (
-              <span>: {orphans.map((f) => f.name).join(", ")}</span>
+            <strong>{nonPdfs.length} non-PDF file(s) skipped</strong>
+            {nonPdfs.length <= 10 && (
+              <span>: {nonPdfs.map((f) => f.name).join(", ")}</span>
             )}
           </div>
         </div>
       )}
 
-      {/* Pairs list */}
-      {pairs.length > 0 && (
+      {/* Queue list */}
+      {queue.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <Zap className="h-4 w-4 text-primary" />
-                {stats?.total} Document Pair{(stats?.total || 0) > 1 ? "s" : ""}
+                {stats?.total} PDF{(stats?.total || 0) > 1 ? "s" : ""}
                 {stats && processing && (
                   <span className="text-xs font-normal text-muted-foreground">
                     ({stats.done} done, {stats.errors} errors, {stats.pending} remaining)
@@ -572,7 +388,7 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
                   </Button>
                 ) : (
                   <Button size="sm" onClick={processBatch}>
-                    <Zap className="h-3.5 w-3.5 mr-1" /> Process All (adaptive parallel)
+                    <Zap className="h-3.5 w-3.5 mr-1" /> Upload All
                   </Button>
                 )}
               </div>
@@ -591,8 +407,8 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
               style={{ maxHeight: `${containerHeight}px` }}
               onScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}
             >
-              <div style={{ height: pairs.length * ITEM_HEIGHT, position: "relative" }}>
-                {visiblePairs.map((p, vi) => {
+              <div style={{ height: queue.length * ITEM_HEIGHT, position: "relative" }}>
+                {visibleItems.map((item, vi) => {
                   const i = startIdx + vi;
                   return (
                     <div
@@ -606,25 +422,19 @@ const BatchUploader = ({ userId }: BatchUploaderProps) => {
                         right: 0,
                       }}
                     >
-                      {statusIcon(p.status)}
+                      {statusIcon(item.status)}
                       <div className="flex-1 min-w-0">
-                        <span className="font-medium truncate block text-sm">{p.baseName}</span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-2">
-                          <FileText className="h-3 w-3" /> {(p.pdf.size / 1024).toFixed(0)}KB
-                          <Image className="h-3 w-3 ml-1" /> {(p.png.size / 1024).toFixed(0)}KB
+                        <span className="font-medium truncate block text-sm">{item.file.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {(item.file.size / 1024).toFixed(0)}KB
                         </span>
                       </div>
-                      {p.applicationNumber && (
-                        <Badge variant="secondary" className="font-mono text-xs">
-                          #{p.applicationNumber}
-                        </Badge>
-                      )}
-                      {p.confidence !== undefined && p.status !== "pending" && (
-                        <span className="text-xs text-muted-foreground">{p.confidence}%</span>
-                      )}
-                      {p.error && (
-                        <span className="text-xs text-destructive max-w-[200px] truncate" title={p.error}>
-                          {p.error}
+                      <Badge variant="secondary" className="font-mono text-xs">
+                        #{item.appNumber}
+                      </Badge>
+                      {item.error && (
+                        <span className="text-xs text-destructive max-w-[200px] truncate" title={item.error}>
+                          {item.error}
                         </span>
                       )}
                     </div>
