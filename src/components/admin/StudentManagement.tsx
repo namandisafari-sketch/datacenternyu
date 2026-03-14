@@ -535,8 +535,8 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
           No matching student folders found.
         </div>
       ) : (
-        <div className="rounded-xl bg-folder-rack border border-border p-4 sm:p-5">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 pt-3">
+        <div className="rounded-xl bg-folder-rack border border-border p-3 sm:p-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 pt-3">
             {filtered.map((app) => {
               const school = getSchool(app.school_id);
               const appExpenses = expenses.filter((e) => e.application_id === app.id);
@@ -587,51 +587,51 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
 
                       <div className="pl-5 pr-3 py-3 space-y-2">
                         {/* Student name + photo */}
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-start gap-2 sm:gap-3">
                           {app.passport_photo_url ? (
-                            <img src={app.passport_photo_url} alt="" className="h-11 w-9 rounded object-cover border-2 border-folder-inner/80 shadow-sm shrink-0" />
+                            <img src={app.passport_photo_url} alt="" className="h-11 w-9 sm:h-12 sm:w-10 rounded object-cover border-2 border-folder-inner/80 shadow-sm shrink-0" />
                           ) : (
-                            <div className="h-11 w-9 rounded bg-folder-inner border-2 border-folder-inner/80 flex items-center justify-center shrink-0 shadow-sm">
-                              <User size={14} className="text-folder-shadow/60" />
+                            <div className="h-11 w-9 sm:h-12 sm:w-10 rounded bg-folder-inner border-2 border-folder-inner/80 flex items-center justify-center shrink-0 shadow-sm">
+                              <User size={14} className="text-folder-shadow" />
                             </div>
                           )}
                           <div className="min-w-0 flex-1">
-                            <h3 className="font-bold text-[13px] text-foreground truncate leading-tight">{app.student_name}</h3>
+                            <h3 className="font-bold text-[13px] sm:text-sm text-primary-foreground dark:text-foreground truncate leading-tight drop-shadow-sm">{app.student_name}</h3>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              <Badge variant="outline" className="text-[9px] py-0 h-4 bg-folder-inner/50 border-folder-shadow/20 text-foreground/80">{levelLabels[app.education_level] || app.education_level}</Badge>
-                              {app.class_grade && <Badge className="text-[9px] py-0 h-4 bg-folder-inner/60 text-foreground/80 border-0">Class {app.class_grade}</Badge>}
-                              {displayApplicationNumber && <Badge className="text-[9px] py-0 h-4 font-mono bg-foreground/10 text-foreground/70 border-0">#{displayApplicationNumber}</Badge>}
+                              <Badge variant="outline" className="text-[9px] py-0 h-4 bg-folder-inner/50 border-folder-shadow/30 text-primary-foreground dark:text-foreground">{levelLabels[app.education_level] || app.education_level}</Badge>
+                              {app.class_grade && <Badge className="text-[9px] py-0 h-4 bg-folder-inner/60 text-primary-foreground dark:text-foreground border-0">Class {app.class_grade}</Badge>}
+                              {displayApplicationNumber && <Badge className="text-[9px] py-0 h-4 font-mono bg-folder-shadow/20 text-primary-foreground dark:text-foreground border-0">#{displayApplicationNumber}</Badge>}
                             </div>
                           </div>
                         </div>
 
                         {/* Info printed on folder label */}
-                        <div className="space-y-0.5 text-[11px] text-foreground/65">
-                          {school && <p className="flex items-center gap-1.5 truncate"><School size={11} className="shrink-0 text-foreground/50" /> {school.name}</p>}
-                          <p className="flex items-center gap-1.5 truncate"><Users size={11} className="shrink-0 text-foreground/50" /> {app.parent_name}</p>
-                          {app.district && <p className="flex items-center gap-1.5"><MapPin size={11} className="shrink-0 text-foreground/50" /> {app.district}</p>}
+                        <div className="space-y-0.5 text-[11px] text-primary-foreground/75 dark:text-foreground/80">
+                          {school && <p className="flex items-center gap-1.5 truncate"><School size={11} className="shrink-0 opacity-60" /> {school.name}</p>}
+                          <p className="flex items-center gap-1.5 truncate"><Users size={11} className="shrink-0 opacity-60" /> {app.parent_name}</p>
+                          {app.district && <p className="flex items-center gap-1.5"><MapPin size={11} className="shrink-0 opacity-60" /> {app.district}</p>}
                         </div>
 
                         {/* Stamped stats */}
                         <div className="grid grid-cols-3 gap-px text-center text-[10px] rounded overflow-hidden bg-folder-shadow/10">
-                          <div className="bg-folder-inner/40 py-1"><p className="font-bold text-foreground/80">{formatUGX(totalSpent)}</p><p className="text-foreground/50">Spent</p></div>
-                          <div className="bg-folder-inner/40 py-1"><p className="font-bold text-foreground/80">{appReports.length}</p><p className="text-foreground/50">Reports</p></div>
-                          <div className="bg-folder-inner/40 py-1"><p className="font-bold text-foreground/80">{appDocs.length}</p><p className="text-foreground/50">Files</p></div>
+                          <div className="bg-folder-inner/40 py-1"><p className="font-bold text-primary-foreground/90 dark:text-foreground/90">{formatUGX(totalSpent)}</p><p className="text-primary-foreground/60 dark:text-foreground/60">Spent</p></div>
+                          <div className="bg-folder-inner/40 py-1"><p className="font-bold text-primary-foreground/90 dark:text-foreground/90">{appReports.length}</p><p className="text-primary-foreground/60 dark:text-foreground/60">Reports</p></div>
+                          <div className="bg-folder-inner/40 py-1"><p className="font-bold text-primary-foreground/90 dark:text-foreground/90">{appDocs.length}</p><p className="text-primary-foreground/60 dark:text-foreground/60">Files</p></div>
                         </div>
 
                         {/* Action buttons */}
                         <div className="flex gap-1 pt-1" onClick={(e) => e.stopPropagation()}>
-                          <Button size="sm" variant="ghost" className="gap-1 text-[11px] flex-1 h-6 text-foreground/70 hover:text-foreground hover:bg-folder-inner/50" onClick={() => { setSelectedApp(app); setDetailOpen(true); }}>
+                          <Button size="sm" variant="ghost" className="gap-1 text-[11px] flex-1 h-7 sm:h-6 text-primary-foreground/80 dark:text-foreground/80 hover:text-primary-foreground dark:hover:text-foreground hover:bg-folder-inner/50" onClick={() => { setSelectedApp(app); setDetailOpen(true); }}>
                             <Eye size={11} /> Open
                           </Button>
                           {appDocs[0] && (
-                            <Button size="sm" variant="ghost" className="gap-1 text-[11px] h-6 text-foreground/70 hover:bg-folder-inner/50" onClick={() => openPdfPreview(appDocs[0], app)}>
+                            <Button size="sm" variant="ghost" className="gap-1 text-[11px] h-7 sm:h-6 text-primary-foreground/80 dark:text-foreground/80 hover:bg-folder-inner/50" onClick={() => openPdfPreview(appDocs[0], app)}>
                               <FileText size={11} /> PDF
                             </Button>
                           )}
                           <Popover open={reassignAppId === app.id} onOpenChange={(open) => { setReassignAppId(open ? app.id : null); setReassignSchoolId(""); }}>
                             <PopoverTrigger asChild>
-                              <Button size="sm" variant="ghost" className="text-[11px] h-6 text-foreground/70 hover:bg-folder-inner/50 px-1.5">
+                              <Button size="sm" variant="ghost" className="text-[11px] h-7 sm:h-6 text-primary-foreground/80 dark:text-foreground/80 hover:bg-folder-inner/50 px-1.5">
                                 <ArrowRightLeft size={11} />
                               </Button>
                             </PopoverTrigger>
@@ -648,7 +648,7 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                               <Button size="sm" className="w-full" disabled={!reassignSchoolId} onClick={reassignSchool}>Confirm</Button>
                             </PopoverContent>
                           </Popover>
-                          <Button size="sm" variant="ghost" className="text-[11px] h-6 text-destructive/70 hover:text-destructive hover:bg-destructive/10 px-1.5" onClick={() => stopSponsorship(app.id)}>
+                          <Button size="sm" variant="ghost" className="text-[11px] h-7 sm:h-6 text-destructive hover:bg-destructive/10 px-1.5" onClick={() => stopSponsorship(app.id)}>
                             <XCircle size={11} />
                           </Button>
                         </div>
@@ -663,11 +663,11 @@ const StudentManagement = ({ applications, schools, expenses, claims, reportCard
                             </div>
                           </div>
                         ) : app.admin_notes ? (
-                          <p className="text-[10px] text-foreground/60 bg-folder-inner/50 p-1.5 rounded cursor-pointer truncate" onClick={(e) => { e.stopPropagation(); setEditNotesId(app.id); setEditNotesValue(app.admin_notes || ""); }}>
+                          <p className="text-[10px] text-primary-foreground/70 dark:text-foreground/70 bg-folder-inner/50 p-1.5 rounded cursor-pointer truncate" onClick={(e) => { e.stopPropagation(); setEditNotesId(app.id); setEditNotesValue(app.admin_notes || ""); }}>
                             📝 {app.admin_notes}
                           </p>
                         ) : (
-                          <button className="text-[10px] text-foreground/50 hover:text-primary" onClick={(e) => { e.stopPropagation(); setEditNotesId(app.id); setEditNotesValue(""); }}>
+                          <button className="text-[10px] text-primary-foreground/60 dark:text-foreground/60 hover:text-primary-foreground dark:hover:text-foreground" onClick={(e) => { e.stopPropagation(); setEditNotesId(app.id); setEditNotesValue(""); }}>
                             + Add notes
                           </button>
                         )}
