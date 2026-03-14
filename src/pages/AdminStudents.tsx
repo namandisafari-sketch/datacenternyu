@@ -109,9 +109,6 @@ const AdminStudents = () => {
 
   return (
     <div className="p-4 sm:p-6 w-full space-y-6">
-      <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
-        <GraduationCap className="h-6 w-6 text-primary" /> Students
-      </h1>
       <StudentManagement
         applications={applications}
         schools={schools}
