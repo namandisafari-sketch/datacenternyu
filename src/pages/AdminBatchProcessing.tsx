@@ -1,9 +1,5 @@
-import { useState, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Layers, Upload, FileUp } from "lucide-react";
-import BatchUploader from "@/components/admin/BatchUploader";
+import { Layers } from "lucide-react";
 import ScannedDocumentSearch from "@/components/admin/ScannedDocumentSearch";
 import PDFImportSplitView from "@/components/admin/PDFImportSplitView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,28 +13,21 @@ const AdminBatchProcessing = () => {
     <div className="p-2 sm:p-3 w-full flex flex-col" style={{ height: "calc(100vh - 64px)" }}>
       <div className="flex items-center gap-2 mb-1">
         <h1 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
-          <Layers className="h-5 w-5 text-primary" /> Batch Processing
+          <Layers className="h-5 w-5 text-primary" /> Sort Applications
         </h1>
       </div>
 
-      <Tabs defaultValue="upload" className="flex-1 flex flex-col min-h-0">
+      <Tabs defaultValue="sort" className="flex-1 flex flex-col min-h-0">
         <TabsList className="shrink-0">
-          <TabsTrigger value="upload" className="gap-1.5">
-            <Upload className="h-4 w-4" /> Upload & Process
-          </TabsTrigger>
-          <TabsTrigger value="pdf-import" className="gap-1.5">
-            <FileUp className="h-4 w-4" /> PDF Import
+          <TabsTrigger value="sort" className="gap-1.5">
+            Sort & Link
           </TabsTrigger>
           <TabsTrigger value="search" className="gap-1.5">
             Search Documents
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="upload" className="mt-2 flex-1 min-h-0 overflow-auto">
-          <BatchUploader userId={user.id} />
-        </TabsContent>
-
-        <TabsContent value="pdf-import" className="mt-0 flex-1 min-h-0">
+        <TabsContent value="sort" className="mt-0 flex-1 min-h-0">
           <PDFImportSplitView userId={user.id} />
         </TabsContent>
 
