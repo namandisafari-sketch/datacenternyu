@@ -164,178 +164,113 @@ export const generateEnglishDocumentHTML = (r: Record<string, any>, signatureUrl
 
 export const generateLugandaDocumentHTML = (r: Record<string, any>, signatureUrl: string | null, submittedAt: string) => {
   const dateStr = new Date(submittedAt).toLocaleDateString("en-UG", { day: "numeric", month: "long", year: "numeric" });
-  const dl = (width = 200) => `<span style="border-bottom:1px dotted #000;display:inline-block;min-width:${width}px">&nbsp;</span>`;
-  const fv = (val: string | undefined, width = 200) =>
-    val
-      ? `<span style="border-bottom:1px dotted #000;padding:0 4px;min-width:${width}px;display:inline-block">${val}</span>`
-      : dl(width);
+  const dots = (n = 40) => ".".repeat(n);
+  const fv = (val: string | undefined, n = 40) => val || dots(n);
 
   return `
-<div style="font-family:'Times New Roman',serif;color:#000;background:#fff;padding:40px 50px;max-width:210mm;margin:0 auto;font-size:12pt;line-height:1.8">
-  ${r.application_number ? `<p style="text-align:right;font-size:10pt;margin:0 0 6px 0"><em>Application No: ${r.application_number}</em></p>` : ""}
+<div style="font-family:'Times New Roman',serif;color:#000;background:#fff;padding:30px 70px 30px 70px;max-width:210mm;margin:0 auto;font-size:12pt;line-height:1.7">
 
-  <p style="font-weight:bold;font-size:12pt;text-decoration:underline;text-align:center;margin-bottom:2px;text-transform:uppercase">
-    ENTEESEGANYA N'OKUKKAANYA EBITUUKIDDWAKO WAKATI W'ESSOMERO LYA ${fv(r.essomero, 180)}
+  <!-- HEADER matching original italic underlined style with dotted leaders -->
+  <p style="text-align:center;margin:0 0 2px 0;font-size:12pt">
+    <em><u><strong>ENTEESEGANYA N&rsquo;OKUKKAANYA EBITUUKIDDWAKO WAKATI W&rsquo;ESSOMERO LYA</strong></u></em> ${dots(20)}
   </p>
-  <p style="text-align:center;font-size:12pt;margin:4px 0">
-    ${fv(r.essomero, 280)} <strong>NYUNGA FOUNDATION, N'OMUZADDE WA</strong>
+  <p style="text-align:center;margin:2px 0;font-size:12pt">
+    ${dots(50)} <strong>NYUNGA FOUNDATION, N&rsquo;OMUZADDE WA</strong>
   </p>
-  <p style="text-align:center;font-size:12pt;margin:4px 0">
-    ${fv(r.omuzadde_erinnya, 280)} <strong>AGENDA MU</strong> ${fv(r.agenda, 80)} <strong>OMWAKA</strong> ${fv(r.omwaka, 80)}
-  </p>
-
-  <p style="margin-top:14px;text-indent:30px;text-align:justify">
-    Oluvanyuma lwa Nyunga Foundation okusaba e ssomero lino ku lwa Foundation liweeyo bbasale ezijjudde ziweebwe abayizi abatalina busobozi bwa ssente bumala kubongerayo kusoma, e ssomero lyakiriza neriwaayo bbasale zino abayizi basome nga tebasasula bisale bye ssomero (Tuition Fees) okutuusa buli muyizi lwalimaliriza omutendera kwabeera ayingiridde mu ssomero lino.
+  <p style="text-align:center;margin:2px 0;font-size:12pt">
+    ${dots(50)} <strong>AGENDA MU</strong> ${dots(12)} <strong>OMWAKA</strong>${dots(16)}
   </p>
 
-  <p style="text-indent:30px;text-align:justify">
-    Abazadde n'abayizi abenjawulo bwe baategeezebwa ku mukisa guno, baawaayo okusaba kwabwe mu buwandiike nga baagala bayambibwe mu nteekateeka eno era bino wammanga bikaanyizidwaako olwaleero nga ennaku z'omwezi ${fv(r.ennaku_z_omwezi, 250)}
-  </p>
+  <!-- Body paragraph 1 - indented -->
+  <p style="margin-top:14px;text-indent:40px;text-align:justify">Oluvanyuma lwa Nyunga Foundation okusaba e ssomero lino ku lwa Foundation liweeyo bbasale ezijjudde ziweebwe abayizi abatalina busobozi bwa ssente bumala kubongerayo kusoma, e ssomero lyakiriza neriwaayo bbasale zino abayizi basome nga tebasasula bisale bye ssomero (Tuition Fees) okutuusa buli muyizi lwalimaliriza omutendera kwabeera ayingiridde mu ssomero lino.</p>
 
-  <p style="font-weight:bold;margin-top:16px">
-    1. &nbsp;&nbsp;(a) Bbasale eri ku bisale bya Ssomero (tuition fees) ebbanga lyonna. Omuyizi taggya kusasulanga "school fees" (tuition fees) ekisera kyonna kyanaamala nga asoma kumutendera guno mu ssomero lino. Omuyizi wakusasulanga byetaago bya ssomero byokka ebikkanyizidwako nga omwana aweebwa e kifo mu ssomero lino.
-  </p>
+  <!-- Body paragraph 2 - indented -->
+  <p style="text-indent:40px;text-align:justify;margin-top:8px">Abazadde n&rsquo;abayizi abenjawulo bwe baategeezebwa ku mukisa guno, baawaayo okusaba kwabwe mu buwandiike nga baagala bayambibwe mu nteekateeka eno era bino wammanga bikaanyizidwaako olwaleero nga ennaku z&rsquo;omwezi ${dots(50)}</p>
 
-  <p style="margin-left:30px;text-align:justify">
-    <strong>(b) Essomero teryefuulire muzadde na mwana</strong> nga lisaba e bisale by'essomero (Tuition fees) ekiseera kyonna omwana kyanaamala nga asoma ku mutendera guno gwayingirideko.
-  </p>
+  <!-- SECTION 1 -->
+  <p style="margin-top:14px;text-align:justify;margin-bottom:4px"><strong>1.</strong> &nbsp;&nbsp;<strong>(a)</strong> Bbasale eri ku bisale bya Ssomero (tuition fees) ebbanga lyonna. Omuyizi taggya kusasulanga &ldquo;school fees&rdquo; (tuition fees) ekisera kyonna kyanaamala nga asoma kumutendera guno mu ssomero lino. Omuyizi wakusasulanga byetaago bya ssomero byokka ebikkanyizidwako nga omwana aweebwa e kifo mu ssomero lino.</p>
 
-  <p style="margin-left:30px;text-align:justify">
-    <strong>(c)</strong> Omuzadde alina okuba ng'akkirizza era nga asobola okusasula ebyetaago by'essomero (school requirements) ebiragiddwa nga omwana atandika okusoma. Kuno kuliko ebisasulwa buli lusoma (Termly requirements) n'ebisasulwa omulundi ogumu nga omwana ayingira mu ssomero nga bwe biragiddwa ku bbaluwa ewa omwana ekifo.
-  </p>
+  <p style="margin-left:32px;text-align:justify;margin-top:6px;margin-bottom:4px"><strong>(b) Essomero teryefuulire muzadde na mwana</strong> nga lisaba e bisale by&rsquo;essomero (Tuition fees) ekiseera kyonna omwana kyanaamala nga asoma ku mutendera guno gwayingirideko.</p>
 
-  <p style="margin-left:30px;text-align:justify">
-    <strong>(d)</strong> Omuzadde alina okuba nga asobola okuwa omwana we ebyetaago ebimuyamba mu kusoma nga omuyizi, bino bikyuuka okusinziira ku muyizi kyaaba yeetaaga.
-  </p>
+  <p style="margin-left:32px;text-align:justify;margin-top:6px;margin-bottom:4px"><strong>(c)</strong> Omuzadde alina okuba ng&rsquo;akkirizza era nga asobola okusasula ebyetaago by&rsquo;essomero (school requirements) ebiragiddwa nga omwana atandika okusoma. Kuno kuliko ebisasulwa buli lusoma (Termly requirements) n&rsquo;ebisasulwa omulundi ogumu nga omwana ayingira mu ssomero nga bwe biragiddwa ku bbaluwa ewa omwana ekifo.</p>
 
-  <p style="font-weight:bold;margin-top:16px">
-    2. (a) Omuyizi wa kusoma emyaka ${fv(r.emyaka_okusoma, 80)} nga takyusizza ssomero kugenda mu ddala.
-  </p>
+  <p style="margin-left:32px;text-align:justify;margin-top:6px;margin-bottom:4px"><strong>(d)</strong> Omuzadde alina okuba nga asobola okuwa omwana we ebyetaago ebimuyamba mu kusoma nga omuyizi, bino bikyuuka okusinziira ku muyizi kyaaba yeetaaga.</p>
 
-  <p style="margin-left:30px;text-align:justify">
-    <strong>(b)</strong> Singa e kiseera kituuka omuzadde n'omuyizi nebaagala okukyuusa e ssomero awatali buzibu bwonna butebeereka, nga kino bakikola lwakuba bafunye ssente ezimala okuweerera omwana ewalala yonna gye baagala, balina okusooka okusasula ebisale by'essomero (tuition fees) eby'ekiseera kyonna omwana kyasomedde mu ssomero lino awatali kwekwaasa nsonga yonna.
-  </p>
+  <!-- SECTION 2 -->
+  <p style="margin-top:14px;text-align:justify;margin-bottom:4px"><strong>2. (a)</strong> Omuyizi wa kusoma emyaka ${dots(20)} nga takyusizza ssomero kugenda mu ddala.</p>
 
-  <p style="font-weight:bold;margin-top:16px">
-    3. (a) Omuzadde n'omwana balina okukkiriza n'okugoberera enteekateeka n'amateeka g'essomero gonna.
-  </p>
+  <p style="margin-left:32px;text-align:justify;margin-top:6px;margin-bottom:4px"><strong>(b)</strong> Singa e kiseera kituuka omuzadde n&rsquo;omuyizi nebaagala okukyuusa e ssomero awatali buzibu bwonna butebeereka, nga kino bakikola lwakuba bafunye ssente ezimala okuweerera omwana ewalala yonna gye baagala, balina okusooka okusasula ebisale by&rsquo;essomero (tuition fees) eby&rsquo;ekiseera kyonna omwana kyasomedde mu ssomero lino awatali kwekwaasa nsonga yonna.</p>
 
-  <p style="margin-left:30px;text-align:justify">
-    <strong>(b)</strong> Singa omuyizi n'omuzadde balemererwa okugoberera enteekateeka n'amateeka g'essomero, omwana ajibwako omukisa gwa bbasale nazzibwa e waka.
-  </p>
+  <!-- SECTION 3 -->
+  <p style="margin-top:14px;text-align:justify;margin-bottom:4px"><strong>3. (a)</strong> Omuzadde n&rsquo;omwana balina okukkiriza n&rsquo;okugoberera enteekateeka n&rsquo;amateeka g&rsquo;essomero gonna.</p>
 
-  <p style="font-weight:bold;margin-top:16px">
-    4 (a) Kunkomerero yabuli lusoma, alipoota y'omuyizi ey'olusoma olwo, erireetebwanga ku Kkakkalabizo lya Nyunga Foundation okuva ku ssomero kisobozese okulondoola ensoma y'Omwana.
-  </p>
+  <p style="margin-left:32px;text-align:justify;margin-top:6px;margin-bottom:4px"><strong>(b)</strong> Singa omuyizi n&rsquo;omuzadde balemererwa okugoberera enteekateeka n&rsquo;amateeka g&rsquo;essomero, omwana ajibwako omukisa gwa bbasale nazzibwa e waka.</p>
 
-  <p style="margin-left:30px;text-align:justify">
-    Oluvanyuma omuyizi n'omuzadde baliyitibwa mu lukiiko kisobozese okwogerako n'Omwana, okumanya ebimusomooza ku ssomero, okumuzzaamu amanyi n'essubi aleme okuva ku mulamwa gw'okusoma n'Omuzadde okwogerako naye n'okumujjukiza obuvunanyizibwa bwe eri omwana ne ssomero.
-  </p>
+  <!-- SECTION 4 -->
+  <p style="margin-top:14px;text-align:justify;margin-bottom:4px"><strong>4 (a)</strong> Kunkomerero yabuli lusoma, alipoota y&rsquo;omuyizi ey&rsquo;olusoma olwo, erireetebwanga ku Kkakkalabizo lya Nyunga Foundation okuva ku ssomero kisobozese okulondoola ensoma y&rsquo;Omwana.</p>
 
-  <p style="margin-left:30px;text-align:justify">
-    Oluvanyuma lw'olukiiko omuyizi aliwebwanga alipoota y'olusoma olwo oluweddeko n'ebbaluwa erimuzangayo ku ssomero olusoma olulibanga luddirira. Olw'enteekateeka eno n'ebirala, Omuzadde aliretanga 50,000/= zokka.
-  </p>
+  <p style="margin-left:32px;text-align:justify;margin-top:6px;margin-bottom:4px">Oluvanyuma omuyizi n&rsquo;omuzadde baliyitibwa mu lukiiko kisobozese okwogerako n&rsquo;Omwana, okumanya ebimusomooza ku ssomero, okumuzzaamu amanyi n&rsquo;essubi aleme okuva ku mulamwa gw&rsquo;okusoma n&rsquo;Omuzadde okwogerako naye n&rsquo;okumujjukiza obuvunanyizibwa bwe eri omwana ne ssomero.</p>
 
-  <p style="margin-left:30px;text-align:justify">
-    <strong>(b)</strong> Essomero lirina okutwala obuvunanyizibwa okusomesa omwana okulaba ng'akuuma omutindo kwayingiridde n'okusingawo.
-  </p>
+  <p style="margin-left:32px;text-align:justify;margin-top:6px;margin-bottom:4px">Oluvanyuma lw&rsquo;olukiiko omuyizi aliwebwanga alipoota y&rsquo;olusoma olwo oluweddeko n&rsquo;ebbaluwa erimuzangayo ku ssomero olusoma olulibanga luddirira. Olw&rsquo;enteekateeka eno n&rsquo;ebirala, Omuzadde aliretanga 50,000/= zokka.</p>
 
-  <p style="font-weight:bold;margin-top:16px">
-    5. Okutandika n'olusoma olwokubiri (term II) 2026, omuzadde wakusasulanga ${fv(r.functional_fees_lg, 180)} ez'ebyetaago by'essomero (functional fees) ne ${fv("", 180)} ez'obujjanjabi bwomwana obusookerwako singa abeera alwadde.
-  </p>
+  <p style="margin-left:32px;text-align:justify;margin-top:6px;margin-bottom:4px"><strong>(b)</strong> Essomero lirina okutwala obuvunanyizibwa okusomesa omwana okulaba ng&rsquo;akuuma omutindo kwayingiridde n&rsquo;okusingawo.</p>
 
-  <!-- PAGE 2 MARKER -->
+  <!-- SECTION 5 -->
+  <p style="margin-top:14px;text-align:justify;margin-bottom:4px"><strong>5.</strong> Okutandika n&rsquo;olusoma olwokubiri (term II) 2026, omuzadde wakusasulanga ${dots(20)} ez&rsquo;ebyetaago by&rsquo;essomero (functional fees) ne ${dots(20)} ez&rsquo;obujjanjabi bwomwana obusookerwako singa abeera alwadde.</p>
+
+  <!-- Page 1 footer -->
+  <p style="text-align:left;font-size:10pt;margin-top:30px;color:#555"><em>1 | P a g e</em></p>
+
+  <!-- PAGE BREAK -->
   <div style="page-break-before:always"></div>
 
-  <p style="font-weight:bold;margin-top:20px;text-decoration:underline;font-size:12pt">
-    OKUWA OBWEYAMO:
-  </p>
-  <p style="text-align:justify">
-    Ffe abatadeko emikono wano wammanga, nga tetukakiddwa era tutegeera bulungi, tukkirizza okugoberera n'okuteekesa mu nkola byonna ebikaanyizidwako nga bwe biri mu kiwandiiko kino.
-  </p>
+  <!-- PAGE 2: OKUWA OBWEYAMO -->
+  <p style="margin-top:10px;margin-bottom:6px;text-align:justify"><strong><u>OKUWA OBWEYAMO:</u></strong> Ffe abatadeko emikono wano wammanga, nga tetukakiddwa era tutegeera bulungi, tukkirizza okugoberera n&rsquo;okuteekesa mu nkola byonna ebikaanyizidwako nga bwe biri mu kiwandiiko kino.</p>
 
-  <!-- Signature blocks matching the original document layout -->
-  <div style="margin-top:24px">
-    <p><strong>(i)</strong> &nbsp;&nbsp;<strong>Omuzadde</strong></p>
-    <table style="width:100%;border:none;border-collapse:collapse;font-size:12pt;margin-left:20px" cellpadding="0" cellspacing="0">
-      <tr>
-        <td style="width:50%;border:none;padding:4px 0">Erinnya ${fv(r.omuzadde_erinnya_sign || r.omuzadde_erinnya, 200)}</td>
-        <td style="width:50%;border:none;padding:4px 0">Omukono ${signatureUrl ? `<img src="${signatureUrl}" style="height:35px;vertical-align:middle;margin-left:4px"/>` : dl(150)}</td>
-      </tr>
-      <tr>
-        <td style="border:none;padding:4px 0">Essimu ${fv(r.omuzadde_essimu, 200)}</td>
-        <td style="border:none;padding:4px 0">Ennaku z'Omwezi ${fv(dateStr, 150)}</td>
-      </tr>
-    </table>
+  <!-- SIGNATURE BLOCKS - matching original (i) through (v) layout -->
+  <div style="margin-top:20px">
+    <p style="margin-bottom:4px"><strong>(i)</strong> &nbsp;&nbsp;&nbsp;<strong>Omuzadde</strong></p>
+    <p style="margin-left:28px;margin-bottom:2px">Erinnya ${dots(30)} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Omukono${signatureUrl ? `<img src="${signatureUrl}" style="height:35px;vertical-align:middle;margin-left:4px"/>` : dots(20)}</p>
+    <p style="margin-left:28px;margin-bottom:2px">Essimu ${dots(30)} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ennaku z&rsquo;Omwezi${dots(20)}</p>
   </div>
 
-  <div style="margin-top:16px">
-    <p><strong>(ii)</strong> &nbsp;&nbsp;<strong>Omuyizi</strong></p>
-    <table style="width:100%;border:none;border-collapse:collapse;font-size:12pt;margin-left:20px" cellpadding="0" cellspacing="0">
-      <tr>
-        <td style="width:50%;border:none;padding:4px 0">Erinnya ${fv(r.omuyizi_erinnya, 200)}</td>
-        <td style="width:50%;border:none;padding:4px 0">Omukono ${dl(150)}</td>
-      </tr>
-      <tr>
-        <td style="border:none;padding:4px 0">Essimu ${fv(r.omuyizi_essimu, 200)}</td>
-        <td style="border:none;padding:4px 0">Ennaku z'Omwezi ${dl(150)}</td>
-      </tr>
-    </table>
+  <div style="margin-top:14px">
+    <p style="margin-bottom:4px"><strong>(ii)</strong> &nbsp;&nbsp;&nbsp;<strong>Omuyizi</strong></p>
+    <p style="margin-left:28px;margin-bottom:2px">Erinnya ${dots(30)} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Omukono${dots(20)} &nbsp; Ennaku z&rsquo;Omwezi${dots(16)}</p>
   </div>
 
-  <div style="margin-top:16px">
-    <p><strong>(iii)</strong> &nbsp;&nbsp;<strong>Ssenkulu w'essomero (Director).</strong></p>
-    <table style="width:100%;border:none;border-collapse:collapse;font-size:12pt;margin-left:20px" cellpadding="0" cellspacing="0">
-      <tr>
-        <td style="width:50%;border:none;padding:4px 0">Erinnya ${fv(r.ssenkulu_essomero, 200)}</td>
-        <td style="width:50%;border:none;padding:4px 0">Omukono ${dl(150)}</td>
-      </tr>
-      <tr>
-        <td style="border:none;padding:4px 0">Ennaku z'Omwezi ${dl(200)}</td>
-        <td style="border:none;padding:4px 0">Omukono ${dl(150)}</td>
-      </tr>
-    </table>
+  <div style="margin-top:14px">
+    <p style="margin-bottom:4px"><strong>(iii)</strong> &nbsp;&nbsp;&nbsp;<strong>Ssenkulu w&rsquo;essomero (Director).</strong></p>
+    <p style="margin-left:28px;margin-bottom:2px">Erinnya ${dots(30)} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Omukono${dots(20)}</p>
+    <p style="margin-left:28px;margin-bottom:2px">Essimu ${dots(30)} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ennaku z&rsquo;Omwezi${dots(20)}</p>
   </div>
 
-  <div style="margin-top:16px">
-    <p><strong>(iv)</strong> &nbsp;&nbsp;<strong>Ssenkulu wa Nyunga Foundation</strong></p>
-    <table style="width:100%;border:none;border-collapse:collapse;font-size:12pt;margin-left:20px" cellpadding="0" cellspacing="0">
-      <tr>
-        <td style="width:50%;border:none;padding:4px 0">Essimu ${dl(200)}</td>
-        <td style="width:50%;border:none;padding:4px 0">Omukono ${dl(150)}</td>
-      </tr>
-      <tr>
-        <td style="border:none;padding:4px 0">Erinnya ${dl(200)}</td>
-        <td style="border:none;padding:4px 0">Ennaku z'Omwezi ${dl(150)}</td>
-      </tr>
-    </table>
+  <div style="margin-top:14px">
+    <p style="margin-bottom:4px"><strong>(iv)</strong> &nbsp;&nbsp;&nbsp;<strong>Ssenkulu wa Nyunga Foundation</strong></p>
+    <p style="margin-left:28px;margin-bottom:2px">Essimu ${dots(30)} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Omukono${dots(20)}</p>
+    <p style="margin-left:28px;margin-bottom:2px">Erinnya ${dots(30)} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ennaku z&rsquo;Omwezi${dots(20)}</p>
   </div>
 
-  <div style="margin-top:16px">
-    <p><strong>(v)</strong> &nbsp;&nbsp;<strong>Munnamateeka alambise enteekateeka eno era avunanyizibwa okugirondoola okukakasa nti enteekebwa mu nkola buli muntu okutuukiriza obuvunanyizibwa bwe.</strong></p>
-    <table style="width:100%;border:none;border-collapse:collapse;font-size:12pt;margin-left:20px" cellpadding="0" cellspacing="0">
-      <tr>
-        <td style="width:50%;border:none;padding:4px 0">Essimu ${dl(200)}</td>
-        <td style="width:50%;border:none;padding:4px 0">Omukono <img src="${lawyerSignatureImg}" alt="Advocate Signature" style="height:35px;vertical-align:middle;margin-left:4px"/></td>
-      </tr>
-      <tr>
-        <td style="border:none;padding:4px 0">Erinnya ${dl(200)}</td>
-        <td style="border:none;padding:4px 0">Ennaku z'Omwezi ${fv(dateStr, 150)}</td>
-      </tr>
-    </table>
+  <div style="margin-top:14px">
+    <p style="margin-bottom:4px"><strong>(v)</strong> &nbsp;&nbsp;&nbsp;<strong>Munnamateeka alambise enteekateeka eno era avunanyizibwa okugirondoola okukakasa nti</strong></p>
+    <p style="margin-left:28px;margin-bottom:4px"><strong>enteekebwa mu nkola buli muntu okutuukiriza obuvunanyizibwa bwe.</strong></p>
+    <p style="margin-left:28px;margin-bottom:2px">Essimu ${dots(30)} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Omukono <img src="${lawyerSignatureImg}" alt="Advocate Signature" style="height:35px;vertical-align:middle;"/></p>
+    <p style="margin-left:28px;margin-bottom:2px">Erinnya ${dots(30)} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ennaku z&rsquo;Omwezi: ${dateStr}</p>
   </div>
 
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:30px;padding-top:10px;border-top:1px solid #ccc">
-    <p style="font-weight:bold;font-size:12pt">ETEESEGANYA EKOMYE WANO</p>
+  <!-- FOOTER with ETEESEGANYA EKOMYE WANO and STAMP -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:28px;padding-top:10px">
+    <div>
+      <p style="font-weight:bold;font-size:12pt;margin:0"><strong>ETEESEGANYA EKOMYE WANO</strong></p>
+    </div>
     <div style="text-align:center">
-      <p style="font-weight:bold;font-size:11pt;margin-bottom:4px">STAMP</p>
+      <p style="font-weight:bold;font-size:11pt;margin:0 0 4px 0">STAMP</p>
       <img src="${lawyerStampImg}" alt="Advocate Stamp" style="height:80px;opacity:0.9;transform:rotate(-5deg)"/>
     </div>
   </div>
 
-  <div style="margin-top:20px;border-top:1px solid #000;padding-top:8px;text-align:center">
-    <p style="font-size:9px;color:#555">This document was generated electronically by Nyunga Foundation Bursary Management System. Submitted on ${dateStr}.</p>
-  </div>
+  <!-- Page 2 footer -->
+  <p style="text-align:left;font-size:10pt;margin-top:20px;color:#555"><em>2 | P a g e</em></p>
 </div>`;
 };
 
