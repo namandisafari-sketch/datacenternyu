@@ -91,6 +91,15 @@
     --sidebar-accent-foreground: 210 20% 94%;
     --sidebar-border: 215 30% 18%;
     --sidebar-ring: 40 95% 55%;
+
+    /* Folder rack tokens - dark mode */
+    --folder-body: 41 70% 38%;
+    --folder-body-light: 42 65% 45%;
+    --folder-tab: 40 65% 32%;
+    --folder-tab-light: 42 60% 42%;
+    --folder-inner: 43 40% 22%;
+    --folder-shadow: 38 40% 15%;
+    --folder-rack-bg: 215 35% 14%;
   }
 }
 
