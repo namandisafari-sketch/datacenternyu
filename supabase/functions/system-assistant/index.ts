@@ -122,7 +122,6 @@ const TOOLS = [
 ];
 
 async function executeQuery(sql: string): Promise<string> {
-  // Safety: only allow SELECT
   const normalized = sql.trim().toUpperCase();
   if (!normalized.startsWith("SELECT")) {
     return JSON.stringify({ error: "Only SELECT queries are allowed" });
@@ -138,12 +137,13 @@ async function executeQuery(sql: string): Promise<string> {
   try {
     const { data, error } = await supabase.rpc("execute_readonly_query", { query_text: sql });
     if (error) {
-      // Fallback: use REST API with raw PostgREST won't work, try direct pg
-      // Use the database URL directly
+      console.error("Query error:", error.message, "SQL:", sql);
       return JSON.stringify({ error: error.message });
     }
-    return JSON.stringify(data);
+    console.log("Query result for:", sql, "→", JSON.stringify(data));
+    return JSON.stringify(data ?? []);
   } catch (e) {
+    console.error("Query exception:", e);
     return JSON.stringify({ error: e instanceof Error ? e.message : "Query failed" });
   }
 }
