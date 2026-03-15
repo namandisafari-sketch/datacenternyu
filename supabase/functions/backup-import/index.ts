@@ -37,6 +37,35 @@ const IMPORT_ORDER = [
   "webauthn_credentials",
 ];
 
+// Tables that reference auth.users and should remap user_id to the importing admin
+const USER_FK_TABLES = ["profiles", "user_roles", "app_settings", "staff_profiles", "attendance_records", "trusted_devices", "webauthn_credentials"];
+
+// Columns to strip from user_id remapping (updated_by references)
+const UPDATED_BY_TABLES = ["app_settings"];
+
+async function getTableColumns(adminClient: any, tableName: string): Promise<Set<string>> {
+  // Query a single row with limit 0 to discover columns via the schema cache
+  // We'll use information_schema instead
+  const { data, error } = await adminClient.rpc("execute_readonly_query", {
+    query_text: `SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '${tableName.replace(/'/g, "''")}'`,
+  });
+  
+  if (error || !data) return new Set();
+  return new Set((data as any[]).map((r: any) => r.column_name));
+}
+
+function stripUnknownColumns(rows: any[], validColumns: Set<string>): any[] {
+  return rows.map((row) => {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(row)) {
+      if (validColumns.has(key)) {
+        cleaned[key] = value;
+      }
+    }
+    return cleaned;
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -73,21 +102,128 @@ Deno.serve(async (req) => {
     const { data: backupData, metadata } = body;
     const results: Record<string, { inserted: number; skipped: number; errors: string[] }> = {};
 
+    // Cache table columns to avoid repeated queries
+    const columnCache: Record<string, Set<string>> = {};
+
     // Process tables in dependency order
     const tablesToImport = IMPORT_ORDER.filter((t) => backupData[t] && backupData[t].length > 0);
 
     for (const table of tablesToImport) {
-      const rows = backupData[table];
+      let rows = backupData[table];
       results[table] = { inserted: 0, skipped: 0, errors: [] };
 
       if (!rows || rows.length === 0) continue;
 
-      // Insert in batches of 500, skip existing records
+      // Get valid columns for this table
+      if (!columnCache[table]) {
+        columnCache[table] = await getTableColumns(adminClient, table);
+      }
+      const validColumns = columnCache[table];
+
+      if (validColumns.size === 0) {
+        results[table].errors.push("Could not determine table schema");
+        continue;
+      }
+
+      // Strip unknown columns from backup data
+      rows = stripUnknownColumns(rows, validColumns);
+
+      // For tables with user_id FK to auth.users, remap to current admin user
+      // Skip profiles/user_roles/webauthn_credentials since those are user-specific
+      if (table === "profiles" || table === "user_roles" || table === "webauthn_credentials") {
+        // These tables are tightly coupled to auth.users - skip them on cross-project import
+        results[table].skipped = rows.length;
+        results[table].errors.push("Skipped: user-specific data cannot be imported across projects");
+        continue;
+      }
+
+      // For tables referencing user_id, remap to importing admin
+      if (table === "applications") {
+        rows = rows.map((r: any) => ({
+          ...r,
+          user_id: user.id,
+          reviewed_by: r.reviewed_by ? user.id : null,
+        }));
+      }
+
+      if (table === "app_settings") {
+        rows = rows.map((r: any) => ({
+          ...r,
+          updated_by: user.id,
+        }));
+      }
+
+      if (table === "staff_profiles" || table === "attendance_records") {
+        rows = rows.map((r: any) => ({
+          ...r,
+          user_id: user.id,
+        }));
+      }
+
+      if (table === "trusted_devices") {
+        rows = rows.map((r: any) => ({
+          ...r,
+          user_id: user.id,
+        }));
+      }
+
+      // For tables with recorded_by, remap
+      const recordedByTables = ["expenses", "parent_payments", "accounting_transactions", "petty_cash", "material_distributions"];
+      if (recordedByTables.includes(table)) {
+        rows = rows.map((r: any) => ({
+          ...r,
+          ...(r.recorded_by ? { recorded_by: user.id } : {}),
+          ...(r.distributed_by ? { distributed_by: user.id } : {}),
+        }));
+      }
+
+      if (table === "appointments" || table === "bursary_request_links" || table === "budget_allocations") {
+        rows = rows.map((r: any) => ({
+          ...r,
+          ...(r.created_by ? { created_by: user.id } : {}),
+        }));
+      }
+
+      if (table === "audit_logs" || table === "access_logs") {
+        rows = rows.map((r: any) => ({
+          ...r,
+          ...(r.user_id ? { user_id: user.id } : {}),
+        }));
+      }
+
+      if (table === "student_claims" || table === "lawyer_form_submissions") {
+        rows = rows.map((r: any) => ({
+          ...r,
+          ...(r.created_by ? { created_by: user.id } : {}),
+          ...(r.user_id ? { user_id: user.id } : {}),
+        }));
+      }
+
+      if (table === "payment_codes") {
+        rows = rows.map((r: any) => ({
+          ...r,
+          ...(r.created_by ? { created_by: user.id } : {}),
+          ...(r.used_by ? { used_by: user.id } : {}),
+        }));
+      }
+
+      if (table === "school_users") {
+        rows = rows.map((r: any) => ({
+          ...r,
+          user_id: user.id,
+        }));
+      }
+
+      // Insert in batches of 500, upsert to handle existing records
       const batchSize = 500;
       for (let i = 0; i < rows.length; i += batchSize) {
         const batch = rows.slice(i, i + batchSize);
-        const { data: inserted, error } = await adminClient.from(table).upsert(batch, { onConflict: "id", ignoreDuplicates: true }).select("id");
+        const { data: inserted, error } = await adminClient
+          .from(table)
+          .upsert(batch, { onConflict: "id", ignoreDuplicates: true })
+          .select("id");
         if (error) {
+          console.error(`Import error for ${table}:`, error.message);
           results[table].errors.push(`Batch ${Math.floor(i / batchSize) + 1}: ${error.message}`);
         } else {
           const insertedCount = inserted?.length || 0;
@@ -112,6 +248,7 @@ Deno.serve(async (req) => {
       details: results,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
+    console.error("Import error:", err);
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
