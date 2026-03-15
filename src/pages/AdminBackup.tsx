@@ -71,6 +71,8 @@ interface BackupMetadata {
 }
 
 const AdminBackup = () => {
+  const SKIPPED_TABLES = ["profiles", "user_roles", "webauthn_credentials"];
+
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [selectedTables, setSelectedTables] = useState<string[]>(ALL_TABLES);
@@ -78,6 +80,7 @@ const AdminBackup = () => {
   const [previewMeta, setPreviewMeta] = useState<BackupMetadata | null>(null);
   const [pendingBackupData, setPendingBackupData] = useState<any>(null);
   const [exportMeta, setExportMeta] = useState<BackupMetadata | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleTable = (table: string) => {
