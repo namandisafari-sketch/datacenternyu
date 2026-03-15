@@ -137,7 +137,7 @@ async function executeQuery(sql: string): Promise<string> {
   const supabase = createClient(supabaseUrl, serviceKey);
 
   try {
-    const { data, error } = await supabase.rpc("execute_readonly_query", { query_text: sql });
+    const { data, error } = await supabase.rpc("execute_readonly_query", { query_text: cleanSql });
     if (error) {
       console.error("Query error:", error.message, "SQL:", sql);
       return JSON.stringify({ error: error.message });
