@@ -8,9 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, Receipt, Building2, Save, Ticket, CalendarDays, Plus, X, Upload, Loader2, ImageIcon, Globe } from "lucide-react";
+import { Settings, Receipt, Building2, Save, Ticket, CalendarDays, Plus, X, Upload, Loader2, ImageIcon, Globe, ShieldCheck, ShieldOff } from "lucide-react";
 import PaymentCodesSection from "@/components/admin/PaymentCodesSection";
+import AdmissionSettings from "@/components/admin/AdmissionSettings";
 
 interface ReceiptConfig {
   orgName: string;
