@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import dataCentreBg from "@/assets/data-centre-bg.png";
 import GlobalSearch from "@/components/GlobalSearch";
 import ShortcutsHelp from "@/components/ShortcutsHelp";
+import kabejjaLogo from "@/assets/kabejja-logo.png";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 interface DashboardLayoutProps {
@@ -140,6 +141,12 @@ function DashboardContent({ children }: DashboardLayoutProps) {
         <div className="flex-1 overflow-auto">
           {children}
         </div>
+        <footer className="border-t border-border bg-muted/30 px-4 py-2 flex items-center justify-center gap-2 text-[10px] text-muted-foreground">
+          <img src={kabejjaLogo} alt="Kabejja Systems" className="h-5 w-5 rounded object-contain" />
+          <span>
+            Developed &amp; protected by <strong>Kabejja Systems</strong> · <a href="tel:+256745368426" className="underline">+256745368426</a> · <a href="https://www.kabejjasystems.store" target="_blank" rel="noopener noreferrer" className="underline">www.kabejjasystems.store</a>
+          </span>
+        </footer>
       </main>
 
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
