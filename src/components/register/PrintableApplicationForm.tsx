@@ -16,7 +16,7 @@ const dotLine = (width = "100%") => (
     style={{
       display: "inline-block",
       width,
-      borderBottom: "1px dotted #1a2456",
+      borderBottom: "1.5px dotted #1a2456",
       minWidth: "40px",
     }}
   />
