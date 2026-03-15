@@ -28,11 +28,12 @@ const logAccess = async (params: {
 };
 
 const Auth = () => {
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [authMethod, setAuthMethod] = useState<"passkey" | "email">("passkey");
-  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [loginForm, setLoginForm] = useState({ email: "", password: "", fullName: "" });
   const [deviceBlocked, setDeviceBlocked] = useState(false);
 
   const isInIframe = (() => {
@@ -115,6 +116,19 @@ const Auth = () => {
     } finally {
       sessionStorage.removeItem("device_check_pending");
       setLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await signUp(loginForm.email, loginForm.password, loginForm.fullName);
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Account created! You can now sign in.");
+      setIsSignUp(false);
     }
   };
 
@@ -229,20 +243,29 @@ const Auth = () => {
             </div>
           ) : (
             <>
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={isSignUp ? handleSignUp : handleLogin} className="space-y-4">
+                {isSignUp && (
+                  <div className="space-y-2">
+                    <Label htmlFor="full-name">Full Name</Label>
+                    <Input id="full-name" type="text" required value={loginForm.fullName} onChange={(e) => setLoginForm((p) => ({ ...p, fullName: e.target.value }))} />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
                   <Input id="login-email" type="email" required value={loginForm.email} onChange={(e) => setLoginForm((p) => ({ ...p, email: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Password</Label>
-                  <Input id="login-password" type="password" required value={loginForm.password} onChange={(e) => setLoginForm((p) => ({ ...p, password: e.target.value }))} />
+                  <Input id="login-password" type="password" required minLength={6} value={loginForm.password} onChange={(e) => setLoginForm((p) => ({ ...p, password: e.target.value }))} />
                 </div>
                 <Button type="submit" className="w-full bg-primary text-primary-foreground" disabled={loading}>
-                  {loading ? "Signing in..." : "Sign In"}
+                  {loading ? (isSignUp ? "Creating account..." : "Signing in...") : (isSignUp ? "Sign Up" : "Sign In")}
                 </Button>
               </form>
-              <div className="mt-4 text-center">
+              <div className="mt-4 text-center space-y-2">
+                <button onClick={() => setIsSignUp(!isSignUp)} className="text-sm text-primary hover:underline">
+                  {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
+                </button>
                 <button onClick={() => setAuthMethod("passkey")} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mx-auto">
                   <Fingerprint size={14} /> Use Passkey instead
                 </button>
