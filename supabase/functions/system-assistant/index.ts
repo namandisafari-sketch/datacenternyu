@@ -122,7 +122,9 @@ const TOOLS = [
 ];
 
 async function executeQuery(sql: string): Promise<string> {
-  const normalized = sql.trim().toUpperCase();
+  // Strip trailing semicolons - the model often adds them
+  const cleanSql = sql.trim().replace(/;+$/, '');
+  const normalized = cleanSql.toUpperCase();
   if (!normalized.startsWith("SELECT")) {
     return JSON.stringify({ error: "Only SELECT queries are allowed" });
   }
