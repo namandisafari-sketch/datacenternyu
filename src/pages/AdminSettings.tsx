@@ -8,9 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, Receipt, Building2, Save, Ticket, CalendarDays, Plus, X, Upload, Loader2, ImageIcon, Globe } from "lucide-react";
+import { Settings, Receipt, Building2, Save, Ticket, CalendarDays, Plus, X, Upload, Loader2, ImageIcon, Globe, ShieldCheck, ShieldOff } from "lucide-react";
 import PaymentCodesSection from "@/components/admin/PaymentCodesSection";
+import AdmissionSettings from "@/components/admin/AdmissionSettings";
 
 interface ReceiptConfig {
   orgName: string;
@@ -38,6 +41,85 @@ const defaultReceiptConfig: ReceiptConfig = {
   signatureTitle: "Program Director",
   applicationFormFee: 50000,
   lawyerFormFee: 200000,
+};
+
+const SkipPaymentCodeToggle = () => {
+  const [skipCode, setSkipCode] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "skip_payment_code")
+        .maybeSingle();
+      if (data?.value) {
+        const val = data.value as { enabled?: boolean };
+        setSkipCode(val?.enabled ?? false);
+      }
+      setLoading(false);
+    };
+    fetch();
+  }, []);
+
+  const toggle = async (newValue: boolean) => {
+    const { data: userData } = await supabase.auth.getUser();
+    const val = { enabled: newValue } as any;
+
+    const { data: existing } = await supabase
+      .from("app_settings")
+      .select("id")
+      .eq("key", "skip_payment_code")
+      .maybeSingle();
+
+    let error;
+    if (existing) {
+      ({ error } = await supabase
+        .from("app_settings")
+        .update({ value: val, updated_by: userData.user?.id })
+        .eq("key", "skip_payment_code"));
+    } else {
+      ({ error } = await supabase
+        .from("app_settings")
+        .insert({ key: "skip_payment_code", value: val, updated_by: userData.user?.id }));
+    }
+
+    if (error) {
+      toast.error("Failed to update setting");
+    } else {
+      setSkipCode(newValue);
+      toast.success(newValue ? "Payment code requirement disabled — workers can create applications freely" : "Payment code requirement re-enabled");
+    }
+  };
+
+  if (loading) return null;
+
+  return (
+    <Card>
+      <CardContent className="py-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            {skipCode ? <ShieldOff size={20} className="text-destructive" /> : <ShieldCheck size={20} className="text-primary" />}
+            <div>
+              <Label className="text-sm font-semibold">Auto-Consume Payment Codes</Label>
+              <p className="text-xs text-muted-foreground">
+                {skipCode
+                  ? "Workers can create applications without entering a payment code"
+                  : "Users must enter a valid payment code before creating an application"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Badge variant={skipCode ? "secondary" : "outline"} className="gap-1">
+              {skipCode ? "Skip Code" : "Code Required"}
+            </Badge>
+            <Switch checked={skipCode} onCheckedChange={toggle} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
 
 const AdminSettings = () => {
@@ -393,6 +475,8 @@ const AdminSettings = () => {
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-4">
+          <AdmissionSettings />
+          <SkipPaymentCodeToggle />
           <PaymentCodesSection />
         </TabsContent>
 

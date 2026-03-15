@@ -52,29 +52,35 @@ const Register = () => {
   const [lawyerResponses, setLawyerResponses] = useState<Record<string, Record<string, any>>>({});
   const [lawyerSignatureUrl, setLawyerSignatureUrl] = useState("");
 
-  // Admission lock
+  // Admission lock & skip payment code
   const [admissionLocked, setAdmissionLocked] = useState(false);
   const [checkingLock, setCheckingLock] = useState(true);
+  const [skipPaymentCode, setSkipPaymentCode] = useState(false);
 
   useEffect(() => {
     if (!user) navigate("/auth");
   }, [user, navigate]);
 
-  // Check admission lock
+  // Check admission lock and skip_payment_code
   useEffect(() => {
-    const checkLock = async () => {
-      const { data } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "admission_lock")
-        .single();
-      if (data) {
-        const val = data.value as { locked?: boolean };
+    const checkSettings = async () => {
+      const [lockRes, skipRes] = await Promise.all([
+        supabase.from("app_settings").select("value").eq("key", "admission_lock").maybeSingle(),
+        supabase.from("app_settings").select("value").eq("key", "skip_payment_code").maybeSingle(),
+      ]);
+      if (lockRes.data) {
+        const val = lockRes.data.value as { locked?: boolean };
         setAdmissionLocked(val?.locked ?? false);
+      }
+      if (skipRes.data) {
+        const val = skipRes.data.value as { enabled?: boolean };
+        const enabled = val?.enabled ?? false;
+        setSkipPaymentCode(enabled);
+        if (enabled) setCodeVerified(true);
       }
       setCheckingLock(false);
     };
-    checkLock();
+    checkSettings();
   }, []);
 
   useEffect(() => {
@@ -228,7 +234,7 @@ const Register = () => {
     if (error) {
       toast.error("Failed to submit: " + error.message);
     } else {
-      if (appData?.id && codeVerified && paymentCode) {
+      if (appData?.id && codeVerified && paymentCode && !skipPaymentCode) {
         const verifiedCode = await supabase
           .from("payment_codes")
           .select("id")
