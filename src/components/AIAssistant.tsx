@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -15,11 +16,13 @@ async function streamChat({
   onDelta,
   onDone,
   onError,
+  onActions,
 }: {
   messages: Message[];
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (err: string) => void;
+  onActions?: (actions: any[]) => void;
 }) {
   const resp = await fetch(CHAT_URL, {
     method: "POST",
@@ -36,6 +39,22 @@ async function streamChat({
     return;
   }
 
+  const contentType = resp.headers.get("content-type") || "";
+
+  // JSON response (tool call result)
+  if (contentType.includes("application/json")) {
+    const data = await resp.json();
+    if (data.content) {
+      onDelta(data.content);
+    }
+    if (data.actions?.length && onActions) {
+      onActions(data.actions);
+    }
+    onDone();
+    return;
+  }
+
+  // SSE streaming response
   if (!resp.body) {
     onError("No response stream");
     return;
@@ -81,12 +100,22 @@ const AIAssistant = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const handleActions = (actions: any[]) => {
+    for (const action of actions) {
+      if (action.type === "navigate") {
+        navigate(action.path);
+        toast.success(`Navigated to ${action.description}`);
+      }
+    }
+  };
 
   const send = async () => {
     const text = input.trim();
@@ -121,6 +150,7 @@ const AIAssistant = () => {
         toast.error(err);
         setLoading(false);
       },
+      onActions: handleActions,
     });
   };
 
@@ -138,7 +168,7 @@ const AIAssistant = () => {
         <button
           onClick={() => setOpen(true)}
           className="fixed bottom-20 right-4 z-50 md:bottom-6 md:right-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
-          aria-label="Open AI Assistant"
+          aria-label="Open Nyunga's Helper"
         >
           <Bot className="h-6 w-6" />
         </button>
@@ -162,7 +192,18 @@ const AIAssistant = () => {
               <div className="text-center text-muted-foreground text-sm py-8">
                 <Bot className="h-10 w-10 mx-auto mb-3 opacity-40" />
                 <p className="font-medium">Hi! I'm Nyunga's Helper.</p>
-                <p className="mt-1 text-xs">Ask me anything about the bursary system, its features, database, or workflows.</p>
+                <p className="mt-1 text-xs">I can navigate pages, query data, and answer questions about the system.</p>
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  {["How many students?", "Open applications", "Show pending apps"].map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => { setInput(q); }}
+                      className="text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-accent transition-colors"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
             {messages.map((msg, i) => (
@@ -202,7 +243,7 @@ const AIAssistant = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about the system..."
+              placeholder="Ask or command..."
               className="min-h-[40px] max-h-[80px] resize-none text-sm"
               rows={1}
             />
