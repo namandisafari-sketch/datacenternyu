@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Download, Upload, Loader2, ShieldCheck, AlertTriangle, CheckCircle2, FileJson, FileSpreadsheet, BarChart3, Database } from "lucide-react";
+import { Download, Upload, Loader2, ShieldCheck, AlertTriangle, CheckCircle2, FileJson, FileSpreadsheet, BarChart3, Database, Info, SkipForward } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const ALL_TABLES = [
@@ -69,6 +71,8 @@ interface BackupMetadata {
 }
 
 const AdminBackup = () => {
+  const SKIPPED_TABLES = ["profiles", "user_roles", "webauthn_credentials"];
+
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [selectedTables, setSelectedTables] = useState<string[]>(ALL_TABLES);
@@ -76,6 +80,7 @@ const AdminBackup = () => {
   const [previewMeta, setPreviewMeta] = useState<BackupMetadata | null>(null);
   const [pendingBackupData, setPendingBackupData] = useState<any>(null);
   const [exportMeta, setExportMeta] = useState<BackupMetadata | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleTable = (table: string) => {
@@ -354,19 +359,118 @@ const AdminBackup = () => {
             )}
 
             <Button
-              onClick={handleImport}
+              onClick={() => setShowConfirmDialog(true)}
               disabled={importing || !pendingBackupData}
               className="w-full bg-secondary text-secondary-foreground"
             >
-              {importing ? (
-                <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Importing...</>
-              ) : (
-                <><Upload className="h-4 w-4 mr-2" /> Restore Backup</>
-              )}
+              <Upload className="h-4 w-4 mr-2" /> Restore Backup
             </Button>
           </CardContent>
         </Card>
       </div>
+
+      {/* Import Confirmation Dialog */}
+      {previewMeta && (
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+                Confirm Import
+              </DialogTitle>
+              <DialogDescription>
+                Review what will be imported from backup exported on{" "}
+                <strong>{new Date(previewMeta.exported_at).toLocaleDateString()}</strong> by{" "}
+                <strong>{previewMeta.exported_by}</strong>.
+              </DialogDescription>
+            </DialogHeader>
+
+            <ScrollArea className="max-h-[50vh]">
+              <div className="space-y-4 pr-2">
+                {/* Will be imported */}
+                <div>
+                  <p className="text-sm font-medium flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                    Will be imported
+                  </p>
+                  <div className="grid grid-cols-1 gap-1">
+                    {previewMeta.tables
+                      .filter((t) => !SKIPPED_TABLES.includes(t) && (previewMeta.row_counts[t] || 0) > 0)
+                      .map((table) => (
+                        <div key={table} className="flex items-center justify-between text-xs px-2 py-1.5 rounded bg-primary/5 border border-primary/10">
+                          <span className="font-medium">{formatTableName(table)}</span>
+                          <Badge variant="secondary" className="text-[10px]">
+                            {previewMeta.row_counts[table]} rows
+                          </Badge>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Will be skipped - user tables */}
+                <div>
+                  <p className="text-sm font-medium flex items-center gap-2 mb-2">
+                    <SkipForward className="h-4 w-4 text-muted-foreground" />
+                    Will be skipped (user-specific)
+                  </p>
+                  <div className="grid grid-cols-1 gap-1">
+                    {SKIPPED_TABLES.filter((t) => previewMeta.tables.includes(t)).map((table) => (
+                      <div key={table} className="flex items-center justify-between text-xs px-2 py-1.5 rounded bg-muted/50 border border-border">
+                        <span className="text-muted-foreground">{formatTableName(table)}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {previewMeta.row_counts[table] || 0} rows — tied to original users
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Empty tables */}
+                {previewMeta.tables.filter((t) => !SKIPPED_TABLES.includes(t) && (previewMeta.row_counts[t] || 0) === 0).length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium flex items-center gap-2 mb-2">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                      Empty tables (nothing to import)
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {previewMeta.tables
+                        .filter((t) => !SKIPPED_TABLES.includes(t) && (previewMeta.row_counts[t] || 0) === 0)
+                        .map((t) => formatTableName(t))
+                        .join(", ")}
+                    </p>
+                  </div>
+                )}
+
+                <Alert className="border-muted bg-muted/30">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription className="text-xs">
+                    Existing records are never overwritten. User IDs will be remapped to your account. Unknown columns from older backups are automatically stripped.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            </ScrollArea>
+
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowConfirmDialog(false);
+                  handleImport();
+                }}
+                disabled={importing}
+              >
+                {importing ? (
+                  <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Importing...</>
+                ) : (
+                  <><Upload className="h-4 w-4 mr-2" /> Confirm Import</>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Data Visualization Section */}
       {activeMeta && barChartData.length > 0 && (
