@@ -36,6 +36,7 @@ import AdminBatchProcessing from "./pages/AdminBatchProcessing";
 import AdminAttendanceReports from "./pages/AdminAttendanceReports";
 import SchoolAttendancePortal from "./pages/SchoolAttendancePortal";
 import KabejjaAdPopup from "./components/KabejjaAdPopup";
+import AIAssistant from "./components/AIAssistant";
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
 });
@@ -105,6 +106,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <KabejjaAdPopup />
+          <AIAssistant />
           <AppContent />
         </AuthProvider>
       </BrowserRouter>

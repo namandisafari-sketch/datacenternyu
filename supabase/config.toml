@@ -1,1 +1,4 @@
 project_id = "cndswuqrhyqxiclnifvj"
+
+[functions.system-assistant]
+verify_jwt = false
