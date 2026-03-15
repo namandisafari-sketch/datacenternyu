@@ -35,7 +35,7 @@ import AdminPhotocopying from "./pages/AdminPhotocopying";
 import AdminBatchProcessing from "./pages/AdminBatchProcessing";
 import AdminAttendanceReports from "./pages/AdminAttendanceReports";
 import SchoolAttendancePortal from "./pages/SchoolAttendancePortal";
-
+import KabejjaAdPopup from "./components/KabejjaAdPopup";
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
 });
@@ -104,6 +104,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <KabejjaAdPopup />
           <AppContent />
         </AuthProvider>
       </BrowserRouter>
