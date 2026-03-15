@@ -27,6 +27,7 @@ import {
   Loader2,
 } from "lucide-react";
 import nyungaLogo from "@/assets/nyunga-foundation-logo.png";
+import kabejjaLogo from "@/assets/kabejja-logo.png";
 
 interface SchoolOption {
   id: string;
@@ -484,8 +485,14 @@ const SchoolAttendancePortal = () => {
         )}
       </main>
 
-      <footer className="text-center py-6 text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Nyunga Foundation. All rights reserved.
+      <footer className="text-center py-6 space-y-3">
+        <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Nyunga Foundation. All rights reserved.</p>
+        <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/70">
+          <img src={kabejjaLogo} alt="Kabejja Systems" className="h-6 w-6 rounded object-contain" />
+          <span>
+            Developed &amp; protected by <strong className="text-foreground/60">Kabejja Systems</strong> · <a href="tel:+256745368426" className="underline">+256745368426</a> · <a href="https://www.kabejjasystems.store" target="_blank" rel="noopener noreferrer" className="underline">www.kabejjasystems.store</a>
+          </span>
+        </div>
       </footer>
     </div>
   );
