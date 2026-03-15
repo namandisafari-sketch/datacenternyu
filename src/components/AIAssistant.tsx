@@ -150,7 +150,7 @@ const AIAssistant = () => {
           {/* Header */}
           <div className="flex items-center gap-2 px-4 py-3 border-b bg-primary text-primary-foreground">
             <Bot className="h-5 w-5" />
-            <span className="font-semibold text-sm flex-1">System Assistant</span>
+            <span className="font-semibold text-sm flex-1">Nyunga's Helper</span>
             <button onClick={() => setOpen(false)} className="hover:opacity-70">
               <X className="h-4 w-4" />
             </button>
@@ -161,7 +161,7 @@ const AIAssistant = () => {
             {messages.length === 0 && (
               <div className="text-center text-muted-foreground text-sm py-8">
                 <Bot className="h-10 w-10 mx-auto mb-3 opacity-40" />
-                <p className="font-medium">Hi! I'm your system assistant.</p>
+                <p className="font-medium">Hi! I'm Nyunga's Helper.</p>
                 <p className="mt-1 text-xs">Ask me anything about the bursary system, its features, database, or workflows.</p>
               </div>
             )}
