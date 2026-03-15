@@ -28,11 +28,12 @@ const logAccess = async (params: {
 };
 
 const Auth = () => {
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [authMethod, setAuthMethod] = useState<"passkey" | "email">("passkey");
-  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [loginForm, setLoginForm] = useState({ email: "", password: "", fullName: "" });
   const [deviceBlocked, setDeviceBlocked] = useState(false);
 
   const isInIframe = (() => {
