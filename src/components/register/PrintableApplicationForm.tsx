@@ -167,9 +167,9 @@ const PrintableApplicationForm = forwardRef<HTMLDivElement, PrintableApplication
             </div>
           </div>
 
-          <p style={{ fontStyle: "italic", fontSize: "9.5pt", marginBottom: "10px", borderTop: "1px solid #1a2456", paddingTop: "4px" }}>
-            <strong>This form is filled by applicants requesting for a bursary; it costs a non-refundable fee of UGX 50,000
-            for primary & secondary and UGX 90,000 for University and Higher Institutions.</strong>
+          <p style={{ fontSize: "9.5pt", marginBottom: "10px", borderTop: "1.5px solid #1a2456", paddingTop: "6px", lineHeight: 1.5 }}>
+            This form is filled by applicants requesting for a bursary; it costs a non-refundable fee of UGX 50,000
+            for primary &amp; secondary and UGX 90,000 for University and Higher Institutions.
           </p>
 
           {/* Section 1 */}
