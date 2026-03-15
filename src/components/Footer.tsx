@@ -1,4 +1,5 @@
 import { Shield } from "lucide-react";
+import kabejjaLogo from "@/assets/kabejja-logo.png";
 
 const Footer = () => (
   <footer className="bg-primary text-primary-foreground py-8">
@@ -14,6 +15,14 @@ const Footer = () => (
           <Shield size={14} />
           <span>Scholarship Management System &copy; {new Date().getFullYear()}</span>
         </div>
+      </div>
+      <div className="mt-6 pt-4 border-t border-primary-foreground/10 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs text-primary-foreground/50">
+        <img src={kabejjaLogo} alt="Kabejja Systems" className="h-8 w-8 rounded object-contain" />
+        <span className="text-center">
+          This system developed &amp; protected by <strong className="text-primary-foreground/70">Kabejja Systems</strong>. For quality custom systems development contact{" "}
+          <a href="tel:+256745368426" className="text-primary-foreground/70 underline">+256745368426</a> or visit{" "}
+          <a href="https://www.kabejjasystems.store" target="_blank" rel="noopener noreferrer" className="text-primary-foreground/70 underline">www.kabejjasystems.store</a>
+        </span>
       </div>
     </div>
   </footer>

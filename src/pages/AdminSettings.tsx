@@ -431,6 +431,47 @@ const AdminSettings = () => {
             </CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="domain" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" /> Custom Domain Configuration
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Connect your own domain to this system for a professional branded URL.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+                <h4 className="font-semibold text-sm">How to connect a custom domain</h4>
+                <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+                  <li>Go to your project's <strong>Settings → Domains</strong> in the Lovable dashboard.</li>
+                  <li>Click <strong>Connect Domain</strong> and enter your domain (e.g. kabejja.com).</li>
+                  <li>At your domain registrar, add the following DNS records:
+                    <div className="mt-2 bg-background rounded-md p-3 border border-border space-y-1 font-mono text-xs">
+                      <div><span className="text-primary font-semibold">A</span> &nbsp; @ &nbsp; → &nbsp; <span className="text-foreground">185.158.133.1</span></div>
+                      <div><span className="text-primary font-semibold">A</span> &nbsp; www &nbsp; → &nbsp; <span className="text-foreground">185.158.133.1</span></div>
+                      <div><span className="text-primary font-semibold">TXT</span> &nbsp; _lovable &nbsp; → &nbsp; <span className="text-foreground">lovable_verify=YOUR_CODE</span></div>
+                    </div>
+                  </li>
+                  <li>Wait for DNS propagation (up to 72 hours). SSL will be provisioned automatically.</li>
+                  <li>Add both <code className="text-xs bg-muted px-1 rounded">yourdomain.com</code> and <code className="text-xs bg-muted px-1 rounded">www.yourdomain.com</code> in Lovable.</li>
+                </ol>
+              </div>
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <p className="text-sm text-foreground">
+                  <strong>Current URL:</strong>{" "}
+                  <a href={window.location.origin} className="text-primary underline" target="_blank" rel="noopener noreferrer">
+                    {window.location.hostname}
+                  </a>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  To manage domains, open your Lovable project settings and navigate to the Domains section.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
