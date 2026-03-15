@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Download, Upload, Loader2, ShieldCheck, AlertTriangle, CheckCircle2, FileJson, FileSpreadsheet, BarChart3, Database } from "lucide-react";
+import { Download, Upload, Loader2, ShieldCheck, AlertTriangle, CheckCircle2, FileJson, FileSpreadsheet, BarChart3, Database, Info, SkipForward } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const ALL_TABLES = [
