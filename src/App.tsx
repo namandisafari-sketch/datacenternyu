@@ -104,6 +104,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <KabejjaAdPopup />
           <AppContent />
         </AuthProvider>
       </BrowserRouter>
