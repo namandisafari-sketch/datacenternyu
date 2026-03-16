@@ -849,7 +849,7 @@ const AdminStaff = () => {
 
       {/* ID Card Dialog */}
       <Dialog open={!!showIDCard} onOpenChange={(open) => { if (!open) setShowIDCard(null); }}>
-        <DialogContent className="max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[90vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
@@ -858,9 +858,24 @@ const AdminStaff = () => {
           </DialogHeader>
           {showIDCard && (
             <div className="space-y-4">
-              <div className="flex flex-col gap-6 items-center">
-                <StaffIDCard staff={showIDCard} side="front" />
-                <StaffIDCard staff={showIDCard} side="back" />
+              {/* Size Controls */}
+              <div className="flex items-center gap-3 justify-center">
+                <Label className="text-sm font-medium shrink-0">Card Size:</Label>
+                <input
+                  type="range"
+                  min="0.6"
+                  max="2"
+                  step="0.1"
+                  value={cardScale}
+                  onChange={(e) => setCardScale(parseFloat(e.target.value))}
+                  className="w-40"
+                />
+                <span className="text-sm text-muted-foreground w-12 text-center">{Math.round(cardScale * 100)}%</span>
+                <Button variant="outline" size="sm" onClick={() => setCardScale(1)}>Reset</Button>
+              </div>
+              <div className="flex flex-col gap-6 items-center overflow-auto">
+                <StaffIDCard staff={showIDCard} side="front" scale={cardScale} />
+                <StaffIDCard staff={showIDCard} side="back" scale={cardScale} />
               </div>
               <div className="flex gap-3 justify-center pt-2">
                 <Button variant="outline" className="gap-2" onClick={() => handleExportCard("front")}>
