@@ -1497,6 +1497,107 @@ export type Database = {
           },
         ]
       }
+      student_performance_scores: {
+        Row: {
+          application_id: string | null
+          average_marks: number | null
+          class_grade: string | null
+          created_at: string
+          grade: string | null
+          id: string
+          remarks: string | null
+          sheet_id: string
+          student_name: string
+          subjects: Json
+          total_marks: number | null
+        }
+        Insert: {
+          application_id?: string | null
+          average_marks?: number | null
+          class_grade?: string | null
+          created_at?: string
+          grade?: string | null
+          id?: string
+          remarks?: string | null
+          sheet_id: string
+          student_name: string
+          subjects?: Json
+          total_marks?: number | null
+        }
+        Update: {
+          application_id?: string | null
+          average_marks?: number | null
+          class_grade?: string | null
+          created_at?: string
+          grade?: string | null
+          id?: string
+          remarks?: string | null
+          sheet_id?: string
+          student_name?: string
+          subjects?: Json
+          total_marks?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_performance_scores_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_performance_scores_sheet_id_fkey"
+            columns: ["sheet_id"]
+            isOneToOne: false
+            referencedRelation: "student_performance_sheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_performance_sheets: {
+        Row: {
+          created_at: string
+          file_url: string | null
+          id: string
+          reporter_name: string | null
+          reporter_phone: string | null
+          school_id: string
+          status: string
+          term: string
+          year: string
+        }
+        Insert: {
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          reporter_name?: string | null
+          reporter_phone?: string | null
+          school_id: string
+          status?: string
+          term: string
+          year: string
+        }
+        Update: {
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          reporter_name?: string | null
+          reporter_phone?: string | null
+          school_id?: string
+          status?: string
+          term?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_performance_sheets_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trusted_devices: {
         Row: {
           created_at: string

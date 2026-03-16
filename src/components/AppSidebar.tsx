@@ -26,6 +26,7 @@ import {
   Printer,
   ScanLine,
   FileUp,
+  BarChart3,
 } from "lucide-react";
 import {
   Sidebar,
@@ -44,7 +45,7 @@ import {
 const iconMap: Record<string, any> = {
   LayoutDashboard, FileText, GraduationCap, School, Receipt, Settings,
   ShieldCheck, Users, CreditCard, Ticket, Banknote, PieChart, Search,
-  CalendarDays, Link2, Package, Calculator, ClipboardList, HardDrive, Printer, ScanLine, FileUp,
+  CalendarDays, Link2, Package, Calculator, ClipboardList, HardDrive, Printer, ScanLine, FileUp, BarChart3,
 };
 
 const allAdminItems = [
@@ -66,6 +67,7 @@ const allAdminItems = [
   { title: "Photocopying", url: "/admin/photocopying", icon: Printer, moduleKey: "photocopying" },
   { title: "Batch Processing", url: "/admin/batch-processing", icon: ScanLine, moduleKey: "batch-processing" },
   { title: "Attendance Reports", url: "/admin/attendance-reports", icon: FileUp, moduleKey: "attendance-reports" },
+  { title: "Performance Reports", url: "/admin/performance-reports", icon: BarChart3, moduleKey: "performance-reports" },
   
   { title: "Attendance", url: "/admin/attendance", icon: CalendarDays, moduleKey: "attendance" },
   { title: "Audit Logs", url: "/admin/audit-logs", icon: ClipboardList, moduleKey: "audit-logs" },
