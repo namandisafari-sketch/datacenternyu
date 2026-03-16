@@ -860,23 +860,24 @@ const AdminStaff = () => {
           {showIDCard && (
             <div className="space-y-4">
               {/* Size Controls */}
-              <div className="flex items-center gap-3 justify-center">
-                <Label className="text-sm font-medium shrink-0">Card Size:</Label>
-                <input
-                  type="range"
-                  min="0.6"
-                  max="2"
-                  step="0.1"
-                  value={cardScale}
-                  onChange={(e) => setCardScale(parseFloat(e.target.value))}
-                  className="w-40"
-                />
-                <span className="text-sm text-muted-foreground w-12 text-center">{Math.round(cardScale * 100)}%</span>
-                <Button variant="outline" size="sm" onClick={() => setCardScale(1)}>Reset</Button>
+              <div className="flex flex-wrap items-center gap-4 justify-center">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-medium shrink-0">Card Size:</Label>
+                  <input type="range" min="0.6" max="2" step="0.1" value={cardScale}
+                    onChange={(e) => setCardScale(parseFloat(e.target.value))} className="w-32" />
+                  <span className="text-sm text-muted-foreground w-12 text-center">{Math.round(cardScale * 100)}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-medium shrink-0">Logo Size:</Label>
+                  <input type="range" min="16" max="80" step="2" value={logoSize}
+                    onChange={(e) => setLogoSize(parseInt(e.target.value))} className="w-32" />
+                  <span className="text-sm text-muted-foreground w-12 text-center">{logoSize}px</span>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => { setCardScale(1); setLogoSize(32); }}>Reset</Button>
               </div>
               <div className="flex flex-col gap-6 items-center overflow-auto">
-                <StaffIDCard staff={showIDCard} side="front" scale={cardScale} />
-                <StaffIDCard staff={showIDCard} side="back" scale={cardScale} />
+                <StaffIDCard staff={showIDCard} side="front" scale={cardScale} logoSize={logoSize} />
+                <StaffIDCard staff={showIDCard} side="back" scale={cardScale} logoSize={logoSize} />
               </div>
               <div className="flex gap-3 justify-center pt-2">
                 <Button variant="outline" className="gap-2" onClick={() => handleExportCard("front")}>
