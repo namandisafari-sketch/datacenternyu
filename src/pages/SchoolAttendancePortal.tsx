@@ -92,8 +92,18 @@ const CURRENT_YEAR = new Date().getFullYear().toString();
 const SUBJECTS_BY_LEVEL: Record<string, string[]> = {
   nursery: ["Reading", "Writing", "Numeracy", "Oral Work", "Creative Arts", "Physical Education"],
   primary: ["Mathematics", "English", "Science", "Social Studies", "Reading", "Writing", "Luganda", "Religious Education"],
-  secondary_o: ["Mathematics", "English", "Physics", "Chemistry", "Biology", "History", "Geography", "Commerce", "Computer Studies", "Agriculture"],
-  secondary_a: ["General Paper", "Mathematics", "Physics", "Chemistry", "Biology", "History", "Geography", "Economics", "Entrepreneurship", "Computer Science"],
+  secondary_o: [
+    "English Language", "Mathematics", "Biology", "Chemistry", "Physics", "Geography", "History",
+    "CRE/IRE", "Economics", "Entrepreneurship", "Literature in English", "Kiswahili", "French",
+    "Computer Studies/ICT", "Agriculture", "Fine Art", "Music Dance & Drama", "Technical Drawing",
+    "Home Economics", "Food & Nutrition",
+  ],
+  secondary_a: [
+    "General Paper", "Subsidiary Mathematics", "Subsidiary ICT",
+    "Mathematics", "Physics", "Chemistry", "Biology", "Agriculture", "Computer Science/ICT",
+    "Economics", "Geography", "History", "Literature in English", "CRE/IRE",
+    "Entrepreneurship", "Fine Art", "Kiswahili", "Luganda", "French", "German", "Arabic",
+  ],
   vocational: ["Technical Drawing", "Workshop Practice", "Mathematics", "English", "Entrepreneurship", "ICT", "Theory Subject 1", "Theory Subject 2"],
   university: ["Course Unit 1", "Course Unit 2", "Course Unit 3", "Course Unit 4", "Course Unit 5", "Course Unit 6"],
 };
