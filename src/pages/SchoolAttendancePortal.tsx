@@ -151,8 +151,7 @@ const SchoolAttendancePortal = () => {
   // Update subjects when school changes
   useEffect(() => {
     if (selectedSchool) {
-      const isSecondary = ["secondary_o", "secondary_a"].includes(selectedSchool.level);
-      const newSubjects = isSecondary ? DEFAULT_SUBJECTS_SECONDARY : DEFAULT_SUBJECTS_PRIMARY;
+      const newSubjects = SUBJECTS_BY_LEVEL[selectedSchool.level] || SUBJECTS_BY_LEVEL.primary;
       setSubjectList(newSubjects);
       setPerfStudents([createEmptyStudent(newSubjects)]);
     }
