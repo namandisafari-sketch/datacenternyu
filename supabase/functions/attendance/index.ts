@@ -78,9 +78,25 @@ Deno.serve(async (req) => {
       );
     }
 
-    const office = setting.value as { lat: number; lng: number; radius_meters: number };
-    const distance = haversineDistance(lat, lng, office.lat, office.lng);
-    const withinRadius = distance <= office.radius_meters;
+    const settingVal = setting.value as any;
+    // Support multiple locations
+    const officeLocations: { name: string; lat: number; lng: number; radius_meters: number }[] =
+      Array.isArray(settingVal.locations) && settingVal.locations.length > 0
+        ? settingVal.locations
+        : [{ name: settingVal.name || "Office", lat: settingVal.lat, lng: settingVal.lng, radius_meters: settingVal.radius_meters }];
+
+    // Find closest office
+    let closestDistance = Infinity;
+    let closestOffice = officeLocations[0];
+    for (const office of officeLocations) {
+      const d = haversineDistance(lat, lng, office.lat, office.lng);
+      if (d < closestDistance) {
+        closestDistance = d;
+        closestOffice = office;
+      }
+    }
+    const distance = closestDistance;
+    const withinRadius = distance <= closestOffice.radius_meters;
 
     // Reject if GPS accuracy is too poor (> 100m)
     if (accuracy && accuracy > 100) {
@@ -97,9 +113,9 @@ Deno.serve(async (req) => {
     if (!withinRadius) {
       return new Response(
         JSON.stringify({
-          error: `You are ${Math.round(distance)}m from the office. You must be within ${office.radius_meters}m to ${action === "check_in" ? "check in" : "check out"}.`,
+          error: `You are ${Math.round(distance)}m from ${closestOffice.name || "the office"}. You must be within ${closestOffice.radius_meters}m to ${action === "check_in" ? "check in" : "check out"}.`,
           distance: Math.round(distance),
-          radius: office.radius_meters,
+          radius: closestOffice.radius_meters,
         }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
