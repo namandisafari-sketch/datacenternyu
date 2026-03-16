@@ -166,6 +166,7 @@ const AdminStaff = () => {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showIDCard, setShowIDCard] = useState<any>(null);
+  const [cardScale, setCardScale] = useState(1);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<StaffForm>(emptyForm);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
