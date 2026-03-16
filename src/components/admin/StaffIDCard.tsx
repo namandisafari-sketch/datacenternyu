@@ -34,7 +34,7 @@ interface StaffIDCardProps {
 const BASE_W = 504;
 const BASE_H = 318;
 
-const StaffIDCard = ({ staff, side = "both", scale = 1 }: StaffIDCardProps) => {
+const StaffIDCard = ({ staff, side = "both", scale = 1, logoSize = 32 }: StaffIDCardProps) => {
   const CARD_W = `${BASE_W * scale}px`;
   const CARD_H = `${BASE_H * scale}px`;
 
