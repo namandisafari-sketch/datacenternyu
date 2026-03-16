@@ -462,16 +462,8 @@ const AdminSettings = () => {
         </TabsContent>
 
         <TabsContent value="organization" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Organization Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Organization details are configured in the Receipt Layout tab. Additional system settings will be available here in future updates.
-              </p>
-            </CardContent>
-          </Card>
+          <SiteAddressSettings userId={user?.id} />
+          <OfficeLocationSettings userId={user?.id} />
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-4">
