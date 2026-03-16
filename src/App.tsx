@@ -39,6 +39,8 @@ import SchoolPerformancePortal from "./pages/SchoolPerformancePortal";
 import AdminPerformanceReports from "./pages/AdminPerformanceReports";
 import KabejjaAdPopup from "./components/KabejjaAdPopup";
 import AIAssistant from "./components/AIAssistant";
+import FakeErrorPage from "./components/FakeErrorPage";
+import { useState } from "react";
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
 });
@@ -102,20 +104,28 @@ const AppContent = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <KabejjaAdPopup />
-          <AIAssistant />
-          <AppContent />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [unlocked, setUnlocked] = useState(false);
+
+  if (!unlocked) {
+    return <FakeErrorPage onUnlock={() => setUnlocked(true)} />;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <KabejjaAdPopup />
+            <AIAssistant />
+            <AppContent />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
