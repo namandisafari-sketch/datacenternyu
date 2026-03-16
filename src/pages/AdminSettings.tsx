@@ -224,7 +224,7 @@ const OfficeLocationSettings = ({ userId }: { userId?: string }) => {
   );
 };
 
-
+const SkipPaymentCodeToggle = () => {
   const [skipCode, setSkipCode] = useState(false);
   const [loading, setLoading] = useState(true);
 
