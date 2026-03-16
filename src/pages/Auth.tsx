@@ -263,9 +263,6 @@ const Auth = () => {
                 </Button>
               </form>
               <div className="mt-4 text-center space-y-2">
-                <button onClick={() => setIsSignUp(!isSignUp)} className="text-sm text-primary hover:underline">
-                  {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
-                </button>
                 <button onClick={() => setAuthMethod("passkey")} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mx-auto">
                   <Fingerprint size={14} /> Use Passkey instead
                 </button>
