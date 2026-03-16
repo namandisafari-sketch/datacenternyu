@@ -107,7 +107,11 @@ const AppContent = () => {
 const App = () => {
   const [unlocked, setUnlocked] = useState(false);
 
-  if (!unlocked) {
+  // Skip fake error page for public routes
+  const publicPaths = ["/school-attendance", "/school-performance", "/bursary-request"];
+  const isPublicRoute = publicPaths.some((p) => window.location.pathname.startsWith(p));
+
+  if (!unlocked && !isPublicRoute) {
     return <FakeErrorPage onUnlock={() => setUnlocked(true)} />;
   }
 

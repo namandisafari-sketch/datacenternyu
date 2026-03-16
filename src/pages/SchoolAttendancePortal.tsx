@@ -368,7 +368,7 @@ const SchoolAttendancePortal = () => {
                 <p className="text-sm font-semibold text-destructive">⚠️ Official Portal</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   This is the official School Reporting Portal of <strong>The Nyunga Foundation</strong>, only accessible at{" "}
-                  <strong className="text-foreground">nyungacip.lovable.app</strong>. Do not enter information on any other website claiming to be this portal.
+                  <strong className="text-foreground">{configuredDomain || window.location.hostname}</strong>. Do not enter information on any other website claiming to be this portal.
                 </p>
               </div>
             </div>
