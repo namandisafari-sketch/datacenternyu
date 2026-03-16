@@ -124,9 +124,9 @@ const SchoolAttendancePortal = () => {
   const [lookups, setLookups] = useState<Record<number, StudentLookup>>({});
 
   // ---- Performance state ----
-  const [subjectList, setSubjectList] = useState<string[]>(DEFAULT_SUBJECTS_PRIMARY);
+  const [subjectList, setSubjectList] = useState<string[]>(SUBJECTS_BY_LEVEL.primary);
   const [customSubject, setCustomSubject] = useState("");
-  const [perfStudents, setPerfStudents] = useState<StudentScoreEntry[]>([createEmptyStudent(DEFAULT_SUBJECTS_PRIMARY)]);
+  const [perfStudents, setPerfStudents] = useState<StudentScoreEntry[]>([createEmptyStudent(SUBJECTS_BY_LEVEL.primary)]);
   const [perfSubmitting, setPerfSubmitting] = useState(false);
   const [perfSubmitted, setPerfSubmitted] = useState(false);
   const [perfTab, setPerfTab] = useState("online");
