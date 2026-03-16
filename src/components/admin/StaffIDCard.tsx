@@ -55,10 +55,12 @@ const StaffIDCard = ({ staff, side = "both", scale = 1, logoSize = 32 }: StaffID
     >
       {/* Header */}
       <div className="bg-primary px-3 py-1.5 flex items-center gap-2">
-        <img src={nyungaLogo} alt="Nyunga Foundation Logo" style={{ width: `${logoSize * scale}px`, height: `${logoSize * scale}px` }} className="rounded-full object-cover" />
-        <div className="flex-1 min-w-0">
-          <p className="text-primary-foreground text-[11px] font-bold tracking-wide leading-tight" style={{ fontSize: `${11 * scale}px` }}>NYUNGA FOUNDATION</p>
-          <p className="text-primary-foreground/70 uppercase tracking-widest" style={{ fontSize: `${8 * scale}px` }}>Staff Identity Card</p>
+        <div className="shrink-0 rounded-full bg-white flex items-center justify-center overflow-hidden" style={{ width: `${logoSize * scale}px`, height: `${logoSize * scale}px` }}>
+          <img src={nyungaLogo} alt="Nyunga Foundation Logo" className="w-full h-full object-contain" />
+        </div>
+        <div className="flex-1 min-w-0 text-center">
+          <h1 className="text-primary-foreground font-bold tracking-wide leading-tight" style={{ fontSize: `${14 * scale}px` }}>NYUNGA FOUNDATION</h1>
+          <h2 className="text-primary-foreground/70 uppercase tracking-widest" style={{ fontSize: `${9 * scale}px` }}>Staff Identity Card</h2>
         </div>
         <div className="bg-white/20 rounded px-1.5 py-0.5">
           <p className="text-primary-foreground font-bold tracking-wider uppercase" style={{ fontSize: `${7 * scale}px` }}>{staff.department || "STAFF"}</p>
