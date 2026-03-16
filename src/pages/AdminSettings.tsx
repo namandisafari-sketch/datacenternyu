@@ -43,7 +43,188 @@ const defaultReceiptConfig: ReceiptConfig = {
   lawyerFormFee: 200000,
 };
 
-const SkipPaymentCodeToggle = () => {
+// ── Site Address Setting ──
+const SiteAddressSettings = ({ userId }: { userId?: string }) => {
+  const [address, setAddress] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    supabase.from("app_settings").select("value").eq("key", "site_address").maybeSingle().then(({ data }) => {
+      if (data?.value) setAddress((data.value as any).address || "");
+      setLoaded(true);
+    });
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    const val = { address } as any;
+    const { data: existing } = await supabase.from("app_settings").select("id").eq("key", "site_address").maybeSingle();
+    const op = existing
+      ? supabase.from("app_settings").update({ value: val, updated_by: userId }).eq("key", "site_address")
+      : supabase.from("app_settings").insert({ key: "site_address", value: val, updated_by: userId });
+    const { error } = await op;
+    setSaving(false);
+    if (error) toast.error("Failed to save"); else toast.success("Site address saved");
+  };
+
+  if (!loaded) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Site Address</CardTitle>
+        <p className="text-sm text-muted-foreground">This address is displayed on the portal and printed documents.</p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="space-y-2">
+          <Label>Physical Address</Label>
+          <Textarea rows={2} placeholder="e.g. Plot 12, Bombo Road, Kampala, Uganda" value={address} onChange={(e) => setAddress(e.target.value)} />
+        </div>
+        <Button onClick={save} disabled={saving} className="gap-2">
+          <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Address"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ── Office Location(s) for GPS Attendance ──
+interface OfficeLocation {
+  name: string;
+  lat: string;
+  lng: string;
+  radius_meters: string;
+}
+
+const OfficeLocationSettings = ({ userId }: { userId?: string }) => {
+  const [locations, setLocations] = useState<OfficeLocation[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    supabase.from("app_settings").select("value").eq("key", "office_location").maybeSingle().then(({ data }) => {
+      if (data?.value) {
+        const val = data.value as any;
+        // Support legacy single-location format
+        if (val.lat !== undefined) {
+          setLocations([{ name: val.name || "Main Office", lat: String(val.lat), lng: String(val.lng), radius_meters: String(val.radius_meters || 100) }]);
+        } else if (Array.isArray(val.locations)) {
+          setLocations(val.locations.map((l: any) => ({ name: l.name || "", lat: String(l.lat), lng: String(l.lng), radius_meters: String(l.radius_meters || 100) })));
+        }
+      }
+      if (locations.length === 0 && !data?.value) {
+        setLocations([{ name: "Main Office", lat: "", lng: "", radius_meters: "100" }]);
+      }
+      setLoaded(true);
+    });
+  }, []);
+
+  const addLocation = () => {
+    setLocations((prev) => [...prev, { name: "", lat: "", lng: "", radius_meters: "100" }]);
+  };
+
+  const removeLocation = (i: number) => {
+    setLocations((prev) => prev.filter((_, idx) => idx !== i));
+  };
+
+  const updateLoc = (i: number, field: keyof OfficeLocation, value: string) => {
+    setLocations((prev) => prev.map((l, idx) => idx === i ? { ...l, [field]: value } : l));
+  };
+
+  const useMyLocation = (i: number) => {
+    if (!navigator.geolocation) { toast.error("Geolocation not supported"); return; }
+    toast.info("Getting your current location...");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        updateLoc(i, "lat", pos.coords.latitude.toFixed(6));
+        updateLoc(i, "lng", pos.coords.longitude.toFixed(6));
+        toast.success("Location captured!");
+      },
+      () => toast.error("Failed to get location"),
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
+  };
+
+  const save = async () => {
+    const parsed = locations.map((l) => ({
+      name: l.name || "Office",
+      lat: parseFloat(l.lat),
+      lng: parseFloat(l.lng),
+      radius_meters: parseInt(l.radius_meters) || 100,
+    }));
+    if (parsed.some((l) => isNaN(l.lat) || isNaN(l.lng))) {
+      toast.error("Please enter valid coordinates for all locations"); return;
+    }
+    setSaving(true);
+    // Save both legacy single format (first location) and multi-location array
+    const val = { ...parsed[0], locations: parsed } as any;
+    const { data: existing } = await supabase.from("app_settings").select("id").eq("key", "office_location").maybeSingle();
+    const op = existing
+      ? supabase.from("app_settings").update({ value: val, updated_by: userId }).eq("key", "office_location")
+      : supabase.from("app_settings").insert({ key: "office_location", value: val, updated_by: userId });
+    const { error } = await op;
+    setSaving(false);
+    if (error) toast.error("Failed to save"); else toast.success("Office location(s) saved — attendance geofencing updated");
+  };
+
+  if (!loaded) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Office Location(s) — GPS Geofencing</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Staff can only check in/out attendance when their phone GPS is within the configured radius of one of these locations.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {locations.map((loc, i) => (
+          <div key={i} className="border border-border rounded-lg p-4 space-y-3 bg-muted/30">
+            <div className="flex items-center justify-between">
+              <Label className="font-semibold">Location {i + 1}</Label>
+              {locations.length > 1 && (
+                <Button size="sm" variant="ghost" className="text-destructive h-7 gap-1" onClick={() => removeLocation(i)}>
+                  <Trash2 className="h-3 w-3" /> Remove
+                </Button>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Name</Label>
+              <Input placeholder="e.g. Main Office, Branch Office" value={loc.name} onChange={(e) => updateLoc(i, "name", e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs">Latitude</Label>
+                <Input placeholder="0.347596" value={loc.lat} onChange={(e) => updateLoc(i, "lat", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Longitude</Label>
+                <Input placeholder="32.582520" value={loc.lng} onChange={(e) => updateLoc(i, "lng", e.target.value)} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Allowed Radius (meters)</Label>
+              <Input type="number" min={10} max={5000} placeholder="100" value={loc.radius_meters} onChange={(e) => updateLoc(i, "radius_meters", e.target.value)} />
+              <p className="text-xs text-muted-foreground">Staff must be within {loc.radius_meters || "100"}m of this location to check in/out.</p>
+            </div>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => useMyLocation(i)}>
+              <MapPin className="h-3.5 w-3.5" /> Use My Current Location
+            </Button>
+          </div>
+        ))}
+        <Button variant="outline" onClick={addLocation} className="gap-1.5 w-full">
+          <Plus className="h-4 w-4" /> Add Another Office Location
+        </Button>
+        <Button onClick={save} disabled={saving} className="w-full gap-2">
+          <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Office Locations"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+
   const [skipCode, setSkipCode] = useState(false);
   const [loading, setLoading] = useState(true);
 
